@@ -1,0 +1,10 @@
+__pycache__/
+bin/
+*.pyc
+*.pyo
+/.venv/
+/asynckivy.egg-info/
+/.pytest_cache/
+/*kivymd*/
+/dist
+/docs/
