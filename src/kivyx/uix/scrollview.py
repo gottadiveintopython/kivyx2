@@ -61,7 +61,7 @@ def clamp(value, min, max):
     return max if value >= max else (min if value <= min else value)
 
 
-def compute_velocity(touch_history, timeout=10./60.):
+def compute_velocity(touch_history, timeout=1 / 6):
     '''
     .. code-block::
 
@@ -193,7 +193,7 @@ class KXScrollView(Widget):
     '''
     The X position of the vertical scrollbar relative to the KXScrollView.
 
-    By default, the vertical scrollbar is placed on the left side of the KXScrollView.  
+    By default, the vertical scrollbar is placed on the left side of the KXScrollView.
     To move it to the right, do the following:
 
     .. code-block:: yaml
@@ -464,7 +464,7 @@ class KXScrollView(Widget):
     _on_touch_up = partial(ak.event, Window, "on_touch_up")
 
     async def _handle_mouse_wheel(self, touch, VERTICAL_DIRECTIONS=("up", "down"),
-                                     POSITIVE_DIRECTIONS=("up", "right")):
+                                  POSITIVE_DIRECTIONS=("up", "right")):
         # STEP1: Check if scrolling is necessary or allowed in a given direction.
         direction = touch.button[6:]  # len("scroll") == 6
         is_vertical = direction in VERTICAL_DIRECTIONS
@@ -524,7 +524,8 @@ class KXScrollView(Widget):
         do_scroll_y = self.do_scroll_y
         do_overscroll_x = self.do_overscroll_x
         do_overscroll_y = self.do_overscroll_y
-        touch_history = deque(maxlen=5); history_append = touch_history.append
+        touch_history = deque(maxlen=5)
+        history_append = touch_history.append
         history_append((touch.time_start, 0, 0))
 
         def is_the_same_touch(w, t, touch=touch):
@@ -653,7 +654,7 @@ class KXScrollView(Widget):
                 self._content_y += touch.dy * vbar2content_ratio
 
         self._effect_y.activate()
-        
+
     def _update_bounds_x(self, *__):
         diff = self.width - self.content.width
         if diff < 0:

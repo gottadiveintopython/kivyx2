@@ -7,7 +7,7 @@ from kivyx.uix.behaviors.tap import KXTapGestureRecognizer, KXMultiTapGestureRec
 from kivyx.uix.behaviors.touchripple import KXTouchRippleBehavior
 
 
-class MultiTapButton(KXTouchRippleBehavior, KXMultiTapGestureRecognizer,  Label):
+class MultiTapButton(KXTouchRippleBehavior, KXMultiTapGestureRecognizer, Label):
     def on_multi_tap(self, n_taps, touches):
         if n_taps == 1:
             print("single-tapped.")
@@ -17,7 +17,7 @@ class MultiTapButton(KXTouchRippleBehavior, KXMultiTapGestureRecognizer,  Label)
             print(f"{n_taps}-tapped.")
 
 
-class SingleTapButton(KXTouchRippleBehavior, KXTapGestureRecognizer,  Label):
+class SingleTapButton(KXTouchRippleBehavior, KXTapGestureRecognizer, Label):
     def on_tap(self, touch):
         print("tapped.")
 

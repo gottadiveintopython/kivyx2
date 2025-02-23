@@ -48,6 +48,7 @@ BoxLayout:
         on_tap: sv.scroll_to_widget(self)
 '''
 
+
 class SampleApp(App):
     def build(self):
         return Builder.load_string(KV_CODE)
@@ -58,7 +59,7 @@ class SampleApp(App):
         add_widget = container.add_widget
         for i in range(20):
             add_widget(MyButton(text=str(i)))
-        
+
         def random_scroll(dt, buttons=container.children, sv=self.root.ids.sv):
             button = choice(buttons)
             print("scroll to button:", button.text)

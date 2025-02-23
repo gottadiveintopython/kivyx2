@@ -175,4 +175,3 @@ class SampleApp(App):
 
 if __name__ == '__main__':
     SampleApp(title="Nested ScrollView").run()
-
