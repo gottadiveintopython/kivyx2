@@ -28,24 +28,14 @@ KV_CODE = r'''
             size: self.size
         StencilPop:
 
-BoxLayout:
-    orientation: 'vertical'
-    spacing: 10
-    KXScrollView:
-        id: sv
-        smooth_scroll_end: 50
-        BoxLayout:
-            id: container
-            orientation: 'vertical'
-            spacing: 10
-            size_hint_y: None
-            height: self.minimum_height
-    MyButton:
-        text: "Tapping this button should raise a ValueErrorw."
-        font_size: 24
+KXScrollView:
+    smooth_scroll_end: 50
+    BoxLayout:
+        id: container
+        orientation: 'vertical'
+        spacing: 10
         size_hint_y: None
-        height: 100
-        on_tap: sv.scroll_to_widget(self)
+        height: self.minimum_height
 '''
 
 
@@ -60,7 +50,7 @@ class SampleApp(App):
         for i in range(20):
             add_widget(MyButton(text=str(i)))
 
-        def random_scroll(dt, buttons=container.children, sv=self.root.ids.sv):
+        def random_scroll(dt, buttons=container.children, sv=self.root):
             button = choice(buttons)
             print("scroll to button:", button.text)
             sv.scroll_to_widget(button)
