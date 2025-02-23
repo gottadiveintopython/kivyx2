@@ -38,6 +38,7 @@ KXScrollView:
         height: self.minimum_height
 '''
 
+
 class SampleApp(App):
     def build(self):
         return Builder.load_string(KV_CODE)
@@ -47,7 +48,7 @@ class SampleApp(App):
         add_widget = self.root.ids.container.add_widget
         for i in range(20):
             add_widget(MyButton(text=str(i)))
-        
+
         def random_scroll(dt, sv=self.root):
             distance = randint(-500, 500)
             print("scroll by distance:", distance)

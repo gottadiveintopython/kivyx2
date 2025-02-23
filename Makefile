@@ -6,8 +6,9 @@ test:
 	env KCFG_GRAPHICS_MAXFPS=0 $(PYTEST) ./tests
 
 style:
-	$(FLAKE8) --count --select=E9,F63,F7,F82 --show-source --statistics ./tests ./src/kivyx ./examples
-	$(FLAKE8) --count --max-complexity=10 --max-line-length=119 --statistics ./src/kivyx ./examples
+	$(FLAKE8) --count --select=E,W,F --show-source --statistics --max-line-length=119 ./src/kivyx
+	$(FLAKE8) --count --select=E,W,F --show-source --statistics --ignore E501 ./tests
+	$(FLAKE8) --count --select=E,W,F --show-source --statistics --max-line-length=119 --ignore F401,E402 ./examples
 
 html:
 	sphinx-build -b html ./sphinx ./docs
