@@ -85,10 +85,10 @@ def compute_velocity(touch_history, timeout=1 / 6):
 
 class KXScrollView(Widget):
     '''
-    Main differences from :class:`kivy.uix.scrollview.ScrollView`:
+    Main differences from the official :class:`~kivy.uix.scrollview.ScrollView`:
 
-    * When :attr:`do_scroll_x` is False, the content's x position can be controlled via ``pos_hint``.
-    * When :attr:`do_scroll_y` is False, the content's y position can be controlled via ``pos_hint``.
+    * When :attr:`do_scroll_x` is False, the content's X position can be controlled via ``pos_hint``.
+    * When :attr:`do_scroll_y` is False, the content's Y position can be controlled via ``pos_hint``.
     * Nested instances work as expected, avoiding many of the issues present in the original.
     * The content can be scrolled even when it's smaller than the KXScrollView.
     '''
@@ -124,7 +124,9 @@ class KXScrollView(Widget):
     '''(read-only) The Y position of the content relative to the KXScrollView.'''
 
     content_pos = ReferenceListProperty(content_x, content_y)
-    '''(read-only) A ``ReferenceListProperty`` of (``content_x`` and ``content_y``) properties.'''
+    '''(read-only) A :class:`~kivy.properties.ReferenceListProperty` of
+    (:attr:`content_x` and :attr:`content_y`) properties.
+    '''
 
     content_min_x = NumericProperty()
     '''(read-only) The lower bound of the content's X position relative to the KXScrollView.'''
@@ -148,8 +150,8 @@ class KXScrollView(Widget):
     Effect to apply for the X axis. If None is set, KXScrollView internally
     creates an appropriate instance with the following rules:
 
-    * If :attr:`do_overscroll_x` is True, it creates a :class:`KXDampedScrollEffect`.
-    * If :attr:`do_overscroll_x` is False, it creates a :class:`KXScrollEffect`.
+    * If :attr:`do_overscroll_x` is True, it creates a :class:`~kivyx.effects.dampedscroll.KXDampedScrollEffect`.
+    * If :attr:`do_overscroll_x` is False, it creates a :class:`~kivyx.effects.scroll.KXScrollEffect`.
 
     You may want to set this to non-None when:
 

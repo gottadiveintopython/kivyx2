@@ -8,7 +8,7 @@ from kivy.properties import NumericProperty
 
 
 class KXScrollEffect(EventDispatcher):
-    ''' A :class:`kivy.effects.scroll.ScrollEffect` equivalence. '''
+    ''' A :class:`~kivy.effects.scroll.ScrollEffect` equivalence. '''
 
     value = NumericProperty(0)
     ''' :attr:`kivy.effects.kinetic.KineticEffect.value` '''
@@ -71,9 +71,9 @@ class KXScrollEffect(EventDispatcher):
     _update = partial(_update, abs)
 
     def scroll_by(self, distance):
-        ''' 示された量だけ進むように速度を変える。 '''
+        ''' Adjust the :attr:`velocity` to achieve a specified movement distance. '''
         self.velocity = distance * self.friction / self.std_dt
 
     def scroll_to(self, new_value):
-        ''' 示された値に行き着くように速度を変える。 '''
+        '''Adjust the :attr:`velocity` to reach a specified value.'''
         self.scroll_by(new_value - self.value)

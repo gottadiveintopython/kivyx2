@@ -13,3 +13,10 @@ Widgets
 =======
 
 .. automodule:: kivyx.uix.scrollview
+
+Effects
+=======
+
+.. automodule:: kivyx.effects.scroll
+
+.. automodule:: kivyx.effects.dampedscroll
