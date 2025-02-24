@@ -1,6 +1,6 @@
 # Kivyx2
 
-Kivyx2 is an experiment to see if widgets can be designed according to the following principles:
+Kivyx2 is an experiment to explore whether Kivy widgets can be designed based on the following principles.
 
 - Avoid using `touch.grab()`.  
   - Instead, receive touch events directly from `kivy.core.window.Window`.  
@@ -10,4 +10,4 @@ Kivyx2 is an experiment to see if widgets can be designed according to the follo
 ## A major drawback
 
 The library follows its own touch-handling conventions.
-Kivy’s official widgets that respond to touches **may not work properly**.
+Widgets that respond to touches, including Kivy’s official widgets and other third-party widgets, **may not work properly**.

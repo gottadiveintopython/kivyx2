@@ -15,7 +15,8 @@ from kivyx.touch_filters import is_opos_colliding_and_not_wheel
 
 class KXTouchRippleBehavior:
     '''
-    Unlike the :class:`kivy.uix.behaviors.touchripple.TouchRippleBehavior`, this one does not clip its drawing area.
+    Unlike the official :class:`~kivy.uix.behaviors.touchripple.TouchRippleBehavior`,
+    this one does not clip its drawing area.
     '''
 
     ripple_initial_size = NumericProperty('20dp')

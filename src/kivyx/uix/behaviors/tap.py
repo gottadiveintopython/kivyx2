@@ -3,7 +3,6 @@ __all__ = ("KXTapGestureRecognizer", "KXMultiTapGestureRecognizer", )
 from collections.abc import Sequence
 from functools import partial
 
-from kivy.input.motionevent import MotionEvent
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.properties import BoundedNumericProperty, NumericProperty
@@ -15,12 +14,12 @@ from kivyx.touch_filters import is_opos_colliding, is_opos_colliding_and_not_whe
 
 class KXTapGestureRecognizer:
     '''
-    A :class:`kivy.uix.behaviors.button.ButtonBehavior` alternative for this library.
+    A :class:`~kivy.uix.behaviors.button.ButtonBehavior` alternative for this library.
     '''
 
-    def on_tap(self, touch: MotionEvent):
+    def on_tap(self, touch):
         '''
-        :param touch: The ``MotionEvent`` instance that caused the ``on_tap`` event.
+        :param touch: The :class:`~kivy.input.motionevent.MotionEvent` instance that caused the ``on_tap`` event.
         '''
 
     def __init__(self, **kwargs):
@@ -66,11 +65,11 @@ class KXMultiTapGestureRecognizer:
     tap_max_count = BoundedNumericProperty(2, min=1)
     tap_max_interval = NumericProperty(.3)
 
-    def on_multi_tap(self, n_taps: int, touches: Sequence[MotionEvent]):
+    def on_multi_tap(self, n_taps: int, touches: Sequence):
         '''
         :param n_taps: This equals to ``len(touches)``.
-        :param touches: The ``MotionEvent`` instances that caused the ``on_multi_tap`` event.
-                        They are listed in the order they occurred.
+        :param touches: The :class:`~kivy.input.motionevent.MotionEvent` instances that caused the
+                        ``on_multi_tap`` event. They are listed in the order they occurred.
         '''
 
     def __init__(self, **kwargs):
