@@ -14,6 +14,8 @@ Widgets
 
 .. automodule:: kivyx.uix.scrollview
 
+.. automodule:: kivyx.uix.switch
+
 Effects
 =======
 

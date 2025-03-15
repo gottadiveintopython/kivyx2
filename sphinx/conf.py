@@ -58,7 +58,7 @@ autodoc_default_options = {
    'members': True,
    'undoc-members': True,
    'no-show-inheritance': True,
-   'exclude-members': "on_touch_down, on_touch_move, on_touch_up, on_motion, to_local, to_parent, to_window, to_widget, __init__",
+   'exclude-members': "on_touch_down, on_touch_move, on_touch_up, on_motion, to_local, to_parent, to_window, to_widget, collide_point, __init__",
 }
 autodoc_class_signature = 'separated'
 # autodoc_preserve_defaults = True
