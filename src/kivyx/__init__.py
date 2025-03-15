@@ -16,6 +16,7 @@ def register_components():
 
     # Widgets
     r("KXScrollView", module="kivyx.uix.scrollview")
+    r("KXSwitch", module="kivyx.uix.switch")
 
 
 @immediate_call

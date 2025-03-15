@@ -92,6 +92,7 @@ class KXScrollView(Widget):
     * Nested instances work as expected, avoiding many of the issues present in the original.
     * The content can be scrolled even when it's smaller than the KXScrollView.
     '''
+
     scroll_distance = NumericProperty(SV.scroll_distance.defaultvalue)
     ''' :attr:`kivy.uix.scrollview.ScrollView.scroll_distance` '''
 
