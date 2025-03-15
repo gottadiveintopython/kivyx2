@@ -5,7 +5,7 @@ from functools import partial
 
 from kivy.core.window import Window
 from kivy.clock import Clock
-from kivy.properties import BoundedNumericProperty, NumericProperty
+from kivy.properties import BoundedNumericProperty, NumericProperty, ObjectProperty
 
 import asynckivy as ak
 
@@ -15,6 +15,12 @@ from kivyx.touch_filters import is_opos_colliding, is_opos_colliding_and_not_whe
 class KXTapGestureRecognizer:
     '''
     A :class:`~kivy.uix.behaviors.button.ButtonBehavior` alternative for this library.
+    '''
+
+    tap_filter = ObjectProperty(is_opos_colliding_and_not_wheel)
+    '''
+    An ``on_touch_down`` event that does not pass this filter will immediately be disregarded as a tapping gesture.
+    Defaults to :func:`~kivyx.touch_filters.is_opos_colliding_and_not_wheel`.
     '''
 
     def on_tap(self, touch):
@@ -30,6 +36,7 @@ class KXTapGestureRecognizer:
         f = self.fbind
         f("disabled", t)
         f("parent", t)
+        f("tap_filter", t)
         self.bind(
             on_touch_down=is_opos_colliding,
             on_touch_move=is_colliding,
@@ -45,7 +52,7 @@ class KXTapGestureRecognizer:
 
     async def __main(self):
         touch = None
-        on_touch_down = partial(ak.event, self, "on_touch_down", filter=is_opos_colliding_and_not_wheel)
+        on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.tap_filter)
         on_touch_up = partial(ak.event, Window, "on_touch_up", filter=lambda w, t: t is touch)
         to_parent = self.parent.to_widget
         while True:
@@ -64,6 +71,11 @@ class KXTapGestureRecognizer:
 class KXMultiTapGestureRecognizer:
     tap_max_count = BoundedNumericProperty(2, min=1)
     tap_max_interval = NumericProperty(.3)
+    tap_filter = ObjectProperty(is_opos_colliding_and_not_wheel)
+    '''
+    An ``on_touch_down`` event that does not pass this filter will immediately be disregarded as a tapping gesture.
+    Defaults to :func:`~kivyx.touch_filters.is_opos_colliding_and_not_wheel`.
+    '''
 
     def on_multi_tap(self, n_taps: int, touches: Sequence):
         '''
@@ -82,6 +94,7 @@ class KXMultiTapGestureRecognizer:
         f("parent", t)
         f("tap_max_count", t)
         f("tap_max_interval", t)
+        f("tap_filter", t)
         self.bind(
             on_touch_down=is_opos_colliding,
             on_touch_move=is_colliding,
@@ -97,7 +110,7 @@ class KXMultiTapGestureRecognizer:
 
     async def __main(self):
         touch = None
-        on_touch_down = partial(ak.event, self, "on_touch_down", filter=is_opos_colliding_and_not_wheel)
+        on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.tap_filter)
         on_touch_up = partial(ak.event, Window, "on_touch_up", filter=lambda w, t: t is touch)
         to_parent = self.parent.to_widget
         collide_point = self.collide_point
