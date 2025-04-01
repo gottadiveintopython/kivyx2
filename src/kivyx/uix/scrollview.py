@@ -341,9 +341,6 @@ class KXScrollView(Widget):
                 e = KXScrollEffect()
         e.activate()
         e.velocity = 0
-        e.min = self.content_min_x
-        e.max = self.content_max_x
-        e.value = self.content_x
         self._effect_x = e
         try:
             with (
@@ -367,9 +364,6 @@ class KXScrollView(Widget):
                 e = KXScrollEffect()
         e.activate()
         e.velocity = 0
-        e.min = self.content_min_y
-        e.max = self.content_max_y
-        e.value = self.content_y
         self._effect_y = e
         try:
             with (
