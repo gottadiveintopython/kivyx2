@@ -341,9 +341,6 @@ class KXScrollView(Widget):
                 e = KXScrollEffect()
         e.activate()
         e.velocity = 0
-        e.min = self.content_min_x
-        e.max = self.content_max_x
-        e.value = self.content_x
         self._effect_x = e
         try:
             with (
@@ -367,9 +364,6 @@ class KXScrollView(Widget):
                 e = KXScrollEffect()
         e.activate()
         e.velocity = 0
-        e.min = self.content_min_y
-        e.max = self.content_max_y
-        e.value = self.content_y
         self._effect_y = e
         try:
             with (
@@ -749,14 +743,12 @@ class KXScrollView(Widget):
     def _keep_updating_content_size_from_hint(self, content):
         t = Clock.schedule_once(self._update_content_size_from_hint, -1)
         try:
-            content.bind(size_hint_x=t, size_hint_min_x=t, size_hint_max_x=t,
-                         size_hint_y=t, size_hint_min_y=t, size_hint_max_y=t)
+            content.bind(size_hint=t, size_hint_min=t, size_hint_max=t)
             self.bind(width=t, height=t)
             yield
         finally:
             t.cancel()
-            content.unbind(size_hint_x=t, size_hint_min_x=t, size_hint_max_x=t,
-                           size_hint_y=t, size_hint_min_y=t, size_hint_max_y=t)
+            content.unbind(size_hint=t, size_hint_min=t, size_hint_max=t)
             self.unbind(width=t, height=t)
 
     def _update_content_x_from_hint(self, dt):
