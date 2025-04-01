@@ -249,17 +249,17 @@ class KXDraggableBehavior:
             # wait for other widgets to react to 'on_touch_up'
             await ak.sleep(-1)
 
-            ctx.droppable = droppable = touch_ud.get('kivyx_droppable', None)
-            if droppable is None or (not droppable.accepts_drag(touch, ctx, self)):
+            acceptor = touch_ud.get('kivyx_potential_drag_acceptor', None)
+            if acceptor is None or (not acceptor.accept_drag(touch, ctx, self)):
+                ctx.denier = acceptor
                 r = self.dispatch('on_drag_fail', touch, ctx)
                 self.drag_state = 'failed'
             else:
+                ctx.acceptor = acceptor
                 r = self.dispatch('on_drag_succeed', touch, ctx)
                 self.drag_state = 'succeeded'
-            async with ak.disable_cancellation():
-                if isawaitable(r):
-                    await r
-                await ak.sleep(-1)  # This is necessary in order to work with Magnet iirc.
+            if isawaitable(r):
+                await r
         except ak.Cancelled:
             self.dispatch('on_drag_cancel', touch, ctx)
             self.drag_state = 'cancelled'
@@ -267,7 +267,7 @@ class KXDraggableBehavior:
         finally:
             self.dispatch('on_drag_end', touch, ctx)
             self.drag_state = None
-            touch_ud['kivyx_droppable'] = None
+            touch_ud['kivyx_potential_drag_acceptor'] = None
             del touch_ud['kivyx_drag_cls']
             del touch_ud['kivyx_draggable']
             del touch_ud['kivyx_drag_ctx']
@@ -279,19 +279,11 @@ class KXDraggableBehavior:
         pass
 
     def on_drag_succeed(self, touch, ctx: DragContext):
-        original_state = ctx.original_state
-        self.parent.remove_widget(self)
-        self.size_hint_x = original_state['size_hint_x']
-        self.size_hint_y = original_state['size_hint_y']
-        self.pos_hint = original_state['pos_hint']
-        ctx.droppable.add_widget(self, index=touch.ud.get('kivyx_droppable_index', 0))
+        pass
 
     async def on_drag_fail(self, touch, ctx: DragContext):
-        await ak.anim_attrs(
-            self, duration=.1,
-            x=ctx.original_pos_win[0],
-            y=ctx.original_pos_win[1],
-        )
+        x, y = ctx.original_pos_win
+        await ak.anim_attrs(self, duration=.1, x=x, y=y)
         restore_widget_state(self, ctx.original_state)
 
     def on_drag_cancel(self, touch, ctx: DragContext):
@@ -312,11 +304,17 @@ class KXDragTargetBehavior:
         touch_ud = touch.ud
         if touch_ud.get('kivyx_drag_cls', None) in self.drag_classes:
             if self.collide_point(*touch.pos):
-                touch_ud.setdefault('kivyx_droppable', self)
+                touch_ud.setdefault('kivyx_potential_drag_acceptor', self)
         return r
 
-    def accepts_drag(self, touch, ctx: DragContext, draggable: KXDraggableBehavior) -> bool:
-        '''Determines whether the droppable is willing to accept the drag'''
+    def accept_drag(self, touch, ctx: DragContext, draggable: KXDraggableBehavior) -> bool:
+        d = draggable
+        d.parent.remove_widget(d)
+        os = ctx.original_state
+        d.size_hint_x = os['size_hint_x']
+        d.size_hint_y = os['size_hint_y']
+        d.pos_hint = os['pos_hint']
+        self.add_widget(d)
         return True
 
 
@@ -328,7 +326,7 @@ class KXDragReorderBehavior:
     '''A list of spacer widgets. The number of them will be the
     maximum number of simultaneous drags ``KXDragReorderBehavior`` can handle.
 
-    This property can be changed only when there is no ongoing drag.
+    This property can be changed only when there is no ongoing drag in this widget.
     '''
 
     def __init__(self, **kwargs):
@@ -338,7 +336,7 @@ class KXDragReorderBehavior:
         super().__init__(**kwargs)
         self.__ud_key = 'KXDragReorderBehavior.' + str(self.uid)
 
-    def accepts_drag(self, touch, ctx: DragContext, draggable: KXDraggableBehavior) -> bool:
+    def accept_drag(self, touch, ctx: DragContext, draggable: KXDraggableBehavior) -> bool:
         '''Determines whether the reorderable is willing to accept the drag'''
         return True
 
@@ -409,8 +407,8 @@ class KXDragReorderBehavior:
                 else:
                     del touch_ud[self.__ud_key]
                     return
-            if 'kivyx_droppable' not in touch_ud:
-                touch_ud['kivyx_droppable'] = self
+            if 'kivyx_potential_drag_acceptor' not in touch_ud:
+                touch_ud['kivyx_potential_drag_acceptor'] = self
                 touch_ud['kivyx_droppable_index'] = self.children.index(spacer)
         finally:
             self.remove_widget(spacer)
