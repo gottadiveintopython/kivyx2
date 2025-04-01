@@ -26,22 +26,18 @@ files = [
 
 [[package]]
 name = "asynckivy"
-version = "0.8.0.dev0"
+version = "0.8.1"
 description = "Async library for Kivy"
 optional = false
-python-versions = "^3.9"
+python-versions = "<4.0,>=3.9"
 groups = ["main"]
-files = []
-develop = false
+files = [
+    {file = "asynckivy-0.8.1-py3-none-any.whl", hash = "sha256:cbc69c52c1b0285093984d5c03c0981892fc5c505ba88d94690fb907e3896fb6"},
+    {file = "asynckivy-0.8.1.tar.gz", hash = "sha256:ecf9c99452ab561bbf57c65b55eb77dec45f60f6abc2d7e99612dd9e08750cbe"},
+]
 
 [package.dependencies]
 asyncgui = ">=0.7.2,<0.9"
-
-[package.source]
-type = "git"
-url = "https://github.com/asyncgui/asynckivy.git"
-reference = "dev"
-resolved_reference = "85941b2b72de7a4f75ca11d596b3817afd1c6a63"
 
 [[package]]
 name = "babel"
@@ -839,4 +835,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "460c07ead6f1dd69cc5041c7fc37d3f731e15a6e4365def176995090e510f484"
+content-hash = "b9c2b0655a91826169500831d5dae9531e1600b30aef23b0be2118da1f52b0d2"
