@@ -7,9 +7,11 @@ from typing import List, Tuple, Union
 from inspect import isawaitable
 from dataclasses import dataclass
 from copy import deepcopy
+from functools import partial
 
 from kivy.properties import (
     BooleanProperty, ListProperty, StringProperty, NumericProperty, OptionProperty, AliasProperty,
+    ObjectProperty,
 )
 from kivy.clock import Clock
 from kivy.factory import Factory
@@ -18,7 +20,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.scrollview import ScrollView
 import asynckivy as ak
 
-from kivyx.touch_filters import is_opos_colliding, is_opos_colliding_and_not_wheel, is_colliding
+from kivyx.touch_filters import is_opos_colliding_and_not_wheel
 
 
 Wow = Union[Window, Widget]  # Window or Widget
@@ -132,39 +134,60 @@ class KXDraggableBehavior:
     is_being_dragged = AliasProperty(lambda self: self.drag_state is not None, bind=('drag_state', ), cache=True)
     '''(read-only)'''
 
+    drag_filter = ObjectProperty(is_opos_colliding_and_not_wheel)
+    '''
+    ``on_touch_down`` event that does not pass this filter will immediately be disregarded
+    as a dragging gesture.
+    '''
+
     def drag_cancel(self):
         '''
         If the draggable is currently being dragged, cancels it.
         '''
-        self.__main_task.cancel()
+
+    def start_dragging_from_others_touch(self, receiver: Wow, touch):
+        '''
+        You are responsible for setting the size, position, or both of the draggable before calling this method.
+ 
+        :param receiver: The widget or Window that received the ``touch``.
+        :param touch: The touch that is going to drag the draggable.
+        '''
 
     def __init__(self, **kwargs):
         self.__main_task = ak.dummy_task
+        self.__start_ev = ak.ExclusiveEvent()
+        self.__cancel_ev = ak.ExclusiveEvent()
+        self.drag_cancel = self.__cancel_ev.fire
+        self.start_dragging_from_others_touch = self.__start_ev.fire
         super().__init__(**kwargs)
-        self.bind(
-            on_touch_down=is_opos_colliding,
-            on_touch_move=is_colliding,
-            on_touch_up=is_colliding,
-        )
-        self.fbind("on_touch_down", self.__on_touch_down)
+        t = Clock.schedule_once(self.__reset)
+        f = self.fbind
+        f("disabled", t)
+        f("drag_enabled", t)
+        f("drag_filter", t)
 
-    def _is_a_touch_potentially_a_dragging_gesture(self, touch) -> bool:
-        '''
-        ``on_touch_down`` event that does not pass this filter will immediately be disregarded
-        as a dragging gesture.
-        '''
-        return self.collide_point(*touch.opos) and (not touch.is_mouse_scrolling)
+    # Python's name mangling is weird. This method cannot be named '__reset'.
+    def _KXKXDraggableBehavior__reset(self, __):
+        self.__main_task.cancel()
+        if self.disabled or (not self.drag_enabled):
+            return
+        self.__main_task = ak.managed_start(ak.wait_all(
+            self.__touch_listener(),
+            self.__start_ev_listener(),
+        ))
 
-    @property
-    def __can_perform_drag(self) -> bool:
-        return self.drag_enabled and (not self.is_being_dragged)
-
-    def __on_touch_down(self, touch):
-        if self._is_a_touch_potentially_a_dragging_gesture(touch) and self.__can_perform_drag:
-            if self.drag_timeout:
-                ak.managed_start(self._see_if_a_touch_actually_is_a_dragging_gesture(touch))
-            else:
-                ak.managed_start(self._perform_drag(touch))
+    async def __touch_listener(self):
+        on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.drag_filter)
+        start_ev_fire = self.__start_ev.fire
+        async with ak.open_nursery() as nursery:
+            while True:
+                __, touch = await on_touch_down()
+                if self.is_being_dragged:
+                    continue
+                if self.drag_timeout:
+                    nursery.start(self._see_if_a_touch_actually_is_a_dragging_gesture(touch))
+                else:
+                    start_ev_fire(self, touch)
 
     async def _see_if_a_touch_actually_is_a_dragging_gesture(self, touch, Window=Window):
         async with ak.move_on_after(self.drag_timeout) as timeout_tracker:
@@ -185,22 +208,20 @@ class KXDraggableBehavior:
                     if dy > drag_distance or dx > drag_distance:
                         break
 
-        if timeout_tracker.finished and self.__can_perform_drag:
-            ak.managed_start(self._perform_drag(touch, Window))
+        if timeout_tracker.finished:
+            self.__start_ev.fire(Window, touch)
 
-    def start_dragging_from_others_touch(self, receiver: Wow, touch):
-        '''
-        You are responsible for setting the size, position, or both of the draggable before calling this method.
- 
-        :param receiver: The widget or Window that received the ``touch``.
-        :param touch: The touch that is going to drag the draggable.
-        '''
-        if self.__can_perform_drag:
-            ak.managed_start(self._perform_drag(touch, receiver))
-        else:
-            raise Exception("Draggable is unable to start a drag operation right now.")
+    async def __start_ev_listener(self):
+        cancel_ev_wait = self.__cancel_ev.wait
+        start_ev_wait = self.__start_ev.wait
+        perform_drag = self.__perform_drag
+        while True:
+            async with ak.move_on_when(cancel_ev_wait()):
+                while True:
+                    receiver, touch = await start_ev_wait()
+                    await perform_drag(receiver, touch)
 
-    async def _perform_drag(self, touch, receiver: Wow, Window=Window):
+    async def __perform_drag(self, receiver: Wow, touch, Window=Window):
         touch_ud = touch.ud
         touch_ud["kivyx_claim_signal"].fire()
         try:
