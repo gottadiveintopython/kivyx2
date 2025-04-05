@@ -124,8 +124,8 @@ class KXDraggableBehavior:
     '''in seconds. Defaults to 0.2.'''
 
     drag_enabled = BooleanProperty(True)
-    '''Indicates whether this draggable can be dragged or not. Changing this
-    doesn't affect ongoing drag. Call :meth:`drag_cancel` if you want to do that.
+    '''Indicates whether this draggable can be dragged or not.
+    Unlike the Kivy Garden's one, setting this to False cancels ongoing drag.
     '''
 
     drag_state = OptionProperty(None, options=('started', 'succeeded', 'failed', 'cancelled'), allownone=True)
@@ -147,10 +147,13 @@ class KXDraggableBehavior:
 
     def start_dragging_from_others_touch(self, receiver: Wow, touch):
         '''
-        You are responsible for setting the size, position, or both of the draggable before calling this method.
- 
         :param receiver: The widget or Window that received the ``touch``.
         :param touch: The touch that is going to drag the draggable.
+
+        Notes:
+
+        * You are responsible for setting the size, position, or both of the draggable depending on the situation.
+        * The :attr:`drag_filter` won't be applied to the touch.
         '''
 
     def __init__(self, **kwargs):
@@ -173,7 +176,7 @@ class KXDraggableBehavior:
             return
         self.__main_task = ak.managed_start(ak.wait_all(
             self.__touch_listener(),
-            self.__start_ev_listener(),
+            self.__events_listener(),
         ))
 
     async def __touch_listener(self):
@@ -189,29 +192,28 @@ class KXDraggableBehavior:
                 else:
                     start_ev_fire(self, touch)
 
-    async def _see_if_a_touch_actually_is_a_dragging_gesture(self, touch, Window=Window):
-        async with ak.move_on_after(self.drag_timeout) as timeout_tracker:
+    async def _see_if_a_touch_actually_is_a_dragging_gesture(self, touch, Window=Window, ak=ak):
+        async with (
+            ak.move_on_when(touch.ud["kivyx_claim_signal"].wait()),
+            ak.move_on_after(self.drag_timeout) as timeout_tracker,
+            ak.event_freq(Window, "on_touch_move") as on_touch_move,
+            ak.move_on_when(ak.event(Window, "on_touch_up")),
+        ):
             # LOAD_FAST
             abs_ = abs
             drag_distance = self.drag_distance
             ox, oy = self.to_window(*touch.opos)
-
-            async with(
-                ak.move_on_when(touch.ud["kivyx_claim_signal"].wait()),
-                ak.move_on_when(ak.event(Window, "on_touch_up")),
-                ak.event_freq(Window, "on_touch_move") as on_touch_move,
-            ):
-                while True:
-                    await on_touch_move()
-                    dx = abs_(touch.x - ox)
-                    dy = abs_(touch.y - oy)
-                    if dy > drag_distance or dx > drag_distance:
-                        break
+            while True:
+                await on_touch_move()
+                dx = abs_(touch.x - ox)
+                dy = abs_(touch.y - oy)
+                if dy > drag_distance or dx > drag_distance:
+                    break
 
         if timeout_tracker.finished:
             self.__start_ev.fire(Window, touch)
 
-    async def __start_ev_listener(self):
+    async def __events_listener(self):
         cancel_ev_wait = self.__cancel_ev.wait
         start_ev_wait = self.__start_ev.wait
         perform_drag = self.__perform_drag
@@ -225,35 +227,27 @@ class KXDraggableBehavior:
         touch_ud = touch.ud
         touch_ud["kivyx_claim_signal"].fire()
         try:
-            original_pos_win = self.to_window(*self.pos)
-            ox, oy = receiver.to_window(*touch.opos)
-            self_x, self_y = self.to_window(*self.pos)
-            offset_x = self_x - ox
-            offset_y = self_y - oy
             ctx = DragContext(
-                original_pos_win=original_pos_win,
                 original_state=save_widget_state(self),
             )
+            ctx.original_pos_win = self_x, self_y = self.to_window(*self.pos)
+            ox, oy = receiver.to_window(*touch.opos)
+            offset_x = self_x - ox
+            offset_y = self_y - oy
 
             # move self under the Window
             if self.parent is not None:
                 self.parent.remove_widget(self)
-            self.size_hint = (None, None, )
+            self.size_hint_x = self.size_hint_y = None
             self.pos_hint = {}
-            self.pos = (
-                original_pos_win[0] - offset_x,
-                original_pos_win[1] - offset_y,
-            )
+            self.x = self_x
+            self.y = self_y
             Window.add_widget(self)
 
             # mark the touch so that other widgets can react to this drag
             touch_ud['kivyx_drag_cls'] = self.drag_cls
             touch_ud['kivyx_draggable'] = self
             touch_ud['kivyx_drag_ctx'] = ctx
-
-            # store the task instance so that the user can cancel it later
-            self.__main_task.cancel()
-            self.__main_task = await ak.current_task()
 
             # actual dragging process
             self.dispatch('on_drag_start', touch, ctx)
@@ -267,7 +261,7 @@ class KXDraggableBehavior:
                     self.x = touch.x + offset_x
                     self.y = touch.y + offset_y
 
-            # wait for other widgets to react to 'on_touch_up'
+            # wait for other widgets to respond to the 'on_touch_up' event
             await ak.sleep(-1)
 
             acceptor = touch_ud.get('kivyx_potential_drag_acceptor', None)
