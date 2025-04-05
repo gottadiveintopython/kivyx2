@@ -3,7 +3,7 @@ __all__ = (
     "ongoing_drags", "save_widget_state", "restore_widget_state",
 )
 
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, TypeAlias
 from inspect import isawaitable
 from dataclasses import dataclass
 from copy import deepcopy
@@ -15,38 +15,41 @@ from kivy.properties import (
 )
 from kivy.clock import Clock
 from kivy.factory import Factory
-from kivy.core.window import Window
+from kivy.utils import rgba
+from kivy.graphics import Color, Rectangle
+from kivy.core.window import Window, WindowBase
 from kivy.uix.widget import Widget
 from kivy.uix.scrollview import ScrollView
 import asynckivy as ak
 
 from kivyx.touch_filters import is_opos_colliding_and_not_wheel
 
+Wow: TypeAlias = Union[WindowBase, Widget]  # Window or Widget
+DragTarget: TypeAlias = Union['KXDragTargetBehavior', 'KXDragReorderBehavior']
 
-Wow = Union[Window, Widget]  # Window or Widget
 
-
-@dataclass
+@dataclass(slots=True)
 class DragContext:
+    '''
+    A dataclass that holds information about a drag.
+    It is instantiated each time a drag occurs.
+    '''
+
     original_pos_win: tuple = None
-    '''(read-only) The position of the draggable at the time the drag has
+    '''
+    (read-only) The position of the draggable at the time this drag has
     started. (in window coordinates).
     '''
 
     original_state: dict = None
     '''
-    (read-only) The state of the draggable at the time the drag has started.
-    This can be passed to ``restore_widget_state()``.
+    (read-only) The state of the draggable at the time this drag has started.
+    This can be passed to :func:`restore_widget_state`.
     '''
 
-    acceptor: Union[None, 'KXDragTargetBehavior', 'KXDragReorderBehavior'] = None
-    '''(read-only) The widget that accepted the drag.
-    This will be set only when an ``on_drag_succeed`` occurs.
+    released_on: Union[None, DragTarget] = None
     '''
-
-    denier: Union[None, 'KXDragTargetBehavior', 'KXDragReorderBehavior'] = None
-    '''(read-only) The widget that denied the drag.
-    This will be set only when an ``on_drag_fail`` occurs.
+    (read-only) The widget where the draggable was released.
     '''
 
 
@@ -59,6 +62,9 @@ _shallow_copyable_property_names = (
 
 
 def save_widget_state(widget, *, ignore_parent=False) -> dict:
+    '''
+    Copies and returns the values of sizing and positioning properties of the widget.
+    '''
     w = widget.__self__
     getattr_ = getattr
     state = {name: getattr_(w, name) for name in _shallow_copyable_property_names}
@@ -93,21 +99,16 @@ def restore_widget_state(widget, state: dict, *, ignore_parent=False):
 
 def _create_spacer(**kwargs):
     '''(internal)'''
-    from kivy.uix.widget import Widget
-    from kivy.utils import rgba
-    from kivy.graphics import Color, Rectangle
-    spacer = Widget(size_hint_min=('50dp', '50dp'))
+    color = kwargs.pop('color', None)
+    spacer = Widget(**kwargs)
     with spacer.canvas:
-        color = kwargs.get('color', None)
         if color is None:
             Color(.2, .2, .2, .7)
         else:
             Color(*rgba(color))
-        rect_inst = Rectangle(size=spacer.size)
-    spacer.bind(
-        pos=lambda __, value: setattr(rect_inst, 'pos', value),
-        size=lambda __, value: setattr(rect_inst, 'size', value),
-    )
+        rect = Rectangle()
+    ak.sync_attr((spacer, "pos"), (rect, "pos"))
+    ak.sync_attr((spacer, "size"), (rect, "size"))
     return spacer
 
 
@@ -176,7 +177,7 @@ class KXDraggableBehavior:
             return
         self.__main_task = ak.managed_start(ak.wait_all(
             self.__touch_listener(),
-            self.__events_listener(),
+            self.__event_listener(),
         ))
 
     async def __touch_listener(self):
@@ -213,7 +214,7 @@ class KXDraggableBehavior:
         if timeout_tracker.finished:
             self.__start_ev.fire(Window, touch)
 
-    async def __events_listener(self):
+    async def __event_listener(self):
         cancel_ev_wait = self.__cancel_ev.wait
         start_ev_wait = self.__start_ev.wait
         perform_drag = self.__perform_drag
@@ -264,13 +265,11 @@ class KXDraggableBehavior:
             # wait for other widgets to respond to the 'on_touch_up' event
             await ak.sleep(-1)
 
-            acceptor = touch_ud.get('kivyx_potential_drag_acceptor', None)
-            if acceptor is None or (not acceptor.accept_drag(touch, ctx, self)):
-                ctx.denier = acceptor
+            ctx.released_on = released_on = touch_ud.get('kivyx_drag_released_on', None)
+            if released_on is None or (not released_on.dispatch("on_drag_release", touch, ctx, self)):
                 r = self.dispatch('on_drag_fail', touch, ctx)
                 self.drag_state = 'failed'
             else:
-                ctx.acceptor = acceptor
                 r = self.dispatch('on_drag_succeed', touch, ctx)
                 self.drag_state = 'succeeded'
             if isawaitable(r):
@@ -282,7 +281,7 @@ class KXDraggableBehavior:
         finally:
             self.dispatch('on_drag_end', touch, ctx)
             self.drag_state = None
-            touch_ud['kivyx_potential_drag_acceptor'] = None
+            touch_ud['kivyx_drag_released_on'] = None
             del touch_ud['kivyx_drag_cls']
             del touch_ud['kivyx_draggable']
             del touch_ud['kivyx_drag_ctx']
@@ -311,18 +310,18 @@ def ongoing_drags() -> List[KXDraggableBehavior]:
 
 
 class KXDragTargetBehavior:
+    __events__ = ("on_drag_release", "on_drag_enter", "on_drag_leave", )
     drag_classes = ListProperty([])
-    '''Same as drag_n_drop's '''
 
     def on_touch_up(self, touch):
         r = super().on_touch_up(touch)
         touch_ud = touch.ud
         if touch_ud.get('kivyx_drag_cls', None) in self.drag_classes:
             if self.collide_point(*touch.pos):
-                touch_ud.setdefault('kivyx_potential_drag_acceptor', self)
+                touch_ud.setdefault('kivyx_drag_released_on', self)
         return r
 
-    def accept_drag(self, touch, ctx: DragContext, draggable: KXDraggableBehavior) -> bool:
+    def on_drag_release(self, touch, ctx: DragContext, draggable: KXDraggableBehavior) -> bool:
         d = draggable
         d.parent.remove_widget(d)
         os = ctx.original_state
@@ -334,35 +333,35 @@ class KXDragTargetBehavior:
 
 
 class KXDragReorderBehavior:
+    __events__ = ("on_drag_release", )
     drag_classes = ListProperty([])
     '''Same as drag_n_drop's '''
 
     spacer_widgets = ListProperty([])
-    '''A list of spacer widgets. The number of them will be the
-    maximum number of simultaneous drags ``KXDragReorderBehavior`` can handle.
-
-    This property can be changed only when there is no ongoing drag in this widget.
+    '''
+    A list of spacer widgets.
+    The number of them will be the maximum number of simultaneous drags the :class:`KXDragReorderBehavior`` can handle.
+    This can be changed only when there is no ongoing drag in this widget.
     '''
 
     def __init__(self, **kwargs):
-        self._active_spacers = []
-        self._inactive_spacers = None
-        Clock.schedule_once(self._init_spacers)
+        self.__active_spacers = []
+        self.__inactive_spacers = None
+        Clock.schedule_once(self.__init_spacers)
         super().__init__(**kwargs)
         self.__ud_key = 'KXDragReorderBehavior.' + str(self.uid)
 
-    def accept_drag(self, touch, ctx: DragContext, draggable: KXDraggableBehavior) -> bool:
-        '''Determines whether the reorderable is willing to accept the drag'''
+    def on_drag_release(self, touch, ctx: DragContext, draggable: KXDraggableBehavior) -> bool:
         return True
 
-    def _init_spacers(self, dt):
-        if self._inactive_spacers is None:
-            self.spacer_widgets.append(_create_spacer())
+    def __init_spacers(self, dt):
+        if self.__inactive_spacers is None:
+            self.spacer_widgets.append(_create_spacer(size_hint_min=("50dp", "50dp")))
 
     def on_spacer_widgets(self, __, spacer_widgets):
-        if self._active_spacers:
+        if self.__active_spacers:
             raise Exception("Do not change the 'spacer_widgets' when there is an ongoing drag.")
-        self._inactive_spacers = [w.__self__ for w in spacer_widgets]
+        self.__inactive_spacers = [w.__self__ for w in spacer_widgets]
 
     def get_widget_under_drag(self, x, y) -> Tuple[Widget, int]:
         """Returns a tuple of the widget in children that is under the
@@ -378,7 +377,7 @@ class KXDragReorderBehavior:
     def on_touch_move(self, touch):
         ud_key = self.__ud_key
         touch_ud = touch.ud
-        if ud_key not in touch_ud and self._inactive_spacers and self.collide_point(*touch.pos):
+        if ud_key not in touch_ud and self.__inactive_spacers and self.collide_point(*touch.pos):
             drag_cls = touch_ud.get('kivyx_drag_cls', None)
             if drag_cls is not None:
                 touch_ud[ud_key] = None
@@ -390,8 +389,8 @@ class KXDragReorderBehavior:
         return super().on_touch_move(touch)
 
     async def _place_a_spacer_widget_under_the_drag(self, touch):
-        spacer = self._inactive_spacers.pop()
-        self._active_spacers.append(spacer)
+        spacer = self.__inactive_spacers.pop()
+        self.__active_spacers.append(spacer)
 
         # LOAD_FAST
         collide_point = self.collide_point
@@ -422,10 +421,10 @@ class KXDragReorderBehavior:
                 else:
                     del touch_ud[self.__ud_key]
                     return
-            if 'kivyx_potential_drag_acceptor' not in touch_ud:
-                touch_ud['kivyx_potential_drag_acceptor'] = self
+            if 'kivyx_drag_released_on' not in touch_ud:
+                touch_ud['kivyx_drag_released_on'] = self
                 touch_ud['kivyx_droppable_index'] = self.children.index(spacer)
         finally:
             self.remove_widget(spacer)
-            self._inactive_spacers.append(spacer)
-            self._active_spacers.remove(spacer)
+            self.__inactive_spacers.append(spacer)
+            self.__active_spacers.remove(spacer)
