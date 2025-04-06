@@ -3,7 +3,7 @@ __all__ = (
     "ongoing_drags", "save_widget_state", "restore_widget_state",
 )
 
-from typing import List, Tuple, Union, TypeAlias
+from typing import Union, TypeAlias, Self
 from inspect import isawaitable
 from dataclasses import dataclass
 from copy import deepcopy
@@ -35,15 +35,20 @@ class DragContext:
     It is instantiated each time a drag occurs.
     '''
 
+    draggable: "KXDraggableBehavior" = None
+    '''
+    (read-only) The widget that is being dragged.
+    '''
+
     original_pos_win: tuple = None
     '''
-    (read-only) The position of the draggable at the time this drag has
+    (read-only) The position of the draggable at the time the drag has
     started. (in window coordinates).
     '''
 
     original_state: dict = None
     '''
-    (read-only) The state of the draggable at the time this drag has started.
+    (read-only) The state of the draggable at the time the drag has started.
     This can be passed to :func:`restore_widget_state`.
     '''
 
@@ -79,6 +84,13 @@ def save_widget_state(widget, *, ignore_parent=False) -> dict:
 
 
 def restore_widget_state(widget, state: dict, *, ignore_parent=False):
+    '''
+    .. code-blck::
+
+        state = save_widget_state(widget)
+        ...
+        restore_widget_state(widget, state)
+    '''
     w = widget.__self__
     setattr_ = setattr
     for name in _shallow_copyable_property_names:
@@ -135,7 +147,7 @@ class KXDraggableBehavior:
     is_being_dragged = AliasProperty(lambda self: self.drag_state is not None, bind=('drag_state', ), cache=True)
     '''(read-only)'''
 
-    drag_filter = ObjectProperty(is_opos_colliding_and_not_wheel)
+    drag_touch_filter = ObjectProperty(is_opos_colliding_and_not_wheel)
     '''
     ``on_touch_down`` event that does not pass this filter will immediately be disregarded
     as a dragging gesture.
@@ -154,7 +166,7 @@ class KXDraggableBehavior:
         Notes:
 
         * You are responsible for setting the size, position, or both of the draggable depending on the situation.
-        * The :attr:`drag_filter` won't be applied to the touch.
+        * The :attr:`drag_touch_filter` won't be used.
         '''
 
     def __init__(self, **kwargs):
@@ -168,10 +180,10 @@ class KXDraggableBehavior:
         f = self.fbind
         f("disabled", t)
         f("drag_enabled", t)
-        f("drag_filter", t)
+        f("drag_touch_filter", t)
 
     # Python's name mangling is weird. This method cannot be named '__reset'.
-    def _KXKXDraggableBehavior__reset(self, __):
+    def _KXDraggableBehavior__reset(self, __):
         self.__main_task.cancel()
         if self.disabled or (not self.drag_enabled):
             return
@@ -181,7 +193,7 @@ class KXDraggableBehavior:
         ))
 
     async def __touch_listener(self):
-        on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.drag_filter)
+        on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.drag_touch_filter)
         start_ev_fire = self.__start_ev.fire
         async with ak.open_nursery() as nursery:
             while True:
@@ -225,10 +237,15 @@ class KXDraggableBehavior:
                     await perform_drag(receiver, touch)
 
     async def __perform_drag(self, receiver: Wow, touch, Window=Window):
+        '''
+        :param receiver: The widget or Window that received the ``touch``.
+        :param touch: The touch that is going to drag the draggable.
+        '''
         touch_ud = touch.ud
         touch_ud["kivyx_claim_signal"].fire()
         try:
             ctx = DragContext(
+                draggable=self,
                 original_state=save_widget_state(self),
             )
             ctx.original_pos_win = self_x, self_y = self.to_window(*self.pos)
@@ -247,7 +264,6 @@ class KXDraggableBehavior:
 
             # mark the touch so that other widgets can react to this drag
             touch_ud['kivyx_drag_cls'] = self.drag_cls
-            touch_ud['kivyx_draggable'] = self
             touch_ud['kivyx_drag_ctx'] = ctx
 
             # actual dragging process
@@ -266,7 +282,7 @@ class KXDraggableBehavior:
             await ak.sleep(-1)
 
             ctx.released_on = released_on = touch_ud.get('kivyx_drag_released_on', None)
-            if released_on is None or (not released_on.dispatch("on_drag_release", touch, ctx, self)):
+            if released_on is None or (not released_on.dispatch("on_drag_release", touch, ctx)):
                 r = self.dispatch('on_drag_fail', touch, ctx)
                 self.drag_state = 'failed'
             else:
@@ -283,7 +299,6 @@ class KXDraggableBehavior:
             self.drag_state = None
             touch_ud['kivyx_drag_released_on'] = None
             del touch_ud['kivyx_drag_cls']
-            del touch_ud['kivyx_draggable']
             del touch_ud['kivyx_drag_ctx']
 
     def on_drag_start(self, touch, ctx: DragContext):
@@ -304,7 +319,7 @@ class KXDraggableBehavior:
         restore_widget_state(self, ctx.original_state)
 
 
-def ongoing_drags() -> List[KXDraggableBehavior]:
+def ongoing_drags() -> list[KXDraggableBehavior]:
     '''Returns a list of draggables currently being dragged'''
     return [c for c in Window.children if getattr(c, 'is_being_dragged', False)]
 
@@ -312,6 +327,78 @@ def ongoing_drags() -> List[KXDraggableBehavior]:
 class KXDragTargetBehavior:
     __events__ = ("on_drag_release", "on_drag_enter", "on_drag_leave", )
     drag_classes = ListProperty([])
+
+    def __init__(self, **kwargs):
+        self.__main_task = ak.dummy_task
+        self.__tracked_touches = []
+        super().__init__(**kwargs)
+        t = Clock.schedule_once(self.__reset)
+        f = self.fbind
+        f("disabled", t)
+        f("drag_classes", t)
+        f("parent")
+
+    # Python's name mangling is weird. This method cannot be named '__reset'.
+    def _KXDragTargetBehavior__reset(self, __):
+        self.__main_task.cancel()
+        if self.disabled or self.parent is None:
+            return
+        self.__main_task = ak.managed_start(self.__main())
+
+    @staticmethod
+    def __touch_move_filter(tracked_touches, collide_point, drag_classes, widget, touch) -> bool:
+        return (touch not in tracked_touches) and collide_point(*touch.pos) and \
+            (touch.ud.get("kivyx_drag_cls", None) in drag_classes)
+
+    async def __main(self):
+        on_touch_move = partial(ak.event, self, "on_touch_move", filter=partial(
+            self.__touch_move_filter, self.__tracked_touches, self.collide_point, self.drag_classes))
+        async with ak.open_nursery() as nursery:
+            while True:
+                __, touch = await on_touch_move()
+                nursery.start(self.__touch_handler(touch))
+
+    async def __touch_handler(self, touch):
+        self.__tracked_touches.append(touch)
+        ctx = touch.ud['kivyx_drag_ctx']
+        collide_point = self.collide_point
+        dispatch = self.dispatch
+        to_parent = self.parent.to_widget
+
+        inside = True
+        # DragTargetが一部しか見えていない状況(例えばScrollView内に置かれているとか)を考えると、
+        # 通常のタッチイベントも受け取って 見えている範囲でドラッグ操作が行われているかを判別しないといけない。
+        regular = True
+        def on_regular_touch_move(widget, touch):
+            nonlocal regular
+            regular = True
+        try:
+            bind_id = self.fbind("on_touch_move", on_regular_touch_move)
+            dispatch('on_drag_enter', touch, ctx)
+            async with(
+                ak.move_on_when(ak.event(Window, "on_touch_up")),
+                ak.event_freq(Window, "on_touch_move") as on_touch_move,
+            ):
+                while True:
+                    await on_touch_move()
+                    inside = self.collide_point(*to_parent(*touch.pos))
+                    if inside:
+                        if regular:
+                            # DragTargetが見えている範囲でドラッグ操作が行われている場合
+                            dispatch('on_drag_enter', touch, ctx)
+                            regular = True
+                        else:
+                            # DragTargetが見えていない範囲でドラッグ操作が行われている場合
+                            dispatch('on_drag_leave', touch, ctx)
+                            regular = False
+                    regular = False
+
+                if not collide_point(*touch.pos):
+                    return
+            dispatch('on_drag_leave', touch, ctx)
+        finally:
+            self.__tracked_touches.remove(touch)
+            self.unbind_uid(bind_id)
 
     def on_touch_up(self, touch):
         r = super().on_touch_up(touch)
@@ -321,8 +408,13 @@ class KXDragTargetBehavior:
                 touch_ud.setdefault('kivyx_drag_released_on', self)
         return r
 
-    def on_drag_release(self, touch, ctx: DragContext, draggable: KXDraggableBehavior) -> bool:
-        d = draggable
+    def on_drag_enter(self, touch, ctx: DragContext) -> bool:
+        pass
+
+    on_drag_leave = on_drag_enter
+
+    def on_drag_release(self, touch, ctx: DragContext) -> bool:
+        d = ctx.draggable
         d.parent.remove_widget(d)
         os = ctx.original_state
         d.size_hint_x = os['size_hint_x']
@@ -330,6 +422,13 @@ class KXDragTargetBehavior:
         d.pos_hint = os['pos_hint']
         self.add_widget(d)
         return True
+
+    def on_touch_move(self, touch):
+        ak.managed_start(ak.wait_any(
+            self._watch_touch(touch),
+            ak.event(touch.ud['kivyx_draggable'], 'on_drag_end'),
+        ))
+        return super().on_touch_move(touch)
 
 
 class KXDragReorderBehavior:
@@ -363,7 +462,7 @@ class KXDragReorderBehavior:
             raise Exception("Do not change the 'spacer_widgets' when there is an ongoing drag.")
         self.__inactive_spacers = [w.__self__ for w in spacer_widgets]
 
-    def get_widget_under_drag(self, x, y) -> Tuple[Widget, int]:
+    def get_widget_under_drag(self, x, y) -> tuple[Widget, int]:
         """Returns a tuple of the widget in children that is under the
         given position and its index. Returns (None, None) if there is no
         widget under that position.
