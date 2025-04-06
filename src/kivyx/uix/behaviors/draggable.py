@@ -206,11 +206,13 @@ class KXDraggableBehavior:
                     start_ev_fire(self, touch)
 
     async def _see_if_a_touch_actually_is_a_dragging_gesture(self, touch, Window=Window, ak=ak):
+        def is_the_same_touch(w, t, touch=touch):
+            return t is touch
         async with (
             ak.move_on_when(touch.ud["kivyx_claim_signal"].wait()),
             ak.move_on_after(self.drag_timeout) as timeout_tracker,
-            ak.event_freq(Window, "on_touch_move") as on_touch_move,
-            ak.move_on_when(ak.event(Window, "on_touch_up")),
+            ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
+            ak.move_on_when(ak.event(Window, "on_touch_up", filter=is_the_same_touch)),
         ):
             # LOAD_FAST
             abs_ = abs
@@ -241,14 +243,17 @@ class KXDraggableBehavior:
         :param receiver: The widget or Window that received the ``touch``.
         :param touch: The touch that is going to drag the draggable.
         '''
+        def is_the_same_touch(w, t, touch=touch):
+            return t is touch
         touch_ud = touch.ud
         touch_ud["kivyx_claim_signal"].fire()
         try:
             ctx = DragContext(
                 draggable=self,
                 original_state=save_widget_state(self),
+                original_pos_win=self.to_window(*self.pos),
             )
-            ctx.original_pos_win = self_x, self_y = self.to_window(*self.pos)
+            self_x, self_y = ctx.original_pos_win
             ox, oy = receiver.to_window(*touch.opos)
             offset_x = self_x - ox
             offset_y = self_y - oy
@@ -270,8 +275,8 @@ class KXDraggableBehavior:
             self.dispatch('on_drag_start', touch, ctx)
             self.drag_state = 'started'
             async with(
-                ak.move_on_when(ak.event(Window, "on_touch_up")),
-                ak.event_freq(Window, "on_touch_move") as on_touch_move,
+                ak.move_on_when(ak.event(Window, "on_touch_up", filter=is_the_same_touch)),
+                ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
             ):
                 while True:
                     await on_touch_move()
@@ -346,13 +351,17 @@ class KXDragTargetBehavior:
         self.__main_task = ak.managed_start(self.__main())
 
     @staticmethod
-    def __touch_move_filter(tracked_touches, collide_point, drag_classes, widget, touch) -> bool:
+    def __untracked_touch_filter(tracked_touches, collide_point, drag_classes, widget, touch) -> bool:
         return (touch not in tracked_touches) and collide_point(*touch.pos) and \
             (touch.ud.get("kivyx_drag_cls", None) in drag_classes)
 
+    @staticmethod
+    def __tracked_touch_filter(collide_point, target, widget, touch) -> bool:
+        return target is touch and collide_point(*touch.pos)
+
     async def __main(self):
         on_touch_move = partial(ak.event, self, "on_touch_move", filter=partial(
-            self.__touch_move_filter, self.__tracked_touches, self.collide_point, self.drag_classes))
+            self.__untracked_touch_filter, self.__tracked_touches, self.collide_point, self.drag_classes))
         async with ak.open_nursery() as nursery:
             while True:
                 __, touch = await on_touch_move()
