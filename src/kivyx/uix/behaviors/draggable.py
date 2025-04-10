@@ -3,6 +3,7 @@ __all__ = (
     "ongoing_drags", "save_widget_state", "restore_widget_state",
 )
 
+import types
 from typing import Union, TypeAlias, Self
 from inspect import isawaitable
 from dataclasses import dataclass
@@ -206,13 +207,13 @@ class KXDraggableBehavior:
                     start_ev_fire(self, touch)
 
     async def _see_if_a_touch_actually_is_a_dragging_gesture(self, touch, Window=Window, ak=ak):
-        def is_the_same_touch(w, t, touch=touch):
+        def is_same_touch(w, t, touch=touch):
             return t is touch
         async with (
             ak.move_on_when(touch.ud["kivyx_claim_signal"].wait()),
             ak.move_on_after(self.drag_timeout) as timeout_tracker,
-            ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-            ak.move_on_when(ak.event(Window, "on_touch_up", filter=is_the_same_touch)),
+            ak.event_freq(Window, "on_touch_move", filter=is_same_touch) as on_touch_move,
+            ak.move_on_when(ak.event(Window, "on_touch_up", filter=is_same_touch)),
         ):
             # LOAD_FAST
             abs_ = abs
@@ -243,7 +244,7 @@ class KXDraggableBehavior:
         :param receiver: The widget or Window that received the ``touch``.
         :param touch: The touch that is going to drag the draggable.
         '''
-        def is_the_same_touch(w, t, touch=touch):
+        def is_same_touch(w, t, touch=touch):
             return t is touch
         touch_ud = touch.ud
         touch_ud["kivyx_claim_signal"].fire()
@@ -275,8 +276,8 @@ class KXDraggableBehavior:
             self.dispatch('on_drag_start', touch, ctx)
             self.drag_state = 'started'
             async with(
-                ak.move_on_when(ak.event(Window, "on_touch_up", filter=is_the_same_touch)),
-                ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
+                ak.move_on_when(ak.event(Window, "on_touch_up", filter=is_same_touch)),
+                ak.event_freq(Window, "on_touch_move", filter=is_same_touch) as on_touch_move,
             ):
                 while True:
                     await on_touch_move()
@@ -355,10 +356,6 @@ class KXDragTargetBehavior:
         return (touch not in tracked_touches) and collide_point(*touch.pos) and \
             (touch.ud.get("kivyx_drag_cls", None) in drag_classes)
 
-    @staticmethod
-    def __tracked_touch_filter(collide_point, target, widget, touch) -> bool:
-        return target is touch and collide_point(*touch.pos)
-
     async def __main(self):
         on_touch_move = partial(ak.event, self, "on_touch_move", filter=partial(
             self.__untracked_touch_filter, self.__tracked_touches, self.collide_point, self.drag_classes))
@@ -370,52 +367,26 @@ class KXDragTargetBehavior:
     async def __touch_handler(self, touch):
         self.__tracked_touches.append(touch)
         ctx = touch.ud['kivyx_drag_ctx']
-        collide_point = self.collide_point
         dispatch = self.dispatch
-        to_parent = self.parent.to_widget
-
-        inside = True
-        # DragTargetが一部しか見えていない状況(例えばScrollView内に置かれているとか)を考えると、
-        # 通常のタッチイベントも受け取って 見えている範囲でドラッグ操作が行われているかを判別しないといけない。
-        regular = True
-        def on_regular_touch_move(widget, touch):
-            nonlocal regular
-            regular = True
         try:
-            bind_id = self.fbind("on_touch_move", on_regular_touch_move)
-            dispatch('on_drag_enter', touch, ctx)
-            async with(
-                ak.move_on_when(ak.event(Window, "on_touch_up")),
-                ak.event_freq(Window, "on_touch_move") as on_touch_move,
-            ):
-                while True:
-                    await on_touch_move()
-                    inside = self.collide_point(*to_parent(*touch.pos))
-                    if inside:
-                        if regular:
-                            # DragTargetが見えている範囲でドラッグ操作が行われている場合
-                            dispatch('on_drag_enter', touch, ctx)
-                            regular = True
-                        else:
-                            # DragTargetが見えていない範囲でドラッグ操作が行われている場合
-                            dispatch('on_drag_leave', touch, ctx)
-                            regular = False
-                    regular = False
-
-                if not collide_point(*touch.pos):
-                    return
-            dispatch('on_drag_leave', touch, ctx)
+            inside = True
+            async with ak.move_on_when(ak.event(ctx.draggable, "on_drag_cancel")):
+                dispatch('on_drag_enter', touch, ctx)
+                async with (
+                    ak.move_on_when(ak.event(Window, "on_touch_up", filter=lambda w, t, touch=touch: t is touch)),
+                    _touch_move_events(self, touch) as on_touch_move,
+                ):
+                    while True:
+                        if inside is await on_touch_move():
+                            continue
+                        inside = not inside
+                        dispatch('on_drag_enter' if inside else "on_drag_leave", touch, ctx)
+                if inside:
+                    touch.ud.setdefault('kivyx_drag_released_on', self)
         finally:
+            if inside:
+                dispatch("on_drag_leave", touch, ctx)
             self.__tracked_touches.remove(touch)
-            self.unbind_uid(bind_id)
-
-    def on_touch_up(self, touch):
-        r = super().on_touch_up(touch)
-        touch_ud = touch.ud
-        if touch_ud.get('kivyx_drag_cls', None) in self.drag_classes:
-            if self.collide_point(*touch.pos):
-                touch_ud.setdefault('kivyx_drag_released_on', self)
-        return r
 
     def on_drag_enter(self, touch, ctx: DragContext) -> bool:
         pass
@@ -431,13 +402,6 @@ class KXDragTargetBehavior:
         d.pos_hint = os['pos_hint']
         self.add_widget(d)
         return True
-
-    def on_touch_move(self, touch):
-        ak.managed_start(ak.wait_any(
-            self._watch_touch(touch),
-            ak.event(touch.ud['kivyx_draggable'], 'on_drag_end'),
-        ))
-        return super().on_touch_move(touch)
 
 
 class KXDragReorderBehavior:
@@ -536,3 +500,56 @@ class KXDragReorderBehavior:
             self.remove_widget(spacer)
             self.__inactive_spacers.append(spacer)
             self.__active_spacers.remove(spacer)
+
+
+
+class _touch_move_events:
+    '''
+    DragTargetが一部しか見えていない状況(例えばScrollView内に置かれているとか)を考えると、
+    通常のタッチイベントも受け取って 見えている範囲でドラッグ操作が行われているかを判別しないといけない為、
+    独自のタッチ処理が要る。
+
+    .. code-block::
+
+        async with(
+            move_on_when(Window, "on_touch_up", filter=lambda w, t, touch=touch: t is touch),
+            _touch_move_events(widget, touch) as on_touch_move,
+        ):
+            while True:
+                inside = await on_touch_move()
+                ...
+    '''
+
+    def __init__(self, widget, touch):
+        self.widget = widget
+        self.touch = touch
+
+    @staticmethod
+    @types.coroutine
+    def _wait_one(_f=ak._sleep_forever):
+        return (yield _f)[0][0]
+
+    def _on_touch_move(task_step, collide_point, cancel_delayed_resumption, touch, w, t) -> bool:
+        if touch is t and collide_point(*t.pos):
+            cancel_delayed_resumption()
+            task_step(True)
+
+    def _on_touch_move_win(trigger_delayed_resumption, touch, w, t) -> bool:
+        if touch is t:
+            trigger_delayed_resumption()
+
+    @types.coroutine
+    def __aenter__(self, partial=partial):
+        widget = self.widget
+        touch = self.touch
+        task = (yield ak._current_task)[0][0]
+        self.trigger_delayed_resumption = t = Clock.create_trigger(partial(task._step, False), -1)
+        self._uid_win = Window.fbind("on_touch_move", partial(self._on_touch_move_win, t, touch))
+        self._uid = widget.fbind("on_touch_move",
+            partial(self._on_touch_move, task._step, widget.collide_point, t.cancel, touch))
+        return self._wait_one
+
+    def __aexit__(self, *__):
+        Window.unbind_uid("on_touch_move", self._uid_win)
+        self.widget.unbind_uid("on_touch_move", self._uid)
+        self.trigger_delayed_resumption.cancel()
