@@ -236,7 +236,7 @@ class KXDraggableBehavior:
         while True:
             async with ak.move_on_when(cancel_ev_wait()):
                 while True:
-                    receiver, touch = await start_ev_wait()
+                    receiver, touch = (await start_ev_wait())[0]
                     await perform_drag(receiver, touch)
 
     async def __perform_drag(self, receiver: Wow, touch, Window=Window):
@@ -342,12 +342,11 @@ class KXDragTargetBehavior:
         f = self.fbind
         f("disabled", t)
         f("drag_classes", t)
-        f("parent")
 
     # Python's name mangling is weird. This method cannot be named '__reset'.
     def _KXDragTargetBehavior__reset(self, __):
         self.__main_task.cancel()
-        if self.disabled or self.parent is None:
+        if self.disabled:
             return
         self.__main_task = ak.managed_start(self.__main())
 
@@ -407,7 +406,6 @@ class KXDragTargetBehavior:
 class KXDragReorderBehavior:
     __events__ = ("on_drag_release", )
     drag_classes = ListProperty([])
-    '''Same as drag_n_drop's '''
 
     spacer_widgets = ListProperty([])
     '''
@@ -417,21 +415,90 @@ class KXDragReorderBehavior:
     '''
 
     def __init__(self, **kwargs):
-        self.__active_spacers = []
+        self.__main_task = ak.dummy_task
+        self.__tracked_touches = []
         self.__inactive_spacers = None
-        Clock.schedule_once(self.__init_spacers)
         super().__init__(**kwargs)
-        self.__ud_key = 'KXDragReorderBehavior.' + str(self.uid)
+        t = Clock.schedule_once(self.__reset)
+        f = self.fbind
+        f("disabled", t)
+        f("drag_classes", t)
 
-    def on_drag_release(self, touch, ctx: DragContext, draggable: KXDraggableBehavior) -> bool:
-        return True
+    # Python's name mangling is weird. This method cannot be named '__reset'.
+    def _KXDragReorderBehavior__reset(self, __):
+        self.__main_task.cancel()
+        if self.disabled:
+            return
+        self.__main_task = ak.managed_start(self.__main())
 
-    def __init_spacers(self, dt):
+    @staticmethod
+    def __untracked_touch_filter(tracked_touches, inactive_spacers, collide_point, drag_classes, widget, touch):
+        return (touch not in tracked_touches) and inactive_spacers and collide_point(*touch.pos) and \
+            (touch.ud.get("kivyx_drag_cls", None) in drag_classes)
+
+    async def __main(self):
         if self.__inactive_spacers is None:
             self.spacer_widgets.append(_create_spacer(size_hint_min=("50dp", "50dp")))
+        on_touch_move = partial(ak.event, self, "on_touch_move", filter=partial(
+            self.__untracked_touch_filter, self.__tracked_touches, self.__inactive_spacers,
+            self.collide_point, self.drag_classes))
+        async with ak.open_nursery() as nursery:
+            while True:
+                __, touch = await on_touch_move()
+                nursery.start(self.__touch_handler(touch))
+
+    async def __touch_handler(self, touch):
+        spacer = self.__inactive_spacers.pop()
+        self.__tracked_touches.append(touch)
+        inside = True
+
+        # LOAD_FAST
+        get_widget_under_drag = self.get_widget_under_drag
+        remove_widget = self.remove_widget
+        add_widget = self.add_widget
+        ctx = touch.ud['kivyx_drag_ctx']
+        try:
+            restore_widget_state(spacer, ctx.original_state, ignore_parent=True)
+            add_widget(spacer)
+            async with ak.move_on_when(ak.event(ctx.draggable, "on_drag_cancel")):
+                async with (
+                    ak.move_on_when(ak.event(Window, "on_touch_up", filter=lambda w, t, touch=touch: t is touch)),
+                    _touch_move_events(self, touch) as on_touch_move,
+                ):
+                    while True:
+                        if not await on_touch_move():
+                            return
+                        widget, idx = get_widget_under_drag(*touch.pos)
+                        if widget is spacer:
+                            continue
+                        if widget is None:
+                            if self.children:
+                                continue
+                            else:
+                                idx = 0
+                        remove_widget(spacer)
+                        add_widget(spacer, index=idx)
+                touch_ud = touch.ud
+                if 'kivyx_drag_released_on' not in touch_ud:
+                    touch_ud['kivyx_drag_released_on'] = self
+                    touch_ud['kivyx_draggable_index'] = self.children.index(spacer)
+        finally:
+            self.__tracked_touches.remove(touch)
+            self.remove_widget(spacer)
+            self.__inactive_spacers.append(spacer)
+
+    def on_drag_release(self, touch, ctx: DragContext) -> bool:
+        d = ctx.draggable
+        d.parent.remove_widget(d)
+        os = ctx.original_state
+        d.size_hint_x = os['size_hint_x']
+        d.size_hint_y = os['size_hint_y']
+        d.pos_hint = os['pos_hint']
+        self.add_widget(d, index=touch.ud["kivyx_draggable_index"])
+        return True
 
     def on_spacer_widgets(self, __, spacer_widgets):
-        if self.__active_spacers:
+        if self.__tracked_touches:
             raise Exception("Do not change the 'spacer_widgets' when there is an ongoing drag.")
         self.__inactive_spacers = [w.__self__ for w in spacer_widgets]
 
@@ -445,62 +512,6 @@ class KXDragReorderBehavior:
             if widget.collide_point(x, y):
                 return (widget, index)
         return (None, None)
-
-    def on_touch_move(self, touch):
-        ud_key = self.__ud_key
-        touch_ud = touch.ud
-        if ud_key not in touch_ud and self.__inactive_spacers and self.collide_point(*touch.pos):
-            drag_cls = touch_ud.get('kivyx_drag_cls', None)
-            if drag_cls is not None:
-                touch_ud[ud_key] = None
-                if drag_cls in self.drag_classes:
-                    ak.managed_start(ak.wait_any(
-                        self._place_a_spacer_widget_under_the_drag(touch),
-                        ak.event(touch.ud['kivyx_draggable'], 'on_drag_end'),
-                    ))
-        return super().on_touch_move(touch)
-
-    async def _place_a_spacer_widget_under_the_drag(self, touch):
-        spacer = self.__inactive_spacers.pop()
-        self.__active_spacers.append(spacer)
-
-        # LOAD_FAST
-        collide_point = self.collide_point
-        get_widget_under_drag = self.get_widget_under_drag
-        remove_widget = self.remove_widget
-        add_widget = self.add_widget
-        touch_ud = touch.ud
-
-        try:
-            restore_widget_state(
-                spacer,
-                touch_ud['kivyx_drag_ctx'].original_state,
-                ignore_parent=True)
-            add_widget(spacer)
-            async for __ in ak.rest_of_touch_events(self, touch):
-                x, y = touch.pos
-                if collide_point(x, y):
-                    widget, idx = get_widget_under_drag(x, y)
-                    if widget is spacer:
-                        continue
-                    if widget is None:
-                        if self.children:
-                            continue
-                        else:
-                            idx = 0
-                    remove_widget(spacer)
-                    add_widget(spacer, index=idx)
-                else:
-                    del touch_ud[self.__ud_key]
-                    return
-            if 'kivyx_drag_released_on' not in touch_ud:
-                touch_ud['kivyx_drag_released_on'] = self
-                touch_ud['kivyx_droppable_index'] = self.children.index(spacer)
-        finally:
-            self.remove_widget(spacer)
-            self.__inactive_spacers.append(spacer)
-            self.__active_spacers.remove(spacer)
-
 
 
 class _touch_move_events:
@@ -529,11 +540,13 @@ class _touch_move_events:
     def _wait_one(_f=ak._sleep_forever):
         return (yield _f)[0][0]
 
+    @staticmethod
     def _on_touch_move(task_step, collide_point, cancel_delayed_resumption, touch, w, t) -> bool:
         if touch is t and collide_point(*t.pos):
             cancel_delayed_resumption()
             task_step(True)
 
+    @staticmethod
     def _on_touch_move_win(trigger_delayed_resumption, touch, w, t) -> bool:
         if touch is t:
             trigger_delayed_resumption()
@@ -549,7 +562,7 @@ class _touch_move_events:
             partial(self._on_touch_move, task._step, widget.collide_point, t.cancel, touch))
         return self._wait_one
 
-    def __aexit__(self, *__):
+    async def __aexit__(self, *__):
         Window.unbind_uid("on_touch_move", self._uid_win)
         self.widget.unbind_uid("on_touch_move", self._uid)
         self.trigger_delayed_resumption.cancel()
