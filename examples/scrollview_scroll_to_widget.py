@@ -6,27 +6,10 @@ from random import choice
 import kivyx
 
 KV_CODE = r'''
-<MyButton@KXTapGestureRecognizer+KXTouchRippleBehavior+Label>:
+<MyButton@KXButton>:
     font_size: 40
     size_hint_min: 300, 100
     on_tap: print(f"{self.text} tapped.")
-    canvas.before:
-        StencilPush:
-        RoundedRectangle:
-            pos: self.pos
-            size: self.size
-        StencilUse:
-        Color:
-            rgba: .4, .2, .8, 1
-        Rectangle:
-            pos: self.pos
-            size: self.size
-    canvas.after:
-        StencilUnUse:
-        RoundedRectangle:
-            pos: self.pos
-            size: self.size
-        StencilPop:
 
 KXScrollView:
     smooth_scroll_end: 50
@@ -58,4 +41,4 @@ class SampleApp(App):
 
 
 if __name__ == '__main__':
-    SampleApp().run()
+    SampleApp(title="scroll to a widget").run()
