@@ -12,27 +12,10 @@ import kivyx
 
 
 KV_CODE = '''
-<MyButton@KXTapGestureRecognizer+KXTouchRippleBehavior+Label>:
+<MyButton@KXButton>:
     font_size: 60
     size_hint_min: 300, 150
     on_tap: print(f"{self.text} tapped.")
-    canvas.before:
-        StencilPush:
-        RoundedRectangle:
-            pos: self.pos
-            size: self.size
-        StencilUse:
-        Color:
-            rgba: .4, .2, .8, 1
-        Rectangle:
-            pos: self.pos
-            size: self.size
-    canvas.after:
-        StencilUnUse:
-        RoundedRectangle:
-            pos: self.pos
-            size: self.size
-        StencilPop:
 
 <Separator@Widget>:
     canvas:
@@ -174,4 +157,4 @@ class SampleApp(App):
 
 
 if __name__ == '__main__':
-    SampleApp(title="Nested ScrollView").run()
+    SampleApp(title="ScrollView playground").run()

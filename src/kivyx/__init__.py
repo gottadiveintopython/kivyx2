@@ -15,6 +15,8 @@ def register_components():
     r("KXTouchRippleBehavior", module="kivyx.uix.behaviors.touchripple")
 
     # Widgets
+    r("KXButton", module="kivyx.uix.button")
+    r("KXMultiTapButton", module="kivyx.uix.button")
     r("KXScrollView", module="kivyx.uix.scrollview")
     r("KXSwitch", module="kivyx.uix.switch")
 
