@@ -37,11 +37,7 @@ class KXTapGestureRecognizer:
         f("disabled", t)
         f("parent", t)
         f("tap_filter", t)
-        self.bind(
-            on_touch_down=is_opos_colliding,
-            on_touch_move=is_colliding,
-            on_touch_up=is_colliding,
-        )
+        self.bind(on_touch_down=is_opos_colliding)
 
     # Python's name mangling is weird. This method cannot be named '__reset'.
     def _KXTapGestureRecognizer__reset(self, __):
@@ -95,11 +91,7 @@ class KXMultiTapGestureRecognizer:
         f("tap_max_count", t)
         f("tap_max_interval", t)
         f("tap_filter", t)
-        self.bind(
-            on_touch_down=is_opos_colliding,
-            on_touch_move=is_colliding,
-            on_touch_up=is_colliding,
-        )
+        self.bind(on_touch_down=is_opos_colliding)
 
     # Python's name mangling is weird. This method cannot be named '__reset'.
     def _KXMultiTapGestureRecognizer__reset(self, __):
