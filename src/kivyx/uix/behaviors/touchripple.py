@@ -3,7 +3,6 @@ __all__ = ("KXTouchRippleBehavior", )
 from typing import Self
 from functools import partial
 import math
-from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.animation import AnimationTransition
 from kivy.properties import NumericProperty, StringProperty, ColorProperty, BooleanProperty
@@ -42,9 +41,6 @@ class KXTouchRippleBehavior:
 
     ripple_allow_multiple = BooleanProperty(True)
     '''Whether multiple ripples can be shown simultaneously via multi-touch.'''
-
-    ripple_stop_growing_on_claim_signal = BooleanProperty(True)
-    '''Whether the ripple stops growing when ``touch.ud["kivyx_claim_signal"]`` fires..'''
 
     def __init__(self, **kwargs):
         self.__main_task = ak.dummy_task
@@ -103,11 +99,7 @@ class KXTouchRippleBehavior:
             else:
                 final_radius = final_diameter / 2
 
-            coro = ak.event(Window, "on_touch_up", filter=lambda w, t, touch=touch: t is touch)
-            async with ak.run_as_main(
-                ak.wait_any(coro, touch.ud["kivyx_claim_signal"].wait())
-                if self.ripple_stop_growing_on_claim_signal else coro
-            ):
+            async with ak.run_as_main(touch.ud["kivyx_claim_signal"].wait()):
                 await ak.anim_attrs(
                     ellipse,
                     size=(final_diameter, final_diameter, ),

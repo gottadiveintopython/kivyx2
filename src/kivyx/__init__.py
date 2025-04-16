@@ -29,4 +29,8 @@ def setup_claim_signal():
     def put_signal(w, t, Event=asyncgui.StatefulEvent):
         t.ud["kivyx_claim_signal"] = Event()
 
+    def fire_signal(w, t):
+        t.ud["kivyx_claim_signal"].fire()
+
     Window.fbind("on_touch_down", put_signal)
+    Window.fbind("on_touch_up", fire_signal)

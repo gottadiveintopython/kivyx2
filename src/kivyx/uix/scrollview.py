@@ -96,9 +96,6 @@ class KXScrollView(Widget):
     scroll_distance = NumericProperty(SV.scroll_distance.defaultvalue)
     ''' :attr:`kivy.uix.scrollview.ScrollView.scroll_distance` '''
 
-    scroll_timeout = NumericProperty(0.2)
-    ''' :attr:`kivy.uix.scrollview.ScrollView.scroll_timeout` but in seconds'''
-
     scroll_wheel_distance = NumericProperty(SV.scroll_wheel_distance.defaultvalue)
     ''' :attr:`kivy.uix.scrollview.ScrollView.scroll_wheel_distance` '''
 
@@ -538,11 +535,7 @@ class KXScrollView(Widget):
 
         async with (
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-            ak.move_on_when(ak.wait_any(
-                claim_signal.wait(),
-                self._on_touch_up(filter=is_the_same_touch),
-                ak.sleep(self.scroll_timeout),
-            )) as cancel_tracker,
+            ak.move_on_when(claim_signal.wait()) as claim_tracker,
         ):
             while True:
                 await on_touch_move()
@@ -565,10 +558,9 @@ class KXScrollView(Widget):
                         break
                     if dx_sum < 0 and self.content_x > self.content_min_x:
                         break
-        if cancel_tracker.finished:
+        if claim_tracker.finished:
             # We withdraw from the touch. The reason can be any of the following:
             # * Someone else took the touch.
-            # * The touch didn't travel far enough within a time limit.
             # * The touch ended before it traveled far enough.
             return
 
