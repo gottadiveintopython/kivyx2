@@ -10,6 +10,9 @@ def register_components():
     from kivy.factory import Factory
     r = Factory.register
     # Behaviors
+    r('KXDraggableBehavior', module="kivyx.uix.behaviors.draggable")
+    r('KXDragReorderBehavior', module="kivyx.uix.behaviors.draggable")
+    r('KXDragTargetBehavior', module="kivyx.uix.behaviors.draggable")
     r("KXMultiTapGestureRecognizer", module="kivyx.uix.behaviors.tap")
     r("KXTapGestureRecognizer", module="kivyx.uix.behaviors.tap")
     r("KXTouchRippleBehavior", module="kivyx.uix.behaviors.touchripple")

@@ -5,6 +5,8 @@ API Reference
 Behaviors
 =========
 
+.. automodule:: kivyx.uix.behaviors.draggable
+
 .. automodule:: kivyx.uix.behaviors.tap
 
 .. automodule:: kivyx.uix.behaviors.touchripple
