@@ -455,8 +455,6 @@ class KXScrollView(Widget):
                     continue
             await handle_potential_scrolling_gesture(touch)
 
-    _on_touch_up = partial(ak.event, Window, "on_touch_up")
-
     async def _handle_mouse_wheel(self, touch, VERTICAL_DIRECTIONS=("up", "down"),
                                   POSITIVE_DIRECTIONS=("up", "right")):
         # STEP1: Check if scrolling is necessary or allowed in a given direction.
@@ -484,10 +482,7 @@ class KXScrollView(Widget):
 
         # STEP2: Check if the scrollview should handle this touch.
         claim_signal = touch.ud["kivyx_claim_signal"]
-        tasks = await ak.wait_any(
-            claim_signal.wait(),
-            self._on_touch_up(filter=lambda w, t, touch=touch: t is touch),
-        )
+        tasks = await ak.wait_any(claim_signal.wait(),touch.ud["kivyx_end_signal"].wait())
         if tasks[0].finished:
             # Someone else took the touch so we withraw from it.
             return
@@ -571,8 +566,8 @@ class KXScrollView(Widget):
 
         # Move the content along with the touch.
         async with (
+            ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-            ak.move_on_when(self._on_touch_up(filter=is_the_same_touch)),
         ):
             while True:
                 await on_touch_move()
@@ -611,7 +606,7 @@ class KXScrollView(Widget):
 
         # Move the content along with the touch.
         async with (
-            ak.move_on_when(self._on_touch_up(filter=is_the_same_touch)),
+            ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
         ):
             while True:
@@ -635,7 +630,7 @@ class KXScrollView(Widget):
 
         # Move the content along with the touch.
         async with (
-            ak.move_on_when(self._on_touch_up(filter=is_the_same_touch)),
+            ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
         ):
             while True:
