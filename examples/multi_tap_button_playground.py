@@ -19,6 +19,8 @@ KV_CODE = '''
     size_hint_y: None
 
 BoxLayout:
+    spacing: "10dp"
+    padding: "10dp"
     BoxLayout:
         orientation: "vertical"
         spacing :4
@@ -29,37 +31,33 @@ BoxLayout:
             id: disabled
         HSep:
         Label:
-            text: f"track_width: {int(track_width.value)}"
+            text: f"tap_max_count: {int(tap_max_count.value)}"
             color: 0, 1, 0, 1
         Slider:
-            id: track_width
-            min: 32
-            max: 512
+            id: tap_max_count
+            min: 1
+            max: 7
             step: 1
-            value: 128
+            value: 2
         HSep:
         Label:
-            text: f"track_height: {int(track_height.value)}"
+            text: f"tap_max_interval: {tap_max_interval.value:.2f}"
             color: 0, 1, 0, 1
         Slider:
-            id: track_height
-            min: 32
-            max: 256
-            step: 1
-            value: 64
-        HSep:
-        Button:
-            text: "active = True"
-            on_press: switch.active = True
-        Button:
-            text: "active = False"
-            on_press: switch.active = False
+            id: tap_max_interval
+            min: 0
+            max: 2
+            step: 0.01
+            value: 0.3
     VSep:
-    KXSwitch:
-        id: switch
-        track_width: track_width.value
-        track_height: track_height.value
+    KXMultiTapButton:
+        id: button
+        tap_max_count: max(int(tap_max_count.value), 1)
+        tap_max_interval: tap_max_interval.value
         disabled: disabled.active
+        on_multi_tap: print(args[1], "- tapped.")
+        font_size: "40sp"
+        text: "TAP ME"
 '''
 
 
@@ -69,4 +67,4 @@ class SampleApp(App):
 
 
 if __name__ == '__main__':
-    SampleApp(title="Switch Playground").run()
+    SampleApp(title="MultiTapButton Playground").run()
