@@ -22,15 +22,53 @@ def register_components():
 
 
 @immediate_call
-def setup_claim_signal():
+def setup_signals():
+    import types
     import asyncgui
     from kivy.core.window import Window
 
-    def put_signal(w, t, Event=asyncgui.StatefulEvent):
-        t.ud["kivyx_claim_signal"] = Event()
+    class LifoEvent:
+        '''
+        :class:`asyncgui.StatefulEvent` に以下の変更を加えた物。
 
-    def fire_signal(w, t):
-        t.ud["kivyx_claim_signal"].fire()
+        * 待ちに入った順とは逆にタスク達を起こす。
+        * 値の受け渡しを行わない。
+        * ``clear()`` メソッドを削除。
+        '''
+        __slots__ = ('is_fired', '_waiting_tasks', )
 
-    Window.fbind("on_touch_down", put_signal)
-    Window.fbind("on_touch_up", fire_signal)
+        def __init__(self):
+            self.is_fired = False
+            self._waiting_tasks = []
+
+        def fire(self, *args, **kwargs):
+            if self.is_fired:
+                return
+            self.is_fired = True
+            for t in reversed(self._waiting_tasks):
+                if t is not None:
+                    t._step()
+
+        @types.coroutine
+        def wait(self, len=len):
+            if self.is_fired:
+                return
+            tasks = self._waiting_tasks
+            idx = len(tasks)
+            try:
+                return (yield tasks.append)
+            finally:
+                tasks[idx] = None
+
+    def put_signals(w, t, E=LifoEvent):
+        ud = t.ud
+        ud["kivyx_claim_signal"] = E()
+        ud["kivyx_end_signal"] = E()
+
+    def fire_signals(w, t):
+        ud = t.ud
+        ud["kivyx_end_signal"].fire()
+        ud["kivyx_claim_signal"].fire()
+
+    Window.fbind("on_touch_down", put_signals)
+    Window.fbind("on_touch_up", fire_signals)

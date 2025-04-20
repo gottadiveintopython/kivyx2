@@ -3,7 +3,6 @@ __all__ = ("KXTapGestureRecognizer", "KXMultiTapGestureRecognizer", )
 from collections.abc import Sequence
 from functools import partial
 
-from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.properties import BoundedNumericProperty, NumericProperty, ObjectProperty
 
@@ -49,17 +48,16 @@ class KXTapGestureRecognizer:
     async def __main(self):
         touch = None
         on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.tap_filter)
-        on_touch_up = partial(ak.event, Window, "on_touch_up", filter=lambda w, t: t is touch)
         to_parent = self.parent.to_widget
         while True:
             __, touch = await on_touch_down()
             claim_signal = touch.ud["kivyx_claim_signal"]
-            tasks = await ak.wait_any(claim_signal.wait(), on_touch_up())
+            tasks = await ak.wait_any(claim_signal.wait(), touch.ud["kivyx_end_signal"].wait())
             if tasks[0].finished:
                 continue
             claim_signal.fire()
-            # Because we received an on_touch_up event directly from the Window object,
-            # we need to manually convert its coordinates.
+
+            # The touch is in window coordinates when its 'kivyx_end_signal' is fired.
             if self.collide_point(*to_parent(*touch.pos)):
                 self.dispatch("on_tap", touch)
 
@@ -101,9 +99,7 @@ class KXMultiTapGestureRecognizer:
         self.__main_task = ak.managed_start(self.__main())
 
     async def __main(self):
-        touch = None
         on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.tap_filter)
-        on_touch_up = partial(ak.event, Window, "on_touch_up", filter=lambda w, t: t is touch)
         to_parent = self.parent.to_widget
         collide_point = self.collide_point
         timer = Timer(self.tap_max_interval)
@@ -118,12 +114,12 @@ class KXMultiTapGestureRecognizer:
                     __, touch = await on_touch_down()
                     timer.stop()
                     claim_signal = touch.ud["kivyx_claim_signal"]
-                    tasks = await ak.wait_any(claim_signal.wait(), on_touch_up())
+                    tasks = await ak.wait_any(claim_signal.wait(), touch.ud["kivyx_end_signal"].wait())
                     if tasks[0].finished:
                         break
                     claim_signal.fire()
-                    # Because we received an on_touch_up event directly from the Window object,
-                    # we need to manually convert its coordinates.
+
+                    # The touch is in window coordinates when its 'kivyx_end_signal' is fired.
                     if collide_point(*to_parent(*touch.pos)):
                         n_taps += 1
                         accepted_touches.append(touch)
