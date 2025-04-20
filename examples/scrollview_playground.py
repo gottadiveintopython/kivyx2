@@ -15,7 +15,7 @@ KV_CODE = '''
 <MyButton@KXButton>:
     font_size: 60
     size_hint_min: 300, 150
-    on_tap: print(f"{self.text} tapped.")
+    on_tap: print(f"{self.text} was tapped.")
 
 <Separator@Widget>:
     canvas:
@@ -157,4 +157,4 @@ class SampleApp(App):
 
 
 if __name__ == '__main__':
-    SampleApp(title="ScrollView playground").run()
+    SampleApp(title="ScrollView Playground").run()
