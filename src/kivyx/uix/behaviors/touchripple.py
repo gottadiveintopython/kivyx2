@@ -19,23 +19,23 @@ class KXTouchRippleBehavior:
     '''
 
     ripple_initial_size = NumericProperty('20dp')
-    '''Initial diameter the animation starts from..'''
+    '''Initial diameter the animation starts from.'''
 
     ripple_final_size = NumericProperty(None, allownone=True)
     '''Final diameter the animation ends to. If set to None, the diameter will be the minimum size required
     to cover the widget.'''
 
     ripple_duration_in = NumericProperty(.3)
-    '''Animation duration taken to show the ripple..'''
+    '''Animation duration taken to show a ripple..'''
 
     ripple_duration_out = NumericProperty(.2)
-    '''Animation duration taken to fade the ripple..'''
+    '''Animation duration taken to fade a ripple..'''
 
     ripple_growth_curve = StringProperty("linear")
-    '''Animation curve used to grow the ripple.'''
+    '''Animation curve used to grow a ripple.'''
 
     ripple_fadeout_curve = StringProperty("linear")
-    '''Animation curve used to fade out the ripple.'''
+    '''Animation curve used to fade out a ripple.'''
 
     ripple_color = ColorProperty("#FFFFFF44")
 
