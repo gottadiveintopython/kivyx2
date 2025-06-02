@@ -8,3 +8,4 @@ bin/
 /*kivymd*/
 /dist
 /docs/
+/examples/shopping.py.sqlite3

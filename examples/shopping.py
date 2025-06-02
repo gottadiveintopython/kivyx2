@@ -17,7 +17,7 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.factory import Factory as F
 import asynckivy as ak
-from kivyx.uix.behaviors.draggable import KXDraggableBehavior
+from kivyx.uix.behaviors.draggable import KXDraggableBehavior, ongoing_drags
 
 try:
     from kivy_garden import posani
@@ -119,26 +119,40 @@ KV_CODE = r'''
         spacing: "10dp"
         SHButton:
             text: "sort by price\n(ascend)"
-            on_tap: shelf.data = sorted(shelf.data, key=lambda d: d.price)
+            on_tap:
+                app.cancel_ongoing_drags()
+                shelf.data = sorted(shelf.data, key=lambda d: d.price)
         SHButton:
             text: "sort by price\n(descend)"
-            on_tap: shelf.data = sorted(shelf.data, key=lambda d: d.price, reverse=True)
+            on_tap:
+                app.cancel_ongoing_drags()
+                shelf.data = sorted(shelf.data, key=lambda d: d.price, reverse=True)
         SHButton:
             text: "sort by name\n(ascend)"
-            on_tap: shelf.data = sorted(shelf.data, key=lambda d: d.name)
+            on_tap:
+                app.cancel_ongoing_drags()
+                shelf.data = sorted(shelf.data, key=lambda d: d.name)
         SHButton:
             text: "sort by name\n(descend)"
-            on_tap: shelf.data = sorted(shelf.data, key=lambda d: d.name, reverse=True)
+            on_tap:
+                app.cancel_ongoing_drags()
+                shelf.data = sorted(shelf.data, key=lambda d: d.name, reverse=True)
         Widget:
         SHButton:
             text: "total price"
-            on_tap: ak.managed_start(root.show_total_price())
+            on_tap:
+                app.cancel_ongoing_drags()
+                ak.managed_start(root.show_total_price())
         SHButton:
             text: "sort by price\n(ascend)"
-            on_tap: cart.data = sorted(cart.data, key=lambda d: d.price)
+            on_tap:
+                app.cancel_ongoing_drags()
+                cart.data = sorted(cart.data, key=lambda d: d.price)
         SHButton:
             text: "sort by price\n(descend)"
-            on_tap: cart.data = sorted(cart.data, key=lambda d: d.price, reverse=True)
+            on_tap:
+                app.cancel_ongoing_drags()
+                cart.data = sorted(cart.data, key=lambda d: d.price, reverse=True)
 '''
 
 
@@ -156,6 +170,10 @@ class ShoppingApp(App):
 
     def on_start(self):
         self.root.main(db_path=__file__ + r".sqlite3")
+
+    def cancel_ongoing_drags(self):
+        for draggable in ongoing_drags():
+            draggable.drag_cancel()
 
 
 class SHMain(F.BoxLayout):
