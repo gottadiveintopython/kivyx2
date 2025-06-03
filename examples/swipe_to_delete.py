@@ -1,3 +1,7 @@
+'''
+https://youtu.be/4AHhps6GPbU
+'''
+
 from functools import partial
 
 from kivy.metrics import dp
@@ -10,16 +14,15 @@ import asynckivy as ak
 from kivyx.touch_filters import is_opos_colliding
 from kivyx.uix.button import KXButton
 
-
 def remove_child(layout, child):
     layout.remove_widget(child)
 
 
 async def enable_swipe_to_delete(target_layout, *, swipe_threshold=dp(10), delete_threshold=dp(300.), delete_action=remove_child):
     '''
-    Enables swipe-to-delete functionality for a layout.
+    Enables horizontal swipe-to-delete on a layout.
 
-    :param swipe_threshold: The minimum movement distance for a touch to be recognized as a swipe.
+    :param swipe_threshold: The minimum distance a touch must travel to be recognized as a swipe.
     :param delete_threshold: The minimum distance a swipe must cover to trigger deletion.
     :param delete_action: The actual deletion behavior can be customized via this parameter.
     '''
@@ -68,10 +71,10 @@ async def enable_swipe_to_delete(target_layout, *, swipe_threshold=dp(10), delet
                 ):
                     while True:
                         await on_touch_move()
-                        translate.x = dx = touch.x - ox
-                        c.opacity = 1.0 - abs_(dx) / fade_threshold
+                        translate.x = diff = touch.x - ox
+                        c.opacity = (1.0 - abs_(diff) / fade_threshold) * orig_opacity
 
-            if abs_(dx) > delete_threshold:
+            if abs_(diff) > delete_threshold:
                 delete_action(target, c)
         finally:
             c.opacity = orig_opacity
