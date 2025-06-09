@@ -53,6 +53,7 @@ KV_CODE = r'''
     orientation: "vertical"
     spacing: "4dp"
     drag_cls: "food"
+    drag_timeout: 0
     size: "200dp", "200dp"
     size_hint: None, None
     opacity: .5 if self.is_being_dragged else 1.
