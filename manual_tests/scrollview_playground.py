@@ -99,7 +99,6 @@ BoxLayout:
     VSep:
     KXScrollView:
         id: outer_sv
-        smooth_scroll_end: 100
         BoxLayout:
             orientation: 'vertical'
             spacing: 10
@@ -113,7 +112,6 @@ BoxLayout:
                 text: "C"
             KXScrollView:
                 id: inner_sv
-                smooth_scroll_end: 100
                 size_hint_y: None
                 height: 300
                 GridLayout:

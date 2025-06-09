@@ -12,7 +12,6 @@ KV_CODE = r'''
     on_tap: print(f"{self.text} tapped.")
 
 KXScrollView:
-    smooth_scroll_end: 50
     BoxLayout:
         id: container
         orientation: 'vertical'

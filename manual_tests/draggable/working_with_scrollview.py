@@ -21,7 +21,6 @@ KV_CODE = '''
 
 KXScrollView:
     do_scroll_x: False
-    smooth_scroll_end: 100
     ReorderableBoxLayout:
         id: boxlayout
         spacing: 2
