@@ -91,7 +91,6 @@ KV_CODE = r'''
                 color: rgba("#44AA44")
             KXScrollView:
                 size_hint_y: 1000.
-                smooth_scroll_end: 100
                 do_scroll_x: False
                 vbar_enabled: True
                 SHShelf:
@@ -109,7 +108,6 @@ KV_CODE = r'''
                     color: rgba("#4466FF")
                 KXScrollView:
                     size_hint_y: 1000.
-                    smooth_scroll_end: 100
                     do_scroll_x: False
                     vbar_enabled: True
                     vbar_x: self.width - self.vbar_thickness

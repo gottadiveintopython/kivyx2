@@ -99,8 +99,11 @@ class KXScrollView(Widget):
     scroll_wheel_distance = NumericProperty(SV.scroll_wheel_distance.defaultvalue)
     ''' :attr:`kivy.uix.scrollview.ScrollView.scroll_wheel_distance` '''
 
-    smooth_scroll_end = NumericProperty(SV.smooth_scroll_end.defaultvalue, allownone=True)
-    ''' :attr:`kivy.uix.scrollview.ScrollView.smooth_scroll_end` '''
+    smooth_scroll_end = NumericProperty("100dp", allownone=True)
+    '''
+    :attr:`kivy.uix.scrollview.ScrollView.smooth_scroll_end`,
+    with the only difference being a default value of "100dp".
+    '''
 
     do_scroll_x = BooleanProperty(SV.do_scroll_x.defaultvalue)
     ''' :attr:`kivy.uix.scrollview.ScrollView.do_scroll_x` '''
@@ -482,7 +485,7 @@ class KXScrollView(Widget):
 
         # STEP2: Check if the scrollview should handle this touch.
         claim_signal = touch.ud["kivyx_claim_signal"]
-        tasks = await ak.wait_any(claim_signal.wait(),touch.ud["kivyx_end_signal"].wait())
+        tasks = await ak.wait_any(claim_signal.wait(), touch.ud["kivyx_end_signal"].wait())
         if tasks[0].finished:
             # Someone else took the touch so we withraw from it.
             return

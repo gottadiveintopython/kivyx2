@@ -30,7 +30,6 @@ KV_CODE = '''
             rectangle: [*self.pos, *self.size, ]
 
 KXScrollView:
-    smooth_scroll_end: 100
     hbar_enabled: True
     vbar_enabled: True
     vbar_x: self.right - self.vbar_thickness
