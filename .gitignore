@@ -9,3 +9,4 @@ bin/
 /dist
 /docs/
 /examples/shopping.py.sqlite3
+/examples/tier_list_maker.py.sqlite3
