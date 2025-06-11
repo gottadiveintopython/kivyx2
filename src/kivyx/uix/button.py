@@ -1,4 +1,4 @@
-__all__ =("KXButton", "KXMultiTapButton", )
+__all__ = ("KXButton", "KXMultiTapButton", )
 
 from kivy.properties import ColorProperty
 from kivy.lang import Builder

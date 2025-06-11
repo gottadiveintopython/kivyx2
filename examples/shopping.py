@@ -305,6 +305,8 @@ class SemiRecycleBehavior:
             w.datum = datum
             self.add_widget(w)
         params.clear()
+
+
 F.register("SemiRecycleBehavior", cls=SemiRecycleBehavior)
 
 

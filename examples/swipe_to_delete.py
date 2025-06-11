@@ -14,6 +14,7 @@ import asynckivy as ak
 from kivyx.touch_filters import is_opos_colliding
 from kivyx.uix.button import KXButton
 
+
 def remove_child(layout, child):
     layout.remove_widget(child)
 

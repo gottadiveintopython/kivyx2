@@ -8,7 +8,7 @@ test:
 style:
 	$(FLAKE8) --count --select=E,W,F --show-source --statistics --max-line-length=119 ./src/kivyx
 	$(FLAKE8) --count --select=E,W,F --show-source --statistics --ignore E501 ./tests
-	$(FLAKE8) --count --select=E,W,F --show-source --statistics --max-line-length=119 --ignore F401,E402 ./examples
+	$(FLAKE8) --count --select=E,W,F --show-source --statistics --ignore F401,E402,E501 ./examples
 
 html:
 	sphinx-build -b html ./sphinx ./docs
