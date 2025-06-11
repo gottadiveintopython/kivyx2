@@ -19,13 +19,13 @@ Builder.load_string("""
     _thumb_active_x: self._track_half_width - self.track_height + self._padding
     _thumb_inactive_x: self._padding - self._track_half_width
     _thumb_y: self._padding - self._track_half_height
-    _track_goal_color:
+    _track_color:
         (
         self.track_disabled_color if self.disabled else
         (self.track_active_color if self.active else self.track_inactive_color)
         )
-    _thumb_goal_x: self._thumb_active_x if self.active else self._thumb_inactive_x
-    _thumb_goal_color:
+    _thumb_x: self._thumb_active_x if self.active else self._thumb_inactive_x
+    _thumb_color:
         (
         self.thumb_disabled_color if self.disabled else
         (self.thumb_active_color if self.active else self.thumb_inactive_color)
@@ -35,15 +35,15 @@ Builder.load_string("""
         Translate:
             xy: self.center
         Color:
-            rgba: self._track_color
+            group: "smoothing_target"
         RoundedRectangle:
             radius: (self._track_half_height, ) * 2
             pos: -self._track_half_width, -self._track_half_height
             size: self.track_size
         Color:
-            rgba: self._thumb_color
+            group: "smoothing_target"
         Ellipse:
-            pos: self._thumb_x, self._thumb_y
+            group: "smoothing_target"
             size: (self.track_height - self._padding * 2, ) * 2
         PopMatrix:
 """)
@@ -60,7 +60,6 @@ class KXSwitch(KXTapGestureRecognizer, Widget):
     track_inactive_color = ColorProperty("#888888")
     track_disabled_color = ColorProperty("#444444")
     _track_color = ColorProperty()
-    _track_goal_color = ColorProperty()
 
     track_width = NumericProperty("64sp")
     track_height = NumericProperty("32sp")
@@ -73,13 +72,12 @@ class KXSwitch(KXTapGestureRecognizer, Widget):
     thumb_inactive_color = ColorProperty("#FFFFFF")
     thumb_disabled_color = ColorProperty("#666666")
     _thumb_color = ColorProperty()
-    _thumb_goal_color = ColorProperty()
 
     _thumb_active_x = NumericProperty()
     _thumb_inactive_x = NumericProperty()
     _thumb_x = NumericProperty()
-    _thumb_goal_x = NumericProperty()
     _thumb_y = NumericProperty()
+    _thumb_pos = ReferenceListProperty(_thumb_x, _thumb_y)
 
     def collide_point(self, x, y) -> bool:
         hw = self._track_half_width
@@ -88,6 +86,7 @@ class KXSwitch(KXTapGestureRecognizer, Widget):
         return cy - hh <= y < cy + hh and cx - hw <= x < cx + hw
 
     def _setup_smoothing(self):
-        ak.smooth_attr((self, "_thumb_goal_color"), (self, "_thumb_color"), min_diff=0.02)
-        ak.smooth_attr((self, "_track_goal_color"), (self, "_track_color"), min_diff=0.02)
-        ak.smooth_attr((self, "_thumb_goal_x"), (self, "_thumb_x"))
+        track_color, thumb_color, thumb_ellipse = self.canvas.get_group("smoothing_target")
+        ak.smooth_attr((self, "_thumb_color"), (thumb_color, "rgba"), min_diff=0.02)
+        ak.smooth_attr((self, "_track_color"), (track_color, "rgba"), min_diff=0.02)
+        ak.smooth_attr((self, "_thumb_pos"), (thumb_ellipse, "pos"))
