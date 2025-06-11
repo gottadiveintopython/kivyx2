@@ -8,7 +8,7 @@ from kivy.properties import BoundedNumericProperty, NumericProperty, ObjectPrope
 
 import asynckivy as ak
 
-from kivyx.touch_filters import is_opos_colliding, is_opos_colliding_and_not_wheel, is_colliding
+from kivyx.touch_filters import is_opos_colliding, is_opos_colliding_and_not_wheel
 
 
 class KXTapGestureRecognizer:

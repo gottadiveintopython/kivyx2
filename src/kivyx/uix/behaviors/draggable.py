@@ -282,7 +282,7 @@ class KXDraggableBehavior:
             # actual dragging process
             self.dispatch('on_drag_start', touch, ctx)
             self.drag_state = 'started'
-            async with(
+            async with (
                 ak.move_on_when(touch_ud["kivyx_end_signal"].wait()),
                 ak.event_freq(Window, "on_touch_move", filter=is_same_touch) as on_touch_move,
             ):
@@ -415,8 +415,8 @@ class KXDragReorderBehavior:
 
     spacer_widgets = ListProperty(None)
     '''
-    A list of spacer widgets.
-    The number of these will be the maximum number of simultaneous drags the :class:`KXDragReorderBehavior`` can handle.
+    A list of spacer widgets. The number of these will be the maximum number of simultaneous drags the
+    :class:`KXDragReorderBehavior`` can handle.
     '''
 
     def __init__(self, **kwargs):
@@ -517,7 +517,6 @@ class KXDragReorderBehavior:
             self.remove_widget(spacer)
             self.__inactive_spacers.append(spacer)
 
-
     def on_drag_release(self, touch, ctx: DragContext) -> bool:
         d = ctx.draggable
         d.parent.remove_widget(d)
@@ -584,7 +583,7 @@ class _touch_move_events:
         self.trigger_resumption = t = Clock.create_trigger(partial(task._step, False), -1)
         self._uid_win = Window.fbind("on_touch_move", partial(self._on_touch_move_win, t, touch))
         self._uid = widget.fbind("on_touch_move",
-            partial(self._on_touch_move, task._step, widget.collide_point, t.cancel, touch))
+                                 partial(self._on_touch_move, task._step, widget.collide_point, t.cancel, touch))
         return self._wait_one
 
     async def __aexit__(self, *__):
