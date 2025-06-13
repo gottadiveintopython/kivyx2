@@ -221,6 +221,10 @@ class KXScrollView(Widget):
         self._effect_x = self._effect_y = None
         self._prev_content = None
         super().__init__(**kwargs)
+        self._is_in_the_middle_of_user_scroll = False
+        self._cancel_user_scroll_signal = e = ak.ExclusiveEvent()
+        self.cancel_user_scroll = e.fire
+
         f = self.fbind
 
         t = Clock.schedule_once(self._reset, -1)
@@ -298,8 +302,22 @@ class KXScrollView(Widget):
             e.deactivate()
             e.velocity = 0
 
-    def scroll_by_distance(self, x=None, y=None):
-        '''Adjust the momentum to achieve a specified scroll distance.'''
+    def cancel_user_scroll(self):
+        '''Cancel ongoing user scroll.'''
+
+    def scroll_by_distance(self, x=None, y=None, *, prioritize_user_scroll=True):
+        '''
+        Adjusts the momentum to achieve a specified scroll distance.
+
+        By default, this method does nothing if the KXScrollView is currently being scrolled by the user.
+        However, if ``prioritize_user_scroll`` is set to False, the method will cancel the ongoing user scroll
+        and perform the adjustment.
+        '''
+        if self._is_in_the_middle_of_user_scroll:
+            if prioritize_user_scroll:
+                return
+            else:
+                self.cancel_user_scroll()
         if x is not None and (e := self._effect_x) is not None:
             e.scroll_by(x)
             e.activate()
@@ -307,8 +325,19 @@ class KXScrollView(Widget):
             e.scroll_by(y)
             e.activate()
 
-    def scroll_to_pos(self, x=None, y=None):
-        '''Adjust the momentum to reach a specified scroll position.'''
+    def scroll_to_pos(self, x=None, y=None, *, prioritize_user_scroll=True):
+        '''
+        Adjusts the momentum to reach a specified scroll position.
+        
+        By default, this method does nothing if the KXScrollView is currently being scrolled by the user.
+        However, if ``prioritize_user_scroll`` is set to False, the method will cancel the ongoing user scroll
+        and perform the adjustment.
+        '''
+        if self._is_in_the_middle_of_user_scroll:
+            if prioritize_user_scroll:
+                return
+            else:
+                self.cancel_user_scroll()
         if x is not None and (e := self._effect_x) is not None:
             e.scroll_to(x)
             e.activate()
@@ -316,12 +345,21 @@ class KXScrollView(Widget):
             e.scroll_to(y)
             e.activate()
 
-    def scroll_to_widget(self, widget):
+    def scroll_to_widget(self, widget, *, prioritize_user_scroll=True):
         '''
-        Adjust the momentum to scroll until a specified widget is visible.
+        Adjusts the momentum to scroll until a specified widget is visible.
+
+        By default, this method does nothing if the KXScrollView is currently being scrolled by the user.
+        However, if ``prioritize_user_scroll`` is set to False, the method will cancel the ongoing user scroll
+        and perform the adjustment.
 
         :param widget: This must be a child or descendant of the :attr:`content`.
         '''
+        if self._is_in_the_middle_of_user_scroll:
+            if prioritize_user_scroll:
+                return
+            else:
+                self.cancel_user_scroll()
         content = self.content
         parent = widget.parent
         cx, cy = widget.center
@@ -416,7 +454,11 @@ class KXScrollView(Widget):
                 else:
                     ec(self._keep_updating_content_y_from_hint(c))
 
-                await self._root_touch_handler()
+                while True:
+                    await ak.wait_any(
+                        self._root_touch_handler(),
+                        self._cancel_user_scroll_signal.wait(),
+                    )
         finally:
             self._prev_content = c
             self.content = None
@@ -567,20 +609,25 @@ class KXScrollView(Widget):
         if do_scroll_x:
             self._content_x += dx_sum
 
-        # Move the content along with the touch.
-        async with (
-            ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
-            ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-        ):
-            while True:
-                await on_touch_move()
-                dx = touch.dx
-                dy = touch.dy
-                history_append((touch.time_update, dx, dy))
-                if do_scroll_y:
-                    self._content_y += dy
-                if do_scroll_x:
-                    self._content_x += dx
+        self._is_in_the_middle_of_user_scroll = True
+        try:
+            # Move the content along with the touch.
+            async with (
+                ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
+                ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
+            ):
+                while True:
+                    await on_touch_move()
+                    dx = touch.dx
+                    dy = touch.dy
+                    history_append((touch.time_update, dx, dy))
+                    if do_scroll_y:
+                        self._content_y += dy
+                    if do_scroll_x:
+                        self._content_x += dx
+        finally:
+            self._is_in_the_middle_of_user_scroll = False
+
         history_append((touch.time_end, 0, 0))
 
         # The touch ended. Activate the effect.
@@ -607,14 +654,18 @@ class KXScrollView(Widget):
             # when the 'touchring' module is active. (Grabbed one and non-grabbed one).
             return t.grab_current is None and t is touch
 
-        # Move the content along with the touch.
-        async with (
-            ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
-            ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-        ):
-            while True:
-                await on_touch_move()
-                self._content_x += touch.dx * hbar2content_ratio
+        self._is_in_the_middle_of_user_scroll = True
+        try:
+            # Move the content along with the touch.
+            async with (
+                ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
+                ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
+            ):
+                while True:
+                    await on_touch_move()
+                    self._content_x += touch.dx * hbar2content_ratio
+        finally:
+            self._is_in_the_middle_of_user_scroll = False
 
         self._effect_x.activate()
 
@@ -631,14 +682,18 @@ class KXScrollView(Widget):
             # when the 'touchring' module is active. (Grabbed one and non-grabbed one).
             return t.grab_current is None and t is touch
 
-        # Move the content along with the touch.
-        async with (
-            ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
-            ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-        ):
-            while True:
-                await on_touch_move()
-                self._content_y += touch.dy * vbar2content_ratio
+        self._is_in_the_middle_of_user_scroll = True
+        try:
+            # Move the content along with the touch.
+            async with (
+                ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
+                ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
+            ):
+                while True:
+                    await on_touch_move()
+                    self._content_y += touch.dy * vbar2content_ratio
+        finally:
+            self._is_in_the_middle_of_user_scroll = False
 
         self._effect_y.activate()
 
