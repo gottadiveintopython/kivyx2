@@ -328,7 +328,7 @@ class KXScrollView(Widget):
     def scroll_to_pos(self, x=None, y=None, *, prioritize_user_scroll=True):
         '''
         Adjusts the momentum to reach a specified scroll position.
-        
+
         By default, this method does nothing if the KXScrollView is currently being scrolled by the user.
         However, if ``prioritize_user_scroll`` is set to False, the method will cancel the ongoing user scroll
         and perform the adjustment.
@@ -705,6 +705,8 @@ class KXScrollView(Widget):
         else:
             self.content_min_x = 0
             self.content_max_x = diff
+        if not self._is_in_the_middle_of_user_scroll:
+            self._effect_x.activate()
 
     @contextmanager
     def _keep_updating_bounds_x(self, content):
@@ -726,6 +728,8 @@ class KXScrollView(Widget):
         else:
             self.content_min_y = 0
             self.content_max_y = diff
+        if not self._is_in_the_middle_of_user_scroll:
+            self._effect_y.activate()
 
     @contextmanager
     def _keep_updating_bounds_y(self, content):
