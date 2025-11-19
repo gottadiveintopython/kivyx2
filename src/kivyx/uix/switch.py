@@ -10,7 +10,6 @@ from kivyx.uix.behaviors.tap import KXTapGestureRecognizer
 
 Builder.load_string("""
 <KXSwitch>:
-    size_hint_min: self.track_size
     on_tap: self.active = not self.active
     on_kv_post: self._setup_smoothing()
     _track_half_width: self.track_width / 2
