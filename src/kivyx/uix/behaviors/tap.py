@@ -48,17 +48,17 @@ class KXTapGestureRecognizer:
     async def __main(self):
         touch = None
         on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.tap_filter)
-        to_parent = self.parent.to_widget
+        from_window_to_parent = self.parent.to_widget
         while True:
             __, touch = await on_touch_down()
             claim_signal = touch.ud["kivyx_claim_signal"]
-            tasks = await ak.wait_any(claim_signal.wait(), touch.ud["kivyx_end_signal"].wait())
-            if tasks[0].finished:
+            await claim_signal.wait()
+            if not touch.ud["kivyx_end_signal"].is_fired:
                 continue
             claim_signal.fire()
 
             # The touch is in window coordinates when its 'kivyx_end_signal' is fired.
-            if self.collide_point(*to_parent(*touch.pos)):
+            if self.collide_point(*from_window_to_parent(*touch.pos)):
                 self.dispatch("on_tap", touch)
 
 
@@ -100,9 +100,9 @@ class KXMultiTapGestureRecognizer:
 
     async def __main(self):
         on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.tap_filter)
-        to_parent = self.parent.to_widget
+        from_window_to_parent = self.parent.to_widget
         collide_point = self.collide_point
-        timer = Timer(self.tap_max_interval)
+        timer = ResettableTimer(self.tap_max_interval)
         accepted_touches = []
         tap_max_count = self.tap_max_count
         while True:
@@ -114,13 +114,13 @@ class KXMultiTapGestureRecognizer:
                     __, touch = await on_touch_down()
                     timer.stop()
                     claim_signal = touch.ud["kivyx_claim_signal"]
-                    tasks = await ak.wait_any(claim_signal.wait(), touch.ud["kivyx_end_signal"].wait())
-                    if tasks[0].finished:
+                    await claim_signal.wait()
+                    if not touch.ud["kivyx_end_signal"].is_fired:
                         break
                     claim_signal.fire()
 
                     # The touch is in window coordinates when its 'kivyx_end_signal' is fired.
-                    if collide_point(*to_parent(*touch.pos)):
+                    if collide_point(*from_window_to_parent(*touch.pos)):
                         n_taps += 1
                         accepted_touches.append(touch)
                         timer.start()
@@ -130,7 +130,7 @@ class KXMultiTapGestureRecognizer:
                 self.dispatch("on_multi_tap", n_taps, accepted_touches)
 
 
-class Timer:
+class ResettableTimer:
     __slots__ = ("wait_expiration", "start", "stop")
 
     def __init__(self, timeout: float):
