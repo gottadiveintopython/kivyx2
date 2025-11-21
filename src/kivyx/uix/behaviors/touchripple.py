@@ -25,11 +25,11 @@ class KXTouchRippleBehavior:
     '''Final diameter the animation ends to. If set to None, the diameter will be the minimum size required
     to cover the widget.'''
 
-    ripple_duration_in = NumericProperty(.3)
-    '''Animation duration taken to show a ripple..'''
+    ripple_growth_duration = NumericProperty(.3)
+    '''Animation duration taken to grow a ripple.'''
 
-    ripple_duration_out = NumericProperty(.2)
-    '''Animation duration taken to fade a ripple..'''
+    ripple_fadeout_duration = NumericProperty(.2)
+    '''Animation duration taken to fade out a ripple.'''
 
     ripple_growth_curve = StringProperty("linear")
     '''Animation curve used to grow a ripple.'''
@@ -42,7 +42,7 @@ class KXTouchRippleBehavior:
     ripple_allow_multiple = BooleanProperty(True)
     '''Whether multiple ripples can be shown simultaneously via multi-touch.'''
 
-    ripple_fades_on_claim = BooleanProperty(True)
+    ripple_fadeout_on_exclusive_access = BooleanProperty(True)
     '''
     If True, ripples begin fading out when exclusive access to their corresponding touches is claimed.
     '''
@@ -55,7 +55,7 @@ class KXTouchRippleBehavior:
         f("ripple_growth_curve", t)
         f("ripple_fadeout_curve", t)
         f("ripple_allow_multiple", t)
-        f("ripple_fades_on_claim", t)
+        f("ripple_fadeout_on_exclusive_access", t)
         super().__init__(**kwargs)
 
     # Python's name mangling is weird. This method cannot be named '__reset'.
@@ -111,10 +111,10 @@ class KXTouchRippleBehavior:
                     ellipse,
                     size=(final_diameter, final_diameter, ),
                     pos=(cx - final_radius, cy - final_radius),
-                    duration=self.ripple_duration_in,
+                    duration=self.ripple_growth_duration,
                     transition=growth_curve,
                 )
-            await ak.anim_attrs(color, a=0, duration=self.ripple_duration_out, transition=fadeout_curve)
+            await ak.anim_attrs(color, a=0, duration=self.ripple_fadeout_duration, transition=fadeout_curve)
         finally:
             self.canvas.remove(ig)
 
