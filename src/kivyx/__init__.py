@@ -30,48 +30,58 @@ def setup_signals():
     import types
     from kivy.core.window import Window
 
-    class LifoEvent:
+    class StatefulLifoEvent:
         '''
-        :class:`asyncgui.StatefulEvent` に以下の変更を加えた物。
+        :class:`asyncgui.StatefulEvent` with the following differences:
 
-        * 待ちに入った順とは逆にタスク達を起こす。
-        * 値の受け渡しを行わない。
-        * ``clear()`` メソッドを削除。
+        * :meth:`fire` wakes up waiting tasks in the *reverse* order they started waiting.
+        * Does not have ``clear()`` method.
+        * The values passed to :meth:`fire` is discarded,
+          and ``await event.wait()`` always returns ``None``.
+        * Methods have aliases to improve the readability of user-side code.
         '''
-        __slots__ = ('is_fired', '_waiting_tasks', )
+        __slots__ = ('_is_fired', '_waiting_tasks', )
 
         def __init__(self):
-            self.is_fired = False
+            self._is_fired = False
             self._waiting_tasks = []
 
         def fire(self, *args, **kwargs):
-            if self.is_fired:
+            if self._is_fired:
                 return
-            self.is_fired = True
+            self._is_fired = True
             for t in reversed(self._waiting_tasks):
                 if t is not None:
                     t._step()
 
+        @property
+        def is_fired(self):
+            return self._is_fired
+
         @types.coroutine
-        def wait(self, len=len):
-            if self.is_fired:
+        def wait(self, _len=len):
+            if self._is_fired:
                 return
             tasks = self._waiting_tasks
-            idx = len(tasks)
+            idx = _len(tasks)
             try:
-                return (yield tasks.append)
+                yield tasks.append
             finally:
                 tasks[idx] = None
 
-    def put_signals(w, t, E=LifoEvent):
-        ud = t.ud
-        ud["kivyx_claim_signal"] = E()
-        ud["kivyx_end_signal"] = E()
+        claim = fire
+        has_been_claimed = is_fired
+        wait_for_someone_to_claim = wait
 
-    def fire_signals(w, t):
+    def put_events(w, t, E=StatefulLifoEvent):
         ud = t.ud
-        ud["kivyx_end_signal"].fire()
-        ud["kivyx_claim_signal"].fire()
+        ud["kivyx_exclusive_access"] = E()
+        ud["kivyx_end_event"] = E()
 
-    Window.fbind("on_touch_down", put_signals)
-    Window.fbind("on_touch_up", fire_signals)
+    def fire_events(w, t):
+        ud = t.ud
+        ud["kivyx_end_event"].fire()
+        ud["kivyx_exclusive_access"].fire()
+
+    Window.fbind("on_touch_down", put_events)
+    Window.fbind("on_touch_up", fire_events)

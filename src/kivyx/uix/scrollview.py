@@ -526,13 +526,13 @@ class KXScrollView(Widget):
             return
 
         # STEP2: Check if the scrollview should handle this touch.
-        claim_signal = touch.ud["kivyx_claim_signal"]
-        tasks = await ak.wait_any(claim_signal.wait(), touch.ud["kivyx_end_signal"].wait())
+        exclusive_access = touch.ud["kivyx_exclusive_access"]
+        tasks = await ak.wait_any(exclusive_access.wait(), touch.ud["kivyx_end_event"].wait())
         if tasks[0].finished:
             # Someone else took the touch so we withraw from it.
             return
         # We handle the touch.
-        claim_signal.fire()
+        exclusive_access.fire()
 
         # STEP3: Apply the mouse wheel scroll.
         d = self.scroll_wheel_distance
@@ -551,7 +551,7 @@ class KXScrollView(Widget):
             e.activate()
 
     async def _handle_potential_scrolling_gesture(self, touch, abs=abs, ak=ak):
-        claim_signal = touch.ud["kivyx_claim_signal"]
+        exclusive_access = touch.ud["kivyx_exclusive_access"]
         dx_sum = dy_sum = 0.
         scroll_distance = self.scroll_distance
         do_scroll_x = self.do_scroll_x
@@ -569,7 +569,7 @@ class KXScrollView(Widget):
 
         async with (
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-            ak.move_on_when(claim_signal.wait()) as claim_tracker,
+            ak.move_on_when(exclusive_access.wait_for_someone_to_claim()),
         ):
             while True:
                 await on_touch_move()
@@ -592,14 +592,9 @@ class KXScrollView(Widget):
                         break
                     if dx_sum < 0 and self.content_x > self.content_min_x:
                         break
-        if claim_tracker.finished:
-            # We withdraw from the touch. The reason can be any of the following:
-            # * Someone else took the touch.
-            # * The touch ended before it traveled far enough.
+        if exclusive_access.has_been_claimed:
             return
-
-        # The touch is confirmed as a scrolling gesture we should handle.
-        claim_signal.fire()
+        exclusive_access.claim()
 
         self.stop_scroll_momentum()
 
@@ -613,7 +608,7 @@ class KXScrollView(Widget):
         try:
             # Move the content along with the touch.
             async with (
-                ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
+                ak.move_on_when(touch.ud["kivyx_end_event"].wait()),
                 ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
             ):
                 while True:
@@ -642,10 +637,10 @@ class KXScrollView(Widget):
             e.activate()
 
     async def _handle_hbar_drag(self, touch):
-        claim_signal = touch.ud["kivyx_claim_signal"]
-        if claim_signal.is_fired:
+        exclusive_access = touch.ud["kivyx_exclusive_access"]
+        if exclusive_access.has_been_claimed:
             return
-        claim_signal.fire()
+        exclusive_access.claim()
         self.stop_scroll_momentum()
         hbar2content_ratio = 1. / self._content2hbar_ratio
 
@@ -658,7 +653,7 @@ class KXScrollView(Widget):
         try:
             # Move the content along with the touch.
             async with (
-                ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
+                ak.move_on_when(touch.ud["kivyx_end_event"].wait()),
                 ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
             ):
                 while True:
@@ -670,10 +665,10 @@ class KXScrollView(Widget):
         self._effect_x.activate()
 
     async def _handle_vbar_drag(self, touch):
-        claim_signal = touch.ud["kivyx_claim_signal"]
-        if claim_signal.is_fired:
+        exclusive_access = touch.ud["kivyx_exclusive_access"]
+        if exclusive_access.has_been_claimed:
             return
-        claim_signal.fire()
+        exclusive_access.claim()
         self.stop_scroll_momentum()
         vbar2content_ratio = 1. / self._content2vbar_ratio
 
@@ -686,7 +681,7 @@ class KXScrollView(Widget):
         try:
             # Move the content along with the touch.
             async with (
-                ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
+                ak.move_on_when(touch.ud["kivyx_end_event"].wait()),
                 ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
             ):
                 while True:

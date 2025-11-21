@@ -46,11 +46,11 @@ async def enable_swipe_to_delete(target_layout, *, swipe_threshold=dp(10), delet
         def is_the_same_touch(w, t, touch=touch):
             return t is touch
         ox, __ = target.to_window(*touch.opos)
-        claim_signal = touch.ud["kivyx_claim_signal"]
+        exclusive_access = touch.ud["kivyx_exclusive_access"]
 
         # Waits until the touch travels beyond the swipe threshold.
         async with (
-            ak.move_on_when(claim_signal.wait()),
+            ak.move_on_when(exclusive_access.wait_for_someone_to_claim()),
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
         ):
             while True:
@@ -58,9 +58,9 @@ async def enable_swipe_to_delete(target_layout, *, swipe_threshold=dp(10), delet
                 if abs_(touch.x - ox) > swipe_threshold:
                     break
 
-        if claim_signal.is_fired:
-            continue  # Someone else claimed the touch, so we exit.
-        claim_signal.fire()  # We claim the touch.
+        if exclusive_access.has_been_claimed:
+            continue
+        exclusive_access.claim()
 
         try:
             fade_threshold = delete_threshold * 1.4
@@ -69,7 +69,7 @@ async def enable_swipe_to_delete(target_layout, *, swipe_threshold=dp(10), delet
             with ak.transform(c, use_outer_canvas=True) as ig:
                 ig.add(translate := Translate())
                 async with (
-                    ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
+                    ak.move_on_when(touch.ud["kivyx_end"].wait()),
                     ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
                 ):
                     while True:

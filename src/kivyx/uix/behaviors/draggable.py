@@ -20,6 +20,7 @@ from kivy.graphics import Color, Rectangle
 from kivy.core.window import Window, WindowBase
 from kivy.uix.widget import Widget
 from kivy.uix.scrollview import ScrollView
+from asyncgui import _current_task, _wait_args_0
 import asynckivy as ak
 
 from kivyx.touch_filters import is_opos_colliding_and_not_wheel
@@ -207,7 +208,7 @@ class KXDraggableBehavior:
         async with ak.open_nursery() as nursery:
             while True:
                 __, touch = await on_touch_down()
-                if self.is_being_dragged or touch.ud["kivyx_claim_signal"].is_fired:
+                if self.is_being_dragged or touch.ud["kivyx_exclusive_access"].has_been_claimed:
                     continue
                 if self.drag_timeout:
                     nursery.start(self._see_if_a_touch_actually_is_a_dragging_gesture(touch))
@@ -218,7 +219,7 @@ class KXDraggableBehavior:
         def is_same_touch(w, t, touch=touch):
             return t is touch
         async with (
-            ak.move_on_when(touch.ud["kivyx_claim_signal"].wait()),
+            ak.move_on_when(touch.ud["kivyx_exclusive_access"].wait_for_someone_to_claim()),
             ak.move_on_after(self.drag_timeout) as timeout_tracker,
             ak.event_freq(Window, "on_touch_move", filter=is_same_touch) as on_touch_move,
         ):
@@ -268,7 +269,7 @@ class KXDraggableBehavior:
             # notify other widgets
             touch_ud['kivyx_drag_cls'] = self.drag_cls
             touch_ud['kivyx_drag_ctx'] = ctx
-            touch_ud["kivyx_claim_signal"].fire()
+            touch_ud["kivyx_exclusive_access"].claim()
 
             # move self under the Window
             if self.parent is not None:
@@ -283,7 +284,7 @@ class KXDraggableBehavior:
             self.dispatch('on_drag_start', touch, ctx)
             self.drag_state = 'started'
             async with (
-                ak.move_on_when(touch_ud["kivyx_end_signal"].wait()),
+                ak.move_on_when(touch_ud["kivyx_end_event"].wait()),
                 ak.event_freq(Window, "on_touch_move", filter=is_same_touch) as on_touch_move,
             ):
                 while True:
@@ -379,7 +380,7 @@ class KXDragTargetBehavior:
             async with ak.move_on_when(ak.event(ctx.draggable, "on_drag_cancel")):
                 dispatch('on_drag_enter', touch, ctx)
                 async with (
-                    ak.move_on_when(touch.ud["kivyx_end_signal"].wait()),
+                    ak.move_on_when(touch.ud["kivyx_end_event"].wait()),
                     _touch_move_events(self, touch) as on_touch_move,
                 ):
                     while True:
@@ -470,7 +471,7 @@ class KXDragReorderBehavior:
     async def __handle_a_potential_dragging_gesture(self, touch):
         ud = touch.ud
         ud[self.__ud_key] = None
-        await ud["kivyx_claim_signal"].wait()
+        await ud["kivyx_exclusive_access"].wait_for_someone_to_claim()
         if ud.get("kivyx_drag_cls", None) not in self.drag_classes:
             return
         ox, oy = self.parent.to_widget(*ud['kivyx_drag_ctx'].start_from)
@@ -493,7 +494,7 @@ class KXDragReorderBehavior:
             add_widget(spacer, index=spacer_initial_index)
             async with ak.move_on_when(ak.event(ctx.draggable, "on_drag_cancel")):
                 async with (
-                    ak.move_on_when(touch_ud["kivyx_end_signal"].wait()),
+                    ak.move_on_when(touch_ud["kivyx_end_event"].wait()),
                     _touch_move_events(self, touch) as on_touch_move,
                 ):
                     while True:
@@ -547,7 +548,7 @@ class _touch_move_events:
     .. code-block::
 
         async with(
-            move_on_when(touch.ud["kivyx_end_signal"].wait()),
+            move_on_when(touch.ud["kivyx_end_event"].wait()),
             _touch_move_events(widget, touch) as on_touch_move,
         ):
             while True:
@@ -558,11 +559,6 @@ class _touch_move_events:
     def __init__(self, widget, touch):
         self.widget = widget
         self.touch = touch
-
-    @staticmethod
-    @types.coroutine
-    def _wait_one(_f=ak._sleep_forever):
-        return (yield _f)[0][0]
 
     @staticmethod
     def _on_touch_move(task_step, collide_point, cancel_resumption, touch, w, t) -> bool:
@@ -579,12 +575,12 @@ class _touch_move_events:
     def __aenter__(self, partial=partial):
         widget = self.widget
         touch = self.touch
-        task = (yield ak._current_task)[0][0]
+        task = (yield _current_task)[0][0]
         self.trigger_resumption = t = Clock.create_trigger(partial(task._step, False), -1)
         self._uid_win = Window.fbind("on_touch_move", partial(self._on_touch_move_win, t, touch))
         self._uid = widget.fbind("on_touch_move",
                                  partial(self._on_touch_move, task._step, widget.collide_point, t.cancel, touch))
-        return self._wait_one
+        return _wait_args_0
 
     async def __aexit__(self, *__):
         Window.unbind_uid("on_touch_move", self._uid_win)

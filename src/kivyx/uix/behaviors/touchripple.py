@@ -44,9 +44,7 @@ class KXTouchRippleBehavior:
 
     ripple_fades_on_claim = BooleanProperty(True)
     '''
-    If True, ripples will begin fading out when their corresponding touches are claimed
-    (i.e. when ``touch.ud["kivyx_claim_signal"].fire()`` is called).
-    If False, they will begin fading out when their corresponding touches are released.
+    If True, ripples begin fading out when exclusive access to their corresponding touches is claimed.
     '''
 
     def __init__(self, **kwargs):
@@ -71,7 +69,7 @@ class KXTouchRippleBehavior:
         on_touch_down = partial(ak.event, self, "on_touch_down", filter=is_opos_colliding_and_not_wheel)
         generate_ripple = partial(
             self.__generate_ripple, ak,
-            "kivyx_claim_signal" if self.ripple_fades_on_claim else "kivyx_end_signal",
+            "kivyx_exclusive_access" if self.ripple_fadeout_on_exclusive_access else "kivyx_end_event",
             getattr(AnimationTransition, self.ripple_growth_curve),
             getattr(AnimationTransition, self.ripple_fadeout_curve),
             self,
@@ -88,7 +86,7 @@ class KXTouchRippleBehavior:
                 await generate_ripple(touch)
 
     @staticmethod
-    async def __generate_ripple(ak, signal_name, growth_curve, fadeout_curve, self: Self, touch):
+    async def __generate_ripple(ak, fadeout_trigger_key, growth_curve, fadeout_curve, self: Self, touch):
         cx, cy = self.to_local(*touch.opos)  # center of the ripple
         diameter = self.ripple_initial_size
         radius = diameter / 2
@@ -108,7 +106,7 @@ class KXTouchRippleBehavior:
             else:
                 final_radius = final_diameter / 2
 
-            async with ak.run_as_main(touch.ud[signal_name].wait()):
+            async with ak.run_as_main(touch.ud[fadeout_trigger_key].wait()):
                 await ak.anim_attrs(
                     ellipse,
                     size=(final_diameter, final_diameter, ),
