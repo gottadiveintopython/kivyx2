@@ -19,23 +19,23 @@ class KXTouchRippleBehavior:
     '''
 
     ripple_initial_size = NumericProperty('20dp')
-    '''Initial diameter the animation starts from.'''
+    '''The initial diameter from which ripples grow.'''
 
     ripple_final_size = NumericProperty(None, allownone=True)
-    '''Final diameter the animation ends to. If set to None, the diameter will be the minimum size required
-    to cover the widget.'''
+    '''The final diameter at which ripples stop growing. If set to None (the default),
+    it becomes the minimum size required to cover the widget.'''
 
     ripple_growth_duration = NumericProperty(.3)
-    '''Animation duration taken to grow a ripple.'''
+    '''The animation duration taken to grow ripples.'''
 
     ripple_fadeout_duration = NumericProperty(.2)
-    '''Animation duration taken to fade out a ripple.'''
+    '''The animation duration taken to fade out ripples.'''
 
     ripple_growth_curve = StringProperty("linear")
-    '''Animation curve used to grow a ripple.'''
+    '''The animation curve used to grow ripples.'''
 
     ripple_fadeout_curve = StringProperty("linear")
-    '''Animation curve used to fade out a ripple.'''
+    '''The animation curve used to fade out ripples.'''
 
     ripple_color = ColorProperty("#FFFFFF44")
 
@@ -43,9 +43,8 @@ class KXTouchRippleBehavior:
     '''Whether multiple ripples can be shown simultaneously via multi-touch.'''
 
     ripple_fadeout_on_exclusive_access = BooleanProperty(True)
-    '''
-    If True, ripples begin fading out when exclusive access to their corresponding touches is claimed.
-    '''
+    '''If set to True (the default), ripples begin fading out when exclusive access to
+    their corresponding touches is claimed.'''
 
     def __init__(self, **kwargs):
         self.__main_task = ak.dummy_task
