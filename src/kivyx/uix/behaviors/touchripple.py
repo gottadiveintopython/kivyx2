@@ -5,9 +5,10 @@ from functools import partial
 import math
 from kivy.clock import Clock
 from kivy.animation import AnimationTransition
-from kivy.properties import NumericProperty, StringProperty, ColorProperty, BooleanProperty
+from kivy.properties import NumericProperty, StringProperty, ColorProperty, BooleanProperty, OptionProperty
 from kivy.graphics import InstructionGroup, Color, Ellipse
 import asynckivy as ak
+from asynckivy import anim_attrs, run_as_main
 
 from kivyx.touch_filters import is_opos_colliding_and_not_wheel
 
@@ -46,6 +47,10 @@ class KXTouchRippleBehavior:
     '''If set to True (the default), ripples begin fading out when exclusive access to
     their corresponding touches is claimed.'''
 
+    ripple_draw_on = OptionProperty("canvas", options=("canvas", "canvas.before", "canvas.after"))
+    '''The canvas on which ripples are drawn.
+    '''
+
     def __init__(self, **kwargs):
         self.__main_task = ak.dummy_task
         t = Clock.schedule_once(self.__reset)
@@ -55,6 +60,7 @@ class KXTouchRippleBehavior:
         f("ripple_fadeout_curve", t)
         f("ripple_allow_multiple", t)
         f("ripple_fadeout_on_exclusive_access", t)
+        f("ripple_draw_on", t)
         super().__init__(**kwargs)
 
     # Python's name mangling is weird. This method cannot be named '__reset'.
@@ -66,8 +72,16 @@ class KXTouchRippleBehavior:
 
     async def __main(self):
         on_touch_down = partial(ak.event, self, "on_touch_down", filter=is_opos_colliding_and_not_wheel)
+        draw_target = self.canvas
+        match self.ripple_draw_on:
+            case "canvas":
+                pass
+            case "canvas.after":
+                draw_target = draw_target.after
+            case "canvas.before":
+                draw_target = draw_target.before
         generate_ripple = partial(
-            self.__generate_ripple, ak,
+            self.__generate_ripple, draw_target,
             "kivyx_exclusive_access" if self.ripple_fadeout_on_exclusive_access else "kivyx_end_event",
             getattr(AnimationTransition, self.ripple_growth_curve),
             getattr(AnimationTransition, self.ripple_fadeout_curve),
@@ -85,7 +99,7 @@ class KXTouchRippleBehavior:
                 await generate_ripple(touch)
 
     @staticmethod
-    async def __generate_ripple(ak, fadeout_trigger_key, growth_curve, fadeout_curve, self: Self, touch):
+    async def __generate_ripple(draw_target, fadeout_trigger_key, growth_curve, fadeout_curve, self: Self, touch):
         cx, cy = self.to_local(*touch.opos)  # center of the ripple
         diameter = self.ripple_initial_size
         radius = diameter / 2
@@ -94,7 +108,7 @@ class KXTouchRippleBehavior:
             pos=(cx - radius, cy - radius),
         )
 
-        self.canvas.add(ig := InstructionGroup())
+        draw_target.add(ig := InstructionGroup())
         try:
             ig.add(color := Color(*self.ripple_color))
             ig.add(ellipse)
@@ -105,17 +119,17 @@ class KXTouchRippleBehavior:
             else:
                 final_radius = final_diameter / 2
 
-            async with ak.run_as_main(touch.ud[fadeout_trigger_key].wait()):
-                await ak.anim_attrs(
+            async with run_as_main(touch.ud[fadeout_trigger_key].wait()):
+                await anim_attrs(
                     ellipse,
                     size=(final_diameter, final_diameter, ),
                     pos=(cx - final_radius, cy - final_radius),
                     duration=self.ripple_growth_duration,
                     transition=growth_curve,
                 )
-            await ak.anim_attrs(color, a=0, duration=self.ripple_fadeout_duration, transition=fadeout_curve)
+            await anim_attrs(color, a=0, duration=self.ripple_fadeout_duration, transition=fadeout_curve)
         finally:
-            self.canvas.remove(ig)
+            draw_target.remove(ig)
 
 
 def _calc_enclosing_circle_radius(center_of_circle, widget, max=max, sqrt=math.sqrt):
