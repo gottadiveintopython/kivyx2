@@ -60,7 +60,7 @@ BoxLayout:
         track_width: track_width.value
         track_height: track_height.value
         disabled: disabled.active
-        size_hint_min: self.track_size
+        size_hint_min: self.minimum_size
 '''
 
 

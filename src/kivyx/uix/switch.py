@@ -66,6 +66,9 @@ class KXSwitch(KXTapGestureRecognizer, Widget):
     _track_half_width = NumericProperty()
     _track_half_height = NumericProperty()
     _padding = NumericProperty()
+    minimum_width = track_width
+    minimum_height = track_height
+    minimum_size = track_size
 
     thumb_active_color = ColorProperty("#FFFFFF")
     thumb_inactive_color = ColorProperty("#FFFFFF")
