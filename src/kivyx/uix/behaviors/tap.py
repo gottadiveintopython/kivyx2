@@ -16,7 +16,7 @@ class KXTapGestureRecognizer:
     A :class:`~kivy.uix.behaviors.button.ButtonBehavior` alternative for this library.
     '''
 
-    tap_filter = ObjectProperty(is_opos_colliding_and_not_wheel)
+    tap_touch_filter = ObjectProperty(is_opos_colliding_and_not_wheel)
     '''
     An ``on_touch_down`` event that does not pass this filter will immediately be disregarded as a tapping gesture.
     Defaults to :func:`~kivyx.touch_filters.is_opos_colliding_and_not_wheel`.
@@ -35,7 +35,7 @@ class KXTapGestureRecognizer:
         f = self.fbind
         f("disabled", t)
         f("parent", t)
-        f("tap_filter", t)
+        f("tap_touch_filter", t)
         self.bind(on_touch_down=is_opos_colliding)
 
     # Python's name mangling is weird. This method cannot be named '__reset'.
@@ -47,7 +47,7 @@ class KXTapGestureRecognizer:
 
     async def __main(self):
         touch = None
-        on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.tap_filter)
+        on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.tap_touch_filter)
         from_window_to_parent = self.parent.to_widget
         while True:
             __, touch = await on_touch_down()
@@ -65,7 +65,7 @@ class KXTapGestureRecognizer:
 class KXMultiTapGestureRecognizer:
     tap_max_count = BoundedNumericProperty(2, min=1)
     tap_max_interval = NumericProperty(.3)
-    tap_filter = ObjectProperty(is_opos_colliding_and_not_wheel)
+    tap_touch_filter = ObjectProperty(is_opos_colliding_and_not_wheel)
     '''
     An ``on_touch_down`` event that does not pass this filter will immediately be disregarded as a tapping gesture.
     Defaults to :func:`~kivyx.touch_filters.is_opos_colliding_and_not_wheel`.
@@ -88,7 +88,7 @@ class KXMultiTapGestureRecognizer:
         f("parent", t)
         f("tap_max_count", t)
         f("tap_max_interval", t)
-        f("tap_filter", t)
+        f("tap_touch_filter", t)
         self.bind(on_touch_down=is_opos_colliding)
 
     # Python's name mangling is weird. This method cannot be named '__reset'.
@@ -99,7 +99,7 @@ class KXMultiTapGestureRecognizer:
         self.__main_task = ak.managed_start(self.__main())
 
     async def __main(self):
-        on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.tap_filter)
+        on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.tap_touch_filter)
         from_window_to_parent = self.parent.to_widget
         collide_point = self.collide_point
         timer = ResettableTimer(self.tap_max_interval)
