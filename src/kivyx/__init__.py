@@ -15,6 +15,7 @@ def register_components():
     r('KXDragReorderBehavior', module="kivyx.uix.behaviors.draggable")
     r('KXDragTargetBehavior', module="kivyx.uix.behaviors.draggable")
     r("KXMultiTapGestureRecognizer", module="kivyx.uix.behaviors.tap")
+    r("KXSwipe2DeleteBehavior", module="kivyx.uix.behaviors.swipe2delete")
     r("KXTapGestureRecognizer", module="kivyx.uix.behaviors.tap")
     r("KXTouchRippleBehavior", module="kivyx.uix.behaviors.touchripple")
 

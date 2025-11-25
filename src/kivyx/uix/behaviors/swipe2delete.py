@@ -1,16 +1,32 @@
 '''
-https://youtu.be/4AHhps6GPbU
+===============
+Swipe-to-Delete
+===============
+
+The swipe2delete module provides two ways to add swipe-to-delete functionality to layouts.
+
+* :class:`KXSwipe2DeleteBehavior` is an ordinary Kivy behavior class that allows you to enable,
+  disable and configure the functionality dynamically through Kivy properties.
+* :func:`enable_swipe2delete` is an async function that enables the functionality for a specific
+  instance rather than to an entire class.
+
+`YouTube Demo <https://youtu.be/4AHhps6GPbU>`__
 '''
-__all__ = ("enable_swipe2delete", )
+__all__ = ("enable_swipe2delete", "KXSwipe2DeleteBehavior", )
 from typing import Literal
 from functools import partial
 
 from kivy.metrics import dp
+from kivy.properties import NumericProperty, BooleanProperty, OptionProperty
+from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.graphics import Translate
 import asynckivy as ak
 
 from kivyx.touch_filters import is_opos_colliding
+
+default_swipe_threshold = dp(20)
+default_delete_threshold = dp(300)
 
 
 def remove_child(layout, child):
@@ -18,8 +34,8 @@ def remove_child(layout, child):
 
 
 async def enable_swipe2delete(
-    target_layout, /, *, delete_action=remove_child, swipe_threshold=dp(20), delete_threshold=dp(300),
-    direction: Literal["horizontal", "vertical"]="horizontal",
+    target_layout, /, *, delete_action=remove_child, swipe_threshold=default_swipe_threshold,
+    delete_threshold=default_delete_threshold, direction: Literal["horizontal", "vertical"]="horizontal",
 ):
     '''
     Enables swipe-to-delete functionality for a layout.
@@ -28,6 +44,13 @@ async def enable_swipe2delete(
     :param swipe_threshold: The minimum distance a touch must travel to be recognized as a swipe gesture.
     :param delete_threshold: The minimum distance a swipe gesture must travel to trigger the ``delete_action``
                              upon release.
+
+    .. code-block::
+
+        import asynckivy as ak
+        from kivyx.uix.behaviors.swipe2delete import enable_swipe2delete
+
+        ak.managed_start(enable_swipe2delete(a_layout))
 
     The effect of this function persists until the returned coroutine is cancelled.
     '''
@@ -45,7 +68,7 @@ async def enable_swipe2delete(
 
         def is_the_same_touch(w, t, touch=touch):
             return t is touch
-        ox, __ = target.to_window(*touch.opos)
+        ox, oy = target.to_window(*touch.opos)
         exclusive_access = touch.ud["kivyx_exclusive_access"]
 
         # Waits until the touch travels beyond the swipe threshold.
@@ -95,3 +118,51 @@ async def enable_swipe2delete(
                 delete_action(target, c)
         finally:
             c.opacity = orig_opacity
+
+
+class KXSwipe2DeleteBehavior:
+    '''
+    A mix-in class that adds swipe-to-delete functionality to layouts.
+    '''
+
+    s2d_disabled = BooleanProperty(False)
+    '''If either of ``disabled`` or :attr:`s2d_disabled` is ``True``,
+    the swipe-to-delete functionality is disabled. '''
+
+    s2d_swipe_threshold = NumericProperty(default_swipe_threshold)
+    '''The minimum distance a touch must travel to be recognized as a swipe gesture. '''
+
+    s2d_delete_threshold = NumericProperty(default_delete_threshold)
+    '''The minimum distance a swipe gesture must travel to trigger an ``on_swipe2delete`` event upon release. '''
+
+    s2d_direction = OptionProperty("horizontal", options=("horizontal", "vertical", ))
+
+
+    def on_swipe2delete(self, layout, child):
+        layout.remove_widget(child)
+
+    def __init__(self, **kwargs):
+        self._s2d_main_task = ak.dummy_task
+        self.register_event_type("on_swipe2delete")
+        super().__init__(**kwargs)
+        t = Clock.schedule_once(self._s2d_reset)
+        f = self.fbind
+        f("disabled", t)
+        f("parent", t)
+        f("s2d_disabled", t)
+        f("s2d_swipe_threshold", t)
+        f("s2d_delete_threshold", t)
+        f("s2d_direction", t)
+
+    # Python's name mangling is weird. This method cannot be named '__reset'.
+    def _s2d_reset(self, __):
+        self._s2d_main_task.cancel()
+        if (self.parent is None) or self.disabled or self.s2d_disabled:
+            return
+        self._s2d_main_task = ak.managed_start(enable_swipe2delete(
+            self,
+            swipe_threshold=self.s2d_swipe_threshold,
+            delete_threshold=self.s2d_delete_threshold,
+            direction=self.s2d_direction,
+            delete_action=partial(self.dispatch, "on_swipe2delete"),
+        ))
