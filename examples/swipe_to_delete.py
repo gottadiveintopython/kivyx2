@@ -1,7 +1,7 @@
 '''
 https://youtu.be/4AHhps6GPbU
 '''
-
+from typing import Literal
 from functools import partial
 
 from kivy.metrics import dp
@@ -19,15 +19,17 @@ def remove_child(layout, child):
     layout.remove_widget(child)
 
 
-async def enable_swipe_to_delete(target_layout, *, swipe_threshold=dp(10), delete_threshold=dp(300), delete_action=remove_child):
+async def enable_swipe_to_delete(
+        target_layout, *, swipe_threshold=dp(10), delete_threshold=dp(300), delete_action=remove_child,
+        direction: Literal["horizontal", "vertical"]="horizontal"):
     '''
-    Enables horizontal swipe-to-delete on a layout.
+    Enables swipe-to-delete on a layout.
 
-    :param swipe_threshold: The minimum distance a touch must travel to be recognized as a swipe.
-    :param delete_threshold: The minimum distance a swipe must cover to trigger deletion.
-    :param delete_action: The actual deletion behavior can be customized via this parameter.
+    :param swipe_threshold: The minimum distance a touch must travel to be recognized as a swipe gesture.
+    :param delete_threshold: The minimum distance a swipe gesture must travel to trigger the ``delete_action`` upon release.
+    :param delete_action: A callable that defines the actual deletion behavior.
 
-    The effect of this function lasts until the coroutine is cancelled.
+    The effect of this function persists until the returned coroutine is cancelled.
     '''
     abs_ = abs
     target = target_layout.__self__
@@ -53,10 +55,18 @@ async def enable_swipe_to_delete(target_layout, *, swipe_threshold=dp(10), delet
             ak.move_on_when(exclusive_access.wait_for_someone_to_claim()),
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
         ):
-            while True:
-                await on_touch_move()
-                if abs_(touch.x - ox) > swipe_threshold:
-                    break
+            if direction == "horizontal":
+                while True:
+                    await on_touch_move()
+                    if abs_(touch.x - ox) > swipe_threshold:
+                        break
+            elif direction == "vertical":
+                while True:
+                    await on_touch_move()
+                    if abs_(touch.y - oy) > swipe_threshold:
+                        break
+            else:
+                raise ValueError(f"Invalid direction: {direction!r}")
 
         if exclusive_access.has_been_claimed:
             continue
@@ -72,10 +82,16 @@ async def enable_swipe_to_delete(target_layout, *, swipe_threshold=dp(10), delet
                     ak.move_on_when(touch.ud["kivyx_end"].wait()),
                     ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
                 ):
-                    while True:
-                        await on_touch_move()
-                        translate.x = diff = touch.x - ox
-                        c.opacity = (1.0 - abs_(diff) / fade_threshold) * orig_opacity
+                    if direction == "horizontal":
+                        while True:
+                            await on_touch_move()
+                            translate.x = diff = touch.x - ox
+                            c.opacity = (1.0 - abs_(diff) / fade_threshold) * orig_opacity
+                    else:
+                        while True:
+                            await on_touch_move()
+                            translate.y = diff = touch.y - oy
+                            c.opacity = (1.0 - abs_(diff) / fade_threshold) * orig_opacity
 
             if abs_(diff) > delete_threshold:
                 delete_action(target, c)
