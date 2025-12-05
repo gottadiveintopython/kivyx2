@@ -8,7 +8,7 @@ from kivy.animation import AnimationTransition
 from kivy.properties import NumericProperty, StringProperty, ColorProperty, BooleanProperty, OptionProperty
 from kivy.graphics import InstructionGroup, Color, Ellipse
 import asynckivy as ak
-from asynckivy import anim_attrs, run_as_main
+from asynckivy import anim_attrs, run_as_main, wait_any
 
 from kivyx.touch_filters import is_opos_colliding_and_not_wheel
 
@@ -59,7 +59,6 @@ class KXTouchRippleBehavior:
         f("ripple_growth_curve", t)
         f("ripple_fadeout_curve", t)
         f("ripple_allow_multiple", t)
-        f("ripple_fadeout_on_exclusive_access", t)
         f("ripple_draw_on", t)
         super().__init__(**kwargs)
 
@@ -82,7 +81,6 @@ class KXTouchRippleBehavior:
                 draw_target = draw_target.before
         generate_ripple = partial(
             self.__generate_ripple, draw_target,
-            "kivyx_exclusive_access" if self.ripple_fadeout_on_exclusive_access else "kivyx_end_event",
             getattr(AnimationTransition, self.ripple_growth_curve),
             getattr(AnimationTransition, self.ripple_fadeout_curve),
             self,
@@ -99,7 +97,7 @@ class KXTouchRippleBehavior:
                 await generate_ripple(touch)
 
     @staticmethod
-    async def __generate_ripple(draw_target, fadeout_trigger_key, growth_curve, fadeout_curve, self: Self, touch):
+    async def __generate_ripple(draw_target, growth_curve, fadeout_curve, self: Self, touch):
         cx, cy = self.to_local(*touch.opos)  # center of the ripple
         diameter = self.ripple_initial_size
         radius = diameter / 2
@@ -119,7 +117,11 @@ class KXTouchRippleBehavior:
             else:
                 final_radius = final_diameter / 2
 
-            async with run_as_main(touch.ud[fadeout_trigger_key].wait()):
+            wait_end = touch.ud["kivyx_end_event"].wait
+            async with run_as_main(
+                wait_any(wait_end(), touch.ud["kivyx_exclusive_access"].wait())
+                if self.ripple_fadeout_on_exclusive_access else wait_end()
+            ):
                 await anim_attrs(
                     ellipse,
                     size=(final_diameter, final_diameter, ),

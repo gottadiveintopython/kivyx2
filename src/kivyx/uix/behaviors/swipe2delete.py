@@ -69,39 +69,37 @@ async def enable_swipe2delete(
         def is_the_same_touch(w, t, touch=touch):
             return t is touch
         ox, oy = target.to_window(*touch.opos)
-        exclusive_access = touch.ud["kivyx_exclusive_access"]
+        e_access = touch.ud["kivyx_exclusive_access"]
 
-        # Waits until the touch travels beyond the swipe threshold.
         async with (
-            ak.move_on_when(exclusive_access.wait_for_someone_to_claim()),
+            ak.move_on_when(touch.ud["kivyx_end_event"].wait()),
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
         ):
-            if direction == "horizontal":
-                while True:
-                    await on_touch_move()
-                    if abs(touch.x - ox) > swipe_threshold:
-                        break
-            elif direction == "vertical":
-                while True:
-                    await on_touch_move()
-                    if abs(touch.y - oy) > swipe_threshold:
-                        break
-            else:
-                raise ValueError(f"Invalid direction: {direction!r}")
+            # Waits until the touch travels beyond the swipe threshold.
+            async with ak.move_on_when(e_access.wait_for_someone_to_claim()):
+                if direction == "horizontal":
+                    while True:
+                        await on_touch_move()
+                        if abs(touch.x - ox) > swipe_threshold:
+                            break
+                elif direction == "vertical":
+                    while True:
+                        await on_touch_move()
+                        if abs(touch.y - oy) > swipe_threshold:
+                            break
+                else:
+                    raise ValueError(f"Invalid direction: {direction!r}")
 
-        if exclusive_access.has_been_claimed:
-            continue
-        exclusive_access.claim()
+            if e_access.has_been_claimed:
+                continue
+            e_access.claim()
 
-        orig_opacity = c.opacity
-        try:
             # Moves and changes the opacity of the child during swipe.
-            with ak.transform(c, use_outer_canvas=True) as ig:
-                ig.add(translate := Translate())
-                async with (
-                    ak.move_on_when(touch.ud["kivyx_end"].wait()),
-                    ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-                ):
+            orig_opacity = c.opacity
+            diff = 0.
+            try:
+                with ak.transform(c, use_outer_canvas=True) as ig:
+                    ig.add(translate := Translate())
                     fade_threshold = delete_threshold * 1.4
                     if direction == "horizontal":
                         while True:
@@ -113,11 +111,10 @@ async def enable_swipe2delete(
                             await on_touch_move()
                             translate.y = diff = touch.y - oy
                             c.opacity = (1.0 - abs(diff) / fade_threshold) * orig_opacity
-
-            if abs(diff) > delete_threshold:
-                delete_action(target, c)
-        finally:
-            c.opacity = orig_opacity
+            finally:
+                c.opacity = orig_opacity
+                if abs(diff) > delete_threshold:
+                    delete_action(target, c)
 
 
 class KXSwipe2DeleteBehavior:
@@ -142,10 +139,10 @@ class KXSwipe2DeleteBehavior:
         layout.remove_widget(child)
 
     def __init__(self, **kwargs):
-        self._s2d_main_task = ak.dummy_task
+        self.__main_task = ak.dummy_task
         self.register_event_type("on_swipe2delete")
         super().__init__(**kwargs)
-        t = Clock.schedule_once(self._s2d_reset)
+        t = Clock.schedule_once(self.__reset)
         f = self.fbind
         f("disabled", t)
         f("parent", t)
@@ -155,11 +152,11 @@ class KXSwipe2DeleteBehavior:
         f("s2d_direction", t)
 
     # Python's name mangling is weird. This method cannot be named '__reset'.
-    def _s2d_reset(self, __):
-        self._s2d_main_task.cancel()
+    def _KXSwipe2DeleteBehavior__reset(self, __):
+        self.__main_task.cancel()
         if (self.parent is None) or self.disabled or self.s2d_disabled:
             return
-        self._s2d_main_task = ak.managed_start(enable_swipe2delete(
+        self.__main_task = ak.managed_start(enable_swipe2delete(
             self,
             swipe_threshold=self.s2d_swipe_threshold,
             delete_threshold=self.s2d_delete_threshold,

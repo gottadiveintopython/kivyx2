@@ -51,14 +51,14 @@ class KXTapGestureRecognizer:
         from_window_to_parent = self.parent.to_widget
         while True:
             __, touch = await on_touch_down()
-            exclusive_access = touch.ud["kivyx_exclusive_access"]
-            await exclusive_access.wait_for_someone_to_claim()
-            if not touch.ud["kivyx_end_event"].is_fired:
+            await touch.ud["kivyx_end_event"].wait()
+            e_access = touch.ud["kivyx_exclusive_access"]
+            if e_access.has_been_claimed:
                 continue
-            exclusive_access.claim()
 
             # The touch is in window coordinates when its 'kivyx_end_event' is fired.
             if self.collide_point(*from_window_to_parent(*touch.pos)):
+                e_access.claim()
                 self.dispatch("on_tap", touch)
 
 
@@ -113,14 +113,14 @@ class KXMultiTapGestureRecognizer:
                 while n_taps < tap_max_count:
                     __, touch = await on_touch_down()
                     timer.stop()
-                    exclusive_access = touch.ud["kivyx_exclusive_access"]
-                    await exclusive_access.wait_for_someone_to_claim()
-                    if not touch.ud["kivyx_end_event"].is_fired:
+                    await touch.ud["kivyx_end_event"].wait()
+                    e_access = touch.ud["kivyx_exclusive_access"]
+                    if e_access.has_been_claimed:
                         break
-                    exclusive_access.claim()
 
                     # The touch is in window coordinates when its 'kivyx_end_event' is fired.
                     if collide_point(*from_window_to_parent(*touch.pos)):
+                        e_access.claim()
                         n_taps += 1
                         accepted_touches.append(touch)
                         timer.start()

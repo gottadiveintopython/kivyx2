@@ -526,13 +526,11 @@ class KXScrollView(Widget):
             return
 
         # STEP2: Check if the scrollview should handle this touch.
-        exclusive_access = touch.ud["kivyx_exclusive_access"]
-        tasks = await ak.wait_any(exclusive_access.wait(), touch.ud["kivyx_end_event"].wait())
-        if tasks[0].finished:
-            # Someone else took the touch so we withraw from it.
+        await touch.ud["kivyx_end_event"].wait()
+        e_access = touch.ud["kivyx_exclusive_access"]
+        if e_access.has_been_claimed:
             return
-        # We handle the touch.
-        exclusive_access.fire()
+        e_access.claim()
 
         # STEP3: Apply the mouse wheel scroll.
         d = self.scroll_wheel_distance
@@ -551,7 +549,7 @@ class KXScrollView(Widget):
             e.activate()
 
     async def _handle_potential_scrolling_gesture(self, touch, abs=abs, ak=ak):
-        exclusive_access = touch.ud["kivyx_exclusive_access"]
+        e_access = touch.ud["kivyx_exclusive_access"]
         dx_sum = dy_sum = 0.
         scroll_distance = self.scroll_distance
         do_scroll_x = self.do_scroll_x
@@ -568,49 +566,47 @@ class KXScrollView(Widget):
             return t is touch and t.grab_current is None
 
         async with (
+            ak.move_on_when(touch.ud["kivyx_end_event"].wait()),
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-            ak.move_on_when(exclusive_access.wait_for_someone_to_claim()),
         ):
-            while True:
-                await on_touch_move()
-                dx = touch.dx
-                dy = touch.dy
-                dx_sum += dx
-                dy_sum += dy
-                history_append((touch.time_update, dx, dy))
-                if do_scroll_y and abs(dy_sum) > scroll_distance:
-                    if do_overscroll_y:
-                        break
-                    if dy_sum > 0 and self.content_y < self.content_max_y:
-                        break
-                    if dy_sum < 0 and self.content_y > self.content_min_y:
-                        break
-                elif do_scroll_x and abs(dx_sum) > scroll_distance:
-                    if do_overscroll_x:
-                        break
-                    if dx_sum > 0 and self.content_x < self.content_max_x:
-                        break
-                    if dx_sum < 0 and self.content_x > self.content_min_x:
-                        break
-        if exclusive_access.has_been_claimed:
-            return
-        exclusive_access.claim()
+            async with ak.move_on_when(e_access.wait_for_someone_to_claim()):
+                while True:
+                    await on_touch_move()
+                    dx = touch.dx
+                    dy = touch.dy
+                    dx_sum += dx
+                    dy_sum += dy
+                    history_append((touch.time_update, dx, dy))
+                    if do_scroll_y and abs(dy_sum) > scroll_distance:
+                        if do_overscroll_y:
+                            break
+                        if dy_sum > 0 and self.content_y < self.content_max_y:
+                            break
+                        if dy_sum < 0 and self.content_y > self.content_min_y:
+                            break
+                    elif do_scroll_x and abs(dx_sum) > scroll_distance:
+                        if do_overscroll_x:
+                            break
+                        if dx_sum > 0 and self.content_x < self.content_max_x:
+                            break
+                        if dx_sum < 0 and self.content_x > self.content_min_x:
+                            break
 
-        self.stop_scroll_momentum()
+            if e_access.has_been_claimed:
+                return
+            e_access.claim()
 
-        # Apply the distance already traveled.
-        if do_scroll_y:
-            self._content_y += dy_sum
-        if do_scroll_x:
-            self._content_x += dx_sum
+            self.stop_scroll_momentum()
 
-        self._is_in_the_middle_of_user_scroll = True
-        try:
-            # Move the content along with the touch.
-            async with (
-                ak.move_on_when(touch.ud["kivyx_end_event"].wait()),
-                ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-            ):
+            # Apply the distance already traveled.
+            if do_scroll_y:
+                self._content_y += dy_sum
+            if do_scroll_x:
+                self._content_x += dx_sum
+
+            self._is_in_the_middle_of_user_scroll = True
+            try:
+                # Move the content along with the touch.
                 while True:
                     await on_touch_move()
                     dx = touch.dx
@@ -620,8 +616,8 @@ class KXScrollView(Widget):
                         self._content_y += dy
                     if do_scroll_x:
                         self._content_x += dx
-        finally:
-            self._is_in_the_middle_of_user_scroll = False
+            finally:
+                self._is_in_the_middle_of_user_scroll = False
 
         history_append((touch.time_end, 0, 0))
 
@@ -637,17 +633,20 @@ class KXScrollView(Widget):
             e.activate()
 
     async def _handle_hbar_drag(self, touch):
-        exclusive_access = touch.ud["kivyx_exclusive_access"]
-        if exclusive_access.has_been_claimed:
-            return
-        exclusive_access.claim()
-        self.stop_scroll_momentum()
-        hbar2content_ratio = 1. / self._content2hbar_ratio
-
         def is_the_same_touch(w, t, touch=touch):
             # Needs to check if 't.grab_current' is None because 'on_touch_move' events are doubled
             # when the 'touchring' module is active. (Grabbed one and non-grabbed one).
             return t.grab_current is None and t is touch
+        # 内側にあるScrollViewを優先させたいので一旦待つ
+        await ak.event(Window, "on_touch_move", filter=is_the_same_touch)
+
+        e_access = touch.ud["kivyx_exclusive_access"]
+        if e_access.has_been_claimed:
+            return
+        e_access.claim()
+
+        self.stop_scroll_momentum()
+        hbar2content_ratio = 1. / self._content2hbar_ratio
 
         self._is_in_the_middle_of_user_scroll = True
         try:
@@ -665,17 +664,20 @@ class KXScrollView(Widget):
         self._effect_x.activate()
 
     async def _handle_vbar_drag(self, touch):
-        exclusive_access = touch.ud["kivyx_exclusive_access"]
-        if exclusive_access.has_been_claimed:
-            return
-        exclusive_access.claim()
-        self.stop_scroll_momentum()
-        vbar2content_ratio = 1. / self._content2vbar_ratio
-
         def is_the_same_touch(w, t, touch=touch):
             # Needs to check if 't.grab_current' is None because 'on_touch_move' events are doubled
             # when the 'touchring' module is active. (Grabbed one and non-grabbed one).
             return t.grab_current is None and t is touch
+        # 内側にあるScrollViewを優先させたいので一旦待つ
+        await ak.event(Window, "on_touch_move", filter=is_the_same_touch)
+
+        e_access = touch.ud["kivyx_exclusive_access"]
+        if e_access.has_been_claimed:
+            return
+        e_access.claim()
+
+        self.stop_scroll_momentum()
+        vbar2content_ratio = 1. / self._content2vbar_ratio
 
         self._is_in_the_middle_of_user_scroll = True
         try:

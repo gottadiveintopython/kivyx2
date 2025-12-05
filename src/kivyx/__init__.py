@@ -27,7 +27,7 @@ def register_components():
 
 
 @immediate_call
-def setup_signals():
+def setup_events():
     import types
     from kivy.core.window import Window
 
@@ -79,10 +79,8 @@ def setup_signals():
         ud["kivyx_exclusive_access"] = E()
         ud["kivyx_end_event"] = E()
 
-    def fire_events(w, t):
-        ud = t.ud
-        ud["kivyx_end_event"].fire()
-        ud["kivyx_exclusive_access"].fire()
+    def fire_end_event(w, t):
+        t.ud["kivyx_end_event"].fire()
 
     Window.fbind("on_touch_down", put_events)
-    Window.fbind("on_touch_up", fire_events)
+    Window.fbind("on_touch_up", fire_end_event)
