@@ -219,8 +219,11 @@ class KXDraggableBehavior:
         def is_same_touch(w, t, touch=touch):
             return t is touch
         async with (
-            ak.move_on_when(touch.ud["kivyx_exclusive_access"].wait_for_someone_to_claim()),
-            ak.move_on_after(self.drag_timeout) as timeout_tracker,
+            ak.move_on_when(ak.wait_any(
+                touch.ud["kivyx_end_event"].wait(),
+                touch.ud["kivyx_exclusive_access"].wait_for_someone_to_claim(),
+                timeout_tracker := ak.Task(ak.sleep(self.drag_timeout)),
+            )),
             ak.event_freq(Window, "on_touch_move", filter=is_same_touch) as on_touch_move,
         ):
             abs_ = abs
