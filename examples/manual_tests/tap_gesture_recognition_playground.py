@@ -4,6 +4,8 @@ import kivyx
 
 
 KV_CODE = '''
+#:import defaults kivyx.uix.behaviors.tap.defaults
+
 <Separator@Widget>:
     canvas:
         Color:
@@ -18,9 +20,9 @@ KV_CODE = '''
     height: 1
     size_hint_y: None
 
+<MyGestureRecognizer@KXTapGestureRecognizer+Label>:
+
 BoxLayout:
-    spacing: "10dp"
-    padding: "10dp"
     BoxLayout:
         orientation: "vertical"
         spacing :4
@@ -31,33 +33,25 @@ BoxLayout:
             id: disabled
         HSep:
         Label:
-            text: f"tap_max_count: {int(tap_max_count.value)}"
+            text: "tap_disabled"
             color: 0, 1, 0, 1
-        Slider:
-            id: tap_max_count
-            min: 1
-            max: 7
-            step: 1
-            value: 2
+        Switch:
+            id: tap_disabled
         HSep:
         Label:
-            text: f"tap_max_interval: {tap_max_interval.value:.2f}"
+            text: "tap_track_multiple_touches"
             color: 0, 1, 0, 1
-        Slider:
-            id: tap_max_interval
-            min: 0
-            max: 2
-            step: 0.01
-            value: 0.3
+        Switch:
+            id: tap_track_multiple_touches
+            active: defaults.track_multiple_touches
     VSep:
-    KXMultiTapButton:
-        id: button
-        tap_max_count: max(int(tap_max_count.value), 1)
-        tap_max_interval: tap_max_interval.value
+    MyGestureRecognizer:
+        text: "Tap me"
+        font_size: "46sp"
         disabled: disabled.active
-        on_multi_tap: print(args[1], "- tapped.")
-        font_size: "40sp"
-        text: "TAP ME"
+        tap_disabled: tap_disabled.active
+        tap_track_multiple_touches: tap_track_multiple_touches.active
+        on_tap: print(f"Tapped (touch.uid = {args[1].uid})")
 '''
 
 
@@ -66,5 +60,5 @@ class SampleApp(App):
         return Builder.load_string(KV_CODE)
 
 
-if __name__ == '__main__':
-    SampleApp(title="MultiTapButton Playground").run()
+if __name__ == "__main__":
+    SampleApp(title="Tap Gensture Recognition Playground").run()

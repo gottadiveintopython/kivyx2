@@ -3,6 +3,8 @@ from kivy.lang import Builder
 from kivyx.uix.button import KXButton
 
 KV_CODE = '''
+#:import defaults kivyx.uix.behaviors.swipe2delete.defaults
+
 <Separator@Widget>:
     canvas:
         Color:
@@ -26,34 +28,47 @@ BoxLayout:
         Label:
             text: "disabled"
             color: 0, 1, 0, 1
-        KXSwitch:
+        Switch:
             id: disabled
         HSep:
         Label:
             text: "s2d_disabled"
             color: 0, 1, 0, 1
-        KXSwitch:
+        Switch:
             id: s2d_disabled
         HSep:
         Label:
-            text: f"s2d_swipe_threshold: {int(s2d_swipe_threshold.value)}"
+            text: "s2d_track_multiple_touches"
+            color: 0, 1, 0, 1
+        Switch:
+            id: s2d_track_multiple_touches
+        HSep:
+        Label:
+            text: f"s2d_swipe_distance: {int(s2d_swipe_distance.value)}"
             color: 0, 1, 0, 1
         Slider:
-            id: s2d_swipe_threshold
+            id: s2d_swipe_distance
             min: 0
             max: dp(100)
             step: 1
-            value: dp(20)
+            value: defaults.swipe_distance
         HSep:
         Label:
-            text: f"s2d_delete_threshold: {int(s2d_delete_threshold.value)}"
+            text: f"s2d_delete_distance: {int(s2d_delete_distance.value)}"
             color: 0, 1, 0, 1
         Slider:
-            id: s2d_delete_threshold
+            id: s2d_delete_distance
             min: 0
             max: dp(500)
             step: 1
-            value: dp(300)
+            value: defaults.delete_distance
+        HSep:
+        Label:
+            text: f"s2d_direction: {'horizontal' if s2d_direction.active else 'vertical'}"
+            color: 0, 1, 0, 1
+        Switch:
+            id: s2d_direction
+            active: True
     VSep:
     KXScrollView:
         do_scroll_x: False
@@ -66,8 +81,10 @@ BoxLayout:
             padding: "10dp"
             disabled: disabled.active
             s2d_disabled: s2d_disabled.active
-            s2d_swipe_threshold: s2d_swipe_threshold.value
-            s2d_delete_threshold: s2d_delete_threshold.value
+            s2d_swipe_distance: s2d_swipe_distance.value
+            s2d_delete_distance: s2d_delete_distance.value
+            s2d_track_multiple_touches: s2d_track_multiple_touches.active
+            s2d_direction: "horizontal" if s2d_direction.active else "vertical"
 '''
 
 

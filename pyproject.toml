@@ -20,12 +20,25 @@ classifiers=[
     "Topic :: Software Development :: Libraries",
     "Operating System :: OS Independent",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-    "asynckivy>=0.9.1",
+    "asyncgui>=0.10",
+    "asynckivy>=0.10",
     "kivy==2.3.1",
 ]
 
 [build-system]
 requires = ["uv_build>=0.9.2,<0.10.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
+doc = [
+    "sphinx==8.2.3",
+]
+
+[tool.pytest]
+xfail_strict = true
+addopts = ["--maxfail=4", "--strict-markers"]

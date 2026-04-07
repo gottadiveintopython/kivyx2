@@ -4,6 +4,8 @@ import kivyx
 
 
 KV_CODE = '''
+#:import SW kivyx.uix.switch.KXSwitch
+
 <Separator@Widget>:
     canvas:
         Color:
@@ -36,7 +38,7 @@ BoxLayout:
             min: 32
             max: 512
             step: 1
-            value: 128
+            value: SW.track_width.defaultvalue
         HSep:
         Label:
             text: f"track_height: {int(track_height.value)}"
@@ -46,13 +48,13 @@ BoxLayout:
             min: 32
             max: 256
             step: 1
-            value: 64
+            value: SW.track_height.defaultvalue
         HSep:
         Button:
-            text: "active = True"
+            text: "switch.active = True"
             on_press: switch.active = True
         Button:
-            text: "active = False"
+            text: "switch.active = False"
             on_press: switch.active = False
     VSep:
     KXSwitch:

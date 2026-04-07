@@ -5,22 +5,27 @@ API Reference
 Behaviors
 =========
 
-.. automodule:: kivyx.uix.behaviors.draggable
+.. toctree::
+   :glob:
+   :maxdepth: 1
 
-.. automodule:: kivyx.uix.behaviors.tap
-
-.. automodule:: kivyx.uix.behaviors.touchripple
+   ./modules/uix/behaviors/*
 
 Widgets
 =======
 
-.. automodule:: kivyx.uix.scrollview
+.. toctree::
+   :glob:
+   :maxdepth: 1
 
-.. automodule:: kivyx.uix.switch
+   ./modules/uix/scrollview
+   ./modules/uix/switch
 
-Effects
-=======
+Miscellaneous
+=============
 
-.. automodule:: kivyx.effects.scroll
+.. toctree::
+   :maxdepth: 1
 
-.. automodule:: kivyx.effects.dampedscroll
+   ./modules/touch_filters
+   ./modules/utils

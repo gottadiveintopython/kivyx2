@@ -12,6 +12,7 @@ KV_CODE = r'''
     on_tap: print(f"{self.text} tapped.")
 
 KXScrollView:
+    do_scroll_x: False
     BoxLayout:
         id: container
         orientation: 'vertical'
@@ -34,7 +35,7 @@ class SampleApp(App):
         def random_scroll(dt, sv=self.root):
             distance = randint(-500, 500)
             print("scroll by distance:", distance)
-            sv.scroll_by_distance(None, distance)
+            sv.scroll_by_distance(None, distance, prioritize_user_scroll=False)
         Clock.schedule_interval(random_scroll, 3)
 
 

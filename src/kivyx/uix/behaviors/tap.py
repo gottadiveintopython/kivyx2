@@ -1,141 +1,136 @@
-__all__ = ("KXTapGestureRecognizer", "KXMultiTapGestureRecognizer", )
-
-from collections.abc import Sequence
+__all__ = ("enable_tap_gesture_recognition", "KXTapGestureRecognizer", )
+from typing import Any
+from collections.abc import Callable
 from functools import partial
+from contextlib import nullcontext
 
 from kivy.clock import Clock
-from kivy.properties import BoundedNumericProperty, NumericProperty, ObjectProperty
+from kivy.properties import ObjectProperty, BooleanProperty
+from kivy.input.motionevent import MotionEvent
+from kivy.uix.widget import Widget
 
 import asynckivy as ak
 
-from kivyx.touch_filters import is_opos_colliding, is_opos_colliding_and_not_wheel
+from kivyx.touch_filters import is_colliding_and_not_wheel
+
+
+class defaults:
+    consume_touch = False
+    track_multiple_touches = False
+
+
+async def enable_tap_gesture_recognition(
+    widget, *,
+    track_multiple_touches=defaults.track_multiple_touches,
+    touch_filter: Callable[[Widget, MotionEvent], bool]=is_colliding_and_not_wheel,
+    consume_touch: bool=defaults.consume_touch,
+    on_tap: Callable[[Widget, MotionEvent], Any]=print,
+):
+    '''
+    Enables tap gesture recognition for a widget until the returned coroutine is cancelled.
+
+    :param track_multiple_touches:
+        Whether to track multiple touches simultaneously (multi-touch). If False (the default),
+        once a touch starts being tracked, subsequent touches are ignored until the tracked touch
+        ends or exclusive access to it is claimed by someone else.
+
+    :param touch_filter:
+        Any touch whose ``on_touch_down`` event does not pass this filter is ignored.
+        Defaults to :func:`~kivyx.touch_filters.is_colliding_and_not_wheel`.
+
+    :param consume_touch:
+        Whether to consume ``on_touch_down`` events that pass the ``touch_filter``.
+
+    :param on_tap:
+        Called on each successful tap gesture recognition.
+        For its parameters, see :meth:`KXTapGestureRecognizer.on_tap`.
+    '''
+    on_touch_down = partial(ak.event, widget, "on_touch_down", filter=touch_filter, stop_dispatching=consume_touch)
+    handler = _handle_a_potential_tap_gesture
+    with ak.suppress_event(widget, "on_touch_down", filter=touch_filter) if consume_touch else nullcontext():
+        if track_multiple_touches:
+            async with ak.open_nursery() as nursery:
+                while True:
+                    __, touch = await on_touch_down()
+                    nursery.start(handler(on_tap, widget, touch))
+        else:
+            while True:
+                __, touch = await on_touch_down()
+                await handler(on_tap, widget, touch)
+
+
+async def _handle_a_potential_tap_gesture(on_tap, widget, touch):
+    ud = touch.ud
+    ex_access = ud["kivyx_exclusive_access"]
+    tasks = await ak.wait_any(
+        ud["kivyx_end"].wait(),
+        ud["kivyx_abandon"].wait(),
+        ex_access.wait_for_one_to_claim(),
+    )
+    if ex_access.has_been_claimed or tasks[1].finished:
+        return
+    if widget.collide_point(*widget.parent.to_widget(*touch.pos)):
+        ex_access.claim(widget, "tap")
+        on_tap(widget, touch)
 
 
 class KXTapGestureRecognizer:
     '''
-    A :class:`~kivy.uix.behaviors.button.ButtonBehavior` alternative for this library.
+    A mixin class that adds tap gesture recognition capability to widgets.
+
+    (Some docstrings in this class are written in Japanese because the corresponding English
+    documentation is already available in :func:`enable_tap_gesture_recognition`.)
     '''
 
-    tap_touch_filter = ObjectProperty(is_opos_colliding_and_not_wheel)
+    tap_disabled = BooleanProperty(False)
+    '''If either :attr:`~kivy.uix.widget.Widget.disabled` or :attr:`tap_disabled` is True,
+    tap gesture recognition is disabled.
     '''
-    An ``on_touch_down`` event that does not pass this filter will immediately be disregarded as a tapping gesture.
-    Defaults to :func:`~kivyx.touch_filters.is_opos_colliding_and_not_wheel`.
+
+    tap_touch_filter = ObjectProperty(is_colliding_and_not_wheel)
+    '''
+    ``on_touch_down`` イベントがこの選別をくぐり抜けたタッチのみがタップとして認識され得る。
+    既定値は :func:`~kivyx.touch_filters.is_colliding_and_not_wheel`。
+    '''
+
+    tap_track_multiple_touches = BooleanProperty(defaults.track_multiple_touches)
+    '''
+    タッチを複数同時に監視するか否か。
+    False(既定値)の場合、一つのタッチを監視している間に始まった他のタッチは無視される。
     '''
 
     def on_tap(self, touch):
         '''
-        :param touch: The :class:`~kivy.input.motionevent.MotionEvent` instance that caused the ``on_tap`` event.
+        Fired on each successful tap gesture recognition.
+
+        :param touch: The :class:`~kivy.input.motionevent.MotionEvent` instance that triggered the
+            ``on_tap`` event, in window coordinates.
         '''
 
     def __init__(self, **kwargs):
         self.__main_task = ak.dummy_task
         self.register_event_type("on_tap")
         super().__init__(**kwargs)
-        t = Clock.schedule_once(self.__reset)
-        f = self.fbind
-        f("disabled", t)
-        f("parent", t)
-        f("tap_touch_filter", t)
-        self.bind(on_touch_down=is_opos_colliding)
+        t = Clock.schedule_once(self.__reset, -1)
+        self.bind(
+            disabled=t,
+            tap_disabled=t,
+            tap_touch_filter=t,
+            tap_track_multiple_touches=t,
+        )
 
     # Python's name mangling is weird. This method cannot be named '__reset'.
     def _KXTapGestureRecognizer__reset(self, __):
         self.__main_task.cancel()
-        if (self.parent is None) or self.disabled:
+        if self.disabled or self.tap_disabled:
             return
-        self.__main_task = ak.managed_start(self.__main())
+        self.__main_task = ak.managed_start(enable_tap_gesture_recognition(
+            self,
+            touch_filter=self.tap_touch_filter,
+            track_multiple_touches=self.tap_track_multiple_touches,
+            on_tap=self.__dispatch_on_tap_event,
+        ))
 
-    async def __main(self):
-        touch = None
-        on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.tap_touch_filter)
-        from_window_to_parent = self.parent.to_widget
-        while True:
-            __, touch = await on_touch_down()
-            await touch.ud["kivyx_end_event"].wait()
-            e_access = touch.ud["kivyx_exclusive_access"]
-            if e_access.has_been_claimed:
-                continue
-
-            # The touch is in window coordinates when its 'kivyx_end_event' is fired.
-            if self.collide_point(*from_window_to_parent(*touch.pos)):
-                e_access.claim()
-                self.dispatch("on_tap", touch)
-
-
-class KXMultiTapGestureRecognizer:
-    tap_max_count = BoundedNumericProperty(2, min=1)
-    tap_max_interval = NumericProperty(.3)
-    tap_touch_filter = ObjectProperty(is_opos_colliding_and_not_wheel)
-    '''
-    An ``on_touch_down`` event that does not pass this filter will immediately be disregarded as a tapping gesture.
-    Defaults to :func:`~kivyx.touch_filters.is_opos_colliding_and_not_wheel`.
-    '''
-
-    def on_multi_tap(self, n_taps: int, touches: Sequence):
-        '''
-        :param n_taps: This equals to ``len(touches)``.
-        :param touches: The :class:`~kivy.input.motionevent.MotionEvent` instances that caused the
-                        ``on_multi_tap`` event. They are listed in the order they occurred.
-        '''
-
-    def __init__(self, **kwargs):
-        self.__main_task = ak.dummy_task
-        self.register_event_type("on_multi_tap")
-        super().__init__(**kwargs)
-        t = Clock.schedule_once(self.__reset)
-        f = self.fbind
-        f("disabled", t)
-        f("parent", t)
-        f("tap_max_count", t)
-        f("tap_max_interval", t)
-        f("tap_touch_filter", t)
-        self.bind(on_touch_down=is_opos_colliding)
-
-    # Python's name mangling is weird. This method cannot be named '__reset'.
-    def _KXMultiTapGestureRecognizer__reset(self, __):
-        self.__main_task.cancel()
-        if (self.parent is None) or self.disabled:
-            return
-        self.__main_task = ak.managed_start(self.__main())
-
-    async def __main(self):
-        on_touch_down = partial(ak.event, self, "on_touch_down", filter=self.tap_touch_filter)
-        from_window_to_parent = self.parent.to_widget
-        collide_point = self.collide_point
-        timer = ResettableTimer(self.tap_max_interval)
-        accepted_touches = []
-        tap_max_count = self.tap_max_count
-        while True:
-            accepted_touches.clear()
-            n_taps = 0
-            timer.stop()
-            async with ak.move_on_when(timer.wait_expiration()):
-                while n_taps < tap_max_count:
-                    __, touch = await on_touch_down()
-                    timer.stop()
-                    await touch.ud["kivyx_end_event"].wait()
-                    e_access = touch.ud["kivyx_exclusive_access"]
-                    if e_access.has_been_claimed:
-                        break
-
-                    # The touch is in window coordinates when its 'kivyx_end_event' is fired.
-                    if collide_point(*from_window_to_parent(*touch.pos)):
-                        e_access.claim()
-                        n_taps += 1
-                        accepted_touches.append(touch)
-                        timer.start()
-                    else:
-                        break
-            if n_taps:
-                self.dispatch("on_multi_tap", n_taps, accepted_touches)
-
-
-class ResettableTimer:
-    __slots__ = ("wait_expiration", "start", "stop")
-
-    def __init__(self, timeout: float):
-        event = ak.ExclusiveEvent()
-        ce = Clock.create_trigger(event.fire, timeout, False, False)
-        self.wait_expiration = event.wait
-        self.start = ce
-        self.stop = ce.cancel
+    @staticmethod
+    def __dispatch_on_tap_event(widget, touch):
+        widget.dispatch("on_tap", touch)

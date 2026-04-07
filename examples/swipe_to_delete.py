@@ -6,7 +6,7 @@ from kivy.lang import Builder
 import asynckivy as ak
 
 from kivyx.uix.button import KXButton
-from kivyx.uix.behaviors.swipe2delete import enable_swipe2delete
+from kivyx.uix.behaviors.swipe2delete import enable_swipe2delete_for_children
 
 KV_CODE = r'''
 KXScrollView:
@@ -33,7 +33,10 @@ class SampleApp(App):
         return root
 
     def on_start(self):
-        ak.managed_start(enable_swipe2delete(self.root.ids.container))
+        ak.managed_start(enable_swipe2delete_for_children(
+            self.root.ids.container,
+            track_multiple_touches=True,
+        ))
 
 
 if __name__ == "__main__":

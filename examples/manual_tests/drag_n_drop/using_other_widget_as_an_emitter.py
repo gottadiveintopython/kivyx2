@@ -1,34 +1,24 @@
 from kivy.properties import ObjectProperty
 from kivy.app import App
-from kivy.clock import Clock
 from kivy.lang import Builder
-from kivy.core.window import Window
 from kivy.uix.label import Label
 from kivy.uix.floatlayout import FloatLayout
 
-from kivyx.uix.behaviors.draggable import KXDragTargetBehavior, KXDraggableBehavior
+import asynckivy as ak
+
+from kivyx.uix.behaviors.drag_n_drop import KXDropTargetBehavior, KXDraggableBehavior, perform_drag
 
 KV_CODE = '''
 #:import ascii_uppercase string.ascii_uppercase
 
 <Cell>:
-    drag_classes: ["card", ]
     canvas.before:
         Color:
             rgba: .1, .1, .1, 1
         Rectangle:
             pos: self.pos
             size: self.size
-<Card>:
-    drag_cls: "card"
-    drag_timeout: 0
-    font_size: 100
-    opacity: .3 if self.is_being_dragged else 1.
-    canvas.after:
-        Color:
-            rgba: 1, 1, 1, 1
-        Line:
-            rectangle: [*self.pos, *self.size, ]
+
 <Deck>:
     canvas.after:
         Color:
@@ -72,16 +62,11 @@ BoxLayout:
 '''
 
 
-class Cell(KXDragTargetBehavior, FloatLayout):
-    def on_drag_release(self, touch, ctx) -> bool:
+class Cell(KXDropTargetBehavior, FloatLayout):
+    def on_drop(self, touch, drag_cls, dragged_widget) -> bool:
         if self.children:
             return False
-        return super().on_drag_release(touch, ctx)
-
-    def add_widget(self, widget, *args, **kwargs):
-        widget.size_hint = (1, 1, )
-        widget.pos_hint = {"x": 0, "y": 0, }
-        return super().add_widget(widget, *args, **kwargs)
+        return super().on_drop(touch, drag_cls, dragged_widget)
 
 
 class Card(KXDraggableBehavior, Label):
@@ -96,10 +81,11 @@ class Deck(Label):
         ox, oy = touch.opos
         if self.collide_point(ox, oy):
             if (text := next(self.text_iter, None)) is not None:
-                card = Card(text=text, size=self._get_cell_size(), center=self.to_window(ox, oy))
-                # The card instance is not fully initialized until the Clock ticks,
-                # so we need to wait a bit.
-                Clock.schedule_once(lambda dt: card.drag_start(Window, touch), -1)
+                card = Label(
+                    size=self._get_cell_size(), center=self.to_window(ox, oy), pos_hint={"x": 0, "y": 0},
+                    text=text, font_size=100,
+                )
+                ak.managed_start(perform_drag(card, touch))
             return True
 
     def _get_cell_size(self):

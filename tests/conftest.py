@@ -1,1 +1,1 @@
-from kivy.tests.fixtures import kivy_clock  # noqa: F401
+from .fixtures import kivy_runner, isolate_builder_and_factory

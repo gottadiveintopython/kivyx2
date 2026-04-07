@@ -2,11 +2,10 @@ __pycache__/
 bin/
 *.pyc
 *.pyo
+*.sqlite3
 /.venv/
 /asynckivy.egg-info/
 /.pytest_cache/
 /*kivymd*/
 /dist
 /docs/
-/examples/shopping.py.sqlite3
-/examples/tier_list_maker.py.sqlite3

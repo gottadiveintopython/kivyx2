@@ -222,8 +222,6 @@ class KXScrollView(Widget):
         self._prev_content = None
         super().__init__(**kwargs)
         self._is_in_the_middle_of_user_scroll = False
-        self._cancel_user_scroll_signal = e = ak.ExclusiveEvent()
-        self.cancel_user_scroll = e.fire
 
         f = self.fbind
 
@@ -455,10 +453,7 @@ class KXScrollView(Widget):
                     ec(self._keep_updating_content_y_from_hint(c))
 
                 while True:
-                    await ak.wait_any(
-                        self._root_touch_handler(),
-                        self._cancel_user_scroll_signal.wait(),
-                    )
+                     await self._root_touch_handler()
         finally:
             self._prev_content = c
             self.content = None
@@ -485,20 +480,23 @@ class KXScrollView(Widget):
 
         while True:
             __, touch = await on_touch_down()
-            if touch.is_mouse_scrolling:
-                await handle_mouse_wheel(touch)
-                continue
-            if bar_enabled:
-                x, y = touch.opos
-                x -= self.x
-                y -= self.y
-                if vbar_enabled and is_colliding_with_vbar(x, y):
-                    await handle_vbar_drag(touch)
+            abandon = touch.ud["kivyx_abandon"]
+            self.cancel_user_scroll = abandon.fire
+            async with ak.move_on_when(abandon.wait()):
+                if touch.is_mouse_scrolling:
+                    await handle_mouse_wheel(touch)
                     continue
-                if hbar_enabled and is_colliding_with_hbar(x, y):
-                    await handle_hbar_drag(touch)
-                    continue
-            await handle_potential_scrolling_gesture(touch)
+                if bar_enabled:
+                    x, y = touch.opos
+                    x -= self.x
+                    y -= self.y
+                    if vbar_enabled and is_colliding_with_vbar(x, y):
+                        await handle_vbar_drag(touch)
+                        continue
+                    if hbar_enabled and is_colliding_with_hbar(x, y):
+                        await handle_hbar_drag(touch)
+                        continue
+                await handle_potential_scrolling_gesture(touch)
 
     async def _handle_mouse_wheel(self, touch, VERTICAL_DIRECTIONS=("up", "down"),
                                   POSITIVE_DIRECTIONS=("up", "right")):
@@ -526,11 +524,11 @@ class KXScrollView(Widget):
             return
 
         # STEP2: Check if the scrollview should handle this touch.
-        await touch.ud["kivyx_end_event"].wait()
+        await touch.ud["kivyx_end"].wait()
         e_access = touch.ud["kivyx_exclusive_access"]
         if e_access.has_been_claimed:
             return
-        e_access.claim()
+        e_access.claim(self)
 
         # STEP3: Apply the mouse wheel scroll.
         d = self.scroll_wheel_distance
@@ -566,10 +564,10 @@ class KXScrollView(Widget):
             return t is touch and t.grab_current is None
 
         async with (
-            ak.move_on_when(touch.ud["kivyx_end_event"].wait()),
+            ak.move_on_when(touch.ud["kivyx_end"].wait()),
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
         ):
-            async with ak.move_on_when(e_access.wait_for_someone_to_claim()):
+            async with ak.move_on_when(e_access.wait_for_one_to_claim()):
                 while True:
                     await on_touch_move()
                     dx = touch.dx
@@ -594,7 +592,7 @@ class KXScrollView(Widget):
 
             if e_access.has_been_claimed:
                 return
-            e_access.claim()
+            e_access.claim(self)
 
             self.stop_scroll_momentum()
 
@@ -643,7 +641,7 @@ class KXScrollView(Widget):
         e_access = touch.ud["kivyx_exclusive_access"]
         if e_access.has_been_claimed:
             return
-        e_access.claim()
+        e_access.claim(self)
 
         self.stop_scroll_momentum()
         hbar2content_ratio = 1. / self._content2hbar_ratio
@@ -652,7 +650,7 @@ class KXScrollView(Widget):
         try:
             # Move the content along with the touch.
             async with (
-                ak.move_on_when(touch.ud["kivyx_end_event"].wait()),
+                ak.move_on_when(touch.ud["kivyx_end"].wait()),
                 ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
             ):
                 while True:
@@ -674,7 +672,7 @@ class KXScrollView(Widget):
         e_access = touch.ud["kivyx_exclusive_access"]
         if e_access.has_been_claimed:
             return
-        e_access.claim()
+        e_access.claim(self)
 
         self.stop_scroll_momentum()
         vbar2content_ratio = 1. / self._content2vbar_ratio
@@ -683,7 +681,7 @@ class KXScrollView(Widget):
         try:
             # Move the content along with the touch.
             async with (
-                ak.move_on_when(touch.ud["kivyx_end_event"].wait()),
+                ak.move_on_when(touch.ud["kivyx_end"].wait()),
                 ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
             ):
                 while True:

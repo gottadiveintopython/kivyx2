@@ -4,7 +4,7 @@ from kivy.lang import Builder
 from kivyx.uix.scrollview import KXScrollView
 
 
-def test_zero_sized_content(kivy_clock):
+def test_zero_sized_content(kivy_runner):
     sv: KXScrollView = Builder.load_string(dedent("""
     KXScrollView:
         size: 100, 100
@@ -12,7 +12,7 @@ def test_zero_sized_content(kivy_clock):
             size_hint: None, None
             size: 0, 0
     """))
-    kivy_clock.tick()
+    kivy_runner.advance_a_frame()
     assert sv.size == [100, 100]
     assert sv.content.size == [0, 0]
     assert sv.content_min_x == 0
@@ -21,7 +21,7 @@ def test_zero_sized_content(kivy_clock):
     assert sv.content_max_y == 100
 
 
-def test_zero_sized_scrollview(kivy_clock):
+def test_zero_sized_scrollview(kivy_runner):
     sv: KXScrollView = Builder.load_string(dedent("""
     KXScrollView:
         size: 0, 0
@@ -29,7 +29,7 @@ def test_zero_sized_scrollview(kivy_clock):
             size_hint: None, None
             size: 100, 100
     """))
-    kivy_clock.tick()
+    kivy_runner.advance_a_frame()
     assert sv.size == [0, 0]
     assert sv.content.size == [100, 100]
     assert sv.content_min_x == -100
@@ -38,7 +38,7 @@ def test_zero_sized_scrollview(kivy_clock):
     assert sv.content_max_y == 0
 
 
-def test_zero_sized_scrollview_and_content(kivy_clock):
+def test_zero_sized_scrollview_and_content(kivy_runner):
     sv: KXScrollView = Builder.load_string(dedent("""
     KXScrollView:
         size: 0, 0
@@ -46,7 +46,7 @@ def test_zero_sized_scrollview_and_content(kivy_clock):
             size_hint: None, None
             size: 0, 0
     """))
-    kivy_clock.tick()
+    kivy_runner.advance_a_frame()
     assert sv.size == [0, 0]
     assert sv.content.size == [0, 0]
     assert sv.content_min_x == 0
@@ -56,15 +56,15 @@ def test_zero_sized_scrollview_and_content(kivy_clock):
 
 
 @pytest.mark.parametrize('size', [(0, 0), (100, 0), (0, 100), (100, 100)])
-def test_same_sized_scrollview_and_content(kivy_clock, size):
+def test_same_sized_scrollview_and_content(kivy_runner, size):
     sv: KXScrollView = Builder.load_string(dedent("""
     KXScrollView:
         Widget:
             size_hint: 1, 1
     """))
     sv.size = size
-    kivy_clock.tick()
-    kivy_clock.tick()
+    kivy_runner.advance_a_frame()
+    kivy_runner.advance_a_frame()
     assert sv.size == list(size)
     assert sv.content.size == list(size)
     assert sv.content_min_x == 0
@@ -73,21 +73,21 @@ def test_same_sized_scrollview_and_content(kivy_clock, size):
     assert sv.content_max_y == 0
 
 
-def test_scroll_to_content_itself(kivy_clock):
+def test_scroll_to_content_itself(kivy_runner):
     sv: KXScrollView = Builder.load_string(dedent("""
     KXScrollView:
         Widget:
     """))
-    kivy_clock.tick()
+    kivy_runner.advance_a_frame()
     with pytest.raises(ValueError):
         sv.scroll_to_widget(sv.content)
 
 
-def test_scroll_to_scrollview_itself(kivy_clock):
+def test_scroll_to_scrollview_itself(kivy_runner):
     sv: KXScrollView = Builder.load_string(dedent("""
     KXScrollView:
         Widget:
     """))
-    kivy_clock.tick()
+    kivy_runner.advance_a_frame()
     with pytest.raises(ValueError):
         sv.scroll_to_widget(sv)

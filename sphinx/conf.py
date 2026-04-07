@@ -36,7 +36,10 @@ gettext_location = False
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 html_theme = "alabaster"
 html_static_path = ['_static']
-
+html_theme_options = {
+    'page_width': '1280px',
+    'sidebar_width': '380px',
+}
 
 # -- Options for todo extension ----------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/extensions/todo.html#configuration
@@ -48,6 +51,7 @@ todo_include_todos = True
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'kivy': ('https://kivy.org/doc/master', None),
+    'asynckivy': ('https://asyncgui.github.io/asynckivy/', None),
 }
 
 
@@ -60,5 +64,9 @@ autodoc_default_options = {
    'no-show-inheritance': True,
    'exclude-members': "on_touch_down, on_touch_move, on_touch_up, on_motion, to_local, to_parent, to_window, to_widget, collide_point, __init__",
 }
+# autoclass_content = 'class'
 autodoc_class_signature = 'separated'
-# autodoc_preserve_defaults = True
+autodoc_inherit_docstrings = False
+autodoc_preserve_defaults = False
+autodoc_typehints = 'description'
+# autodoc_typehints_format = 'short'
