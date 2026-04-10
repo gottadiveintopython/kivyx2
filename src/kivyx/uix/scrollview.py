@@ -559,9 +559,7 @@ class KXScrollView(Widget):
         history_append((touch.time_start, 0, 0))
 
         def is_the_same_touch(w, t, touch=touch):
-            # Needs to check if 't.grab_current' is None because 'on_touch_move' events are doubled
-            # when the 'touchring' module is active. (Grabbed one and non-grabbed one).
-            return t is touch and t.grab_current is None
+            return t is touch
 
         async with (
             ak.move_on_when(touch.ud["kivyx_end"].wait()),
@@ -632,9 +630,7 @@ class KXScrollView(Widget):
 
     async def _handle_hbar_drag(self, touch):
         def is_the_same_touch(w, t, touch=touch):
-            # Needs to check if 't.grab_current' is None because 'on_touch_move' events are doubled
-            # when the 'touchring' module is active. (Grabbed one and non-grabbed one).
-            return t.grab_current is None and t is touch
+            return t is touch
         # 内側にあるScrollViewを優先させたいので一旦待つ
         await ak.event(Window, "on_touch_move", filter=is_the_same_touch)
 
@@ -663,9 +659,7 @@ class KXScrollView(Widget):
 
     async def _handle_vbar_drag(self, touch):
         def is_the_same_touch(w, t, touch=touch):
-            # Needs to check if 't.grab_current' is None because 'on_touch_move' events are doubled
-            # when the 'touchring' module is active. (Grabbed one and non-grabbed one).
-            return t.grab_current is None and t is touch
+            return t is touch
         # 内側にあるScrollViewを優先させたいので一旦待つ
         await ak.event(Window, "on_touch_move", filter=is_the_same_touch)
 
