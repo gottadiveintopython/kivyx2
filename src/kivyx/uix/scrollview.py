@@ -112,8 +112,10 @@ class KXScrollView(Widget):
     ''' :attr:`kivy.uix.scrollview.ScrollView.do_scroll_y` '''
 
     do_overscroll_x = BooleanProperty(True)
+    '''...'''
 
     do_overscroll_y = BooleanProperty(True)
+    '''...'''
 
     content = ObjectProperty(None, allownone=True)
     '''(read-only)'''
@@ -161,10 +163,17 @@ class KXScrollView(Widget):
     '''
 
     effect_y = ObjectProperty(None, allownone=True)
+    '''...'''
 
     hbar_enabled = BooleanProperty(False)
+    '''...'''
+
     hbar_length_min = NumericProperty("10dp")
+    '''...'''
+
     hbar_thickness = NumericProperty("10dp")
+    '''...'''
+
     hbar_x = NumericProperty()
     '''(read-only) The X position of the horizontal scrollbar relative to the KXScrollView.'''
 
@@ -182,6 +191,8 @@ class KXScrollView(Widget):
     '''
 
     hbar_color = ColorProperty("#CCCCCC77")
+    '''...'''
+
     _hbar_length = NumericProperty()
     _content2hbar_ratio = NumericProperty(1.)
     '''
@@ -190,8 +201,14 @@ class KXScrollView(Widget):
     '''
 
     vbar_enabled = BooleanProperty(False)
+    '''...'''
+
     vbar_length_min = NumericProperty("10dp")
+    '''...'''
+
     vbar_thickness = NumericProperty("10dp")
+    '''...'''
+
     vbar_x = NumericProperty()
     '''
     The X position of the vertical scrollbar relative to the KXScrollView.
@@ -209,6 +226,8 @@ class KXScrollView(Widget):
     '''(read-only) The Y position of the vertical scrollbar relative to the KXScrollView.'''
 
     vbar_color = ColorProperty("#CCCCCC77")
+    '''...'''
+
     _vbar_length = NumericProperty()
     _content2vbar_ratio = NumericProperty(1.)
     '''
