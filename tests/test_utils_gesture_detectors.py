@@ -123,7 +123,7 @@ def test_race(kivy_runner):
     t = UnitTestTouch(0, 0)
     t.touch_down()
     task = ak.start(ak.wait_any(
-        long_press(t, min_duration=1.0, max_movement=None),
+        long_press(t, min_duration=1.0),
         rightward_swipe(t, min_movement=20),
     ))
     kivy_runner.advance_a_frame(dt=0.1)
