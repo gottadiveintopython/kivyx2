@@ -19,5 +19,5 @@ class EventDispatcher:
 - Add a Kivy 3.0.0 `ButtonBehavior` equivalent.
 - Look into `kivy.eventmanager` and use it if appropriate.
 - Add `Carousel`.
-- Add `Drawer`.
+- ~~Add `Drawer`.~~
 - ~~Add a custom touch ring, as `kivy.modules.touchring` is broken in Kivy 2.x.~~

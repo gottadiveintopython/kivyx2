@@ -21,6 +21,8 @@ def register_components_to_factory():
 
     # Widgets
     r("KXButton", module="kivyx.uix.button")
+    r("KXDrawer", module="kivyx.uix.drawer")
+    r("KXDrawerTab", module="kivyx.uix.drawer")
     r("KXMultiTapButton", module="kivyx.uix.button")
     r("KXScrollView", module="kivyx.uix.scrollview")
     r("KXSwitch", module="kivyx.uix.switch")

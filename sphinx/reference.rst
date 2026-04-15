@@ -18,6 +18,7 @@ Widgets
    :glob:
    :maxdepth: 1
 
+   ./modules/uix/drawer
    ./modules/uix/scrollview
    ./modules/uix/switch
 
