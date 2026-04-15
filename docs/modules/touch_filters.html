@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Touch Filters &#8212; kivyx 0.1.0.dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=5c15dc28" />
+    <script src="../_static/documentation_options.js?v=965fac30"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Utilities" href="utils.html" />
+    <link rel="prev" title="Switch" href="uix/switch.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="touch-filters">
+<h1>Touch Filters<a class="headerlink" href="#touch-filters" title="Link to this heading">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">kivyx.touch_filters</span></code> module provides a collection of <em>touch filters</em> that can be used with
+<a class="reference external" href="https://asyncgui.github.io/asynckivy/reference.html#module-asynckivy" title="(in asynckivy)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asynckivy</span></code></a> to selectively handle touch events. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asynckivy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ak</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">kivyx.touch_filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_colliding</span>
+
+<span class="k">await</span> <span class="n">ak</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="s2">&quot;on_touch_down&quot;</span><span class="p">,</span> <span class="nb">filter</span><span class="o">=</span><span class="n">is_colliding</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">ak</span><span class="o">.</span><span class="n">suppress_event</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="s2">&quot;on_touch_down&quot;</span><span class="p">,</span> <span class="nb">filter</span><span class="o">=</span><span class="n">is_colliding</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<dl class="py function" id="module-kivyx.touch_filters">
+<dt class="sig sig-object py" id="kivyx.touch_filters.is_colliding">
+<span class="sig-name descname"><span class="pre">is_colliding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.touch_filters.is_colliding" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.touch_filters.is_colliding_and_not_wheel">
+<span class="sig-name descname"><span class="pre">is_colliding_and_not_wheel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.touch_filters.is_colliding_and_not_wheel" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.touch_filters.is_opos_colliding">
+<span class="sig-name descname"><span class="pre">is_opos_colliding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.touch_filters.is_opos_colliding" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.touch_filters.is_opos_colliding_and_not_wheel">
+<span class="sig-name descname"><span class="pre">is_opos_colliding_and_not_wheel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.touch_filters.is_opos_colliding_and_not_wheel" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<section id="implementations">
+<h2>Implementations<a class="headerlink" href="#implementations" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;is_opos_colliding_and_not_wheel&quot;</span><span class="p">,</span> <span class="s2">&quot;is_opos_colliding&quot;</span><span class="p">,</span> <span class="s2">&quot;is_colliding&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;is_colliding_and_not_wheel&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">is_opos_colliding_and_not_wheel</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">collide_point</span><span class="p">(</span><span class="o">*</span><span class="n">t</span><span class="o">.</span><span class="n">opos</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">is_mouse_scrolling</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">is_colliding_and_not_wheel</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">collide_point</span><span class="p">(</span><span class="o">*</span><span class="n">t</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">is_mouse_scrolling</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">is_opos_colliding</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">collide_point</span><span class="p">(</span><span class="o">*</span><span class="n">t</span><span class="o">.</span><span class="n">opos</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">is_colliding</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">collide_point</span><span class="p">(</span><span class="o">*</span><span class="n">t</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">kivyx</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../reference.html#behaviors">Behaviors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference.html#widgets">Widgets</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../reference.html#miscellaneous">Miscellaneous</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Touch Filters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html">Utilities</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../notes.html">Notes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../reference.html">API Reference</a><ul>
+      <li>Previous: <a href="uix/switch.html" title="previous chapter">Switch</a></li>
+      <li>Next: <a href="utils.html" title="next chapter">Utilities</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Mitō Nattōsai.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/modules/touch_filters.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

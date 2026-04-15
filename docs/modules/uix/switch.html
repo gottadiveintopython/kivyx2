@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Switch &#8212; kivyx 0.1.0.dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=5c15dc28" />
+    <script src="../../_static/documentation_options.js?v=965fac30"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Touch Filters" href="../touch_filters.html" />
+    <link rel="prev" title="ScrollView" href="scrollview.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-kivyx.uix.switch">
+<span id="switch"></span><h1>Switch<a class="headerlink" href="#module-kivyx.uix.switch" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">KXSwitch</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch" title="Link to this definition">¶</a></dt>
+<dd><p>Inspired by Flutter’s <a class="reference external" href="https://youtu.be/24tg_N4sdMQ">CupertinoSwitch</a>.
+Unlike the official <a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.switch.html#kivy.uix.switch.Switch" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Switch</span></code></a>, the <code class="docutils literal notranslate"><span class="pre">collide_point</span></code> method
+checks for collision against the track area rather than the entire widget.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.active">
+<span class="sig-name descname"><span class="pre">active</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.active" title="Link to this definition">¶</a></dt>
+<dd><p>Whether the switch is on (True) or off (False).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.minimum_height">
+<span class="sig-name descname"><span class="pre">minimum_height</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.minimum_height" title="Link to this definition">¶</a></dt>
+<dd><p>An alias for <a class="reference internal" href="#kivyx.uix.switch.KXSwitch.track_height" title="kivyx.uix.switch.KXSwitch.track_height"><code class="xref py py-attr docutils literal notranslate"><span class="pre">track_height</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.minimum_size">
+<span class="sig-name descname"><span class="pre">minimum_size</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.minimum_size" title="Link to this definition">¶</a></dt>
+<dd><p>An alias for <a class="reference internal" href="#kivyx.uix.switch.KXSwitch.track_size" title="kivyx.uix.switch.KXSwitch.track_size"><code class="xref py py-attr docutils literal notranslate"><span class="pre">track_size</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.minimum_width">
+<span class="sig-name descname"><span class="pre">minimum_width</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.minimum_width" title="Link to this definition">¶</a></dt>
+<dd><p>An alias for <a class="reference internal" href="#kivyx.uix.switch.KXSwitch.track_width" title="kivyx.uix.switch.KXSwitch.track_width"><code class="xref py py-attr docutils literal notranslate"><span class="pre">track_width</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.thumb_active_color">
+<span class="sig-name descname"><span class="pre">thumb_active_color</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.thumb_active_color" title="Link to this definition">¶</a></dt>
+<dd><p>The color to use on the thumb when the switch is on.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.thumb_disabled_color">
+<span class="sig-name descname"><span class="pre">thumb_disabled_color</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.thumb_disabled_color" title="Link to this definition">¶</a></dt>
+<dd><p>The color to use on the thumb when the switch is disabled.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.thumb_inactive_color">
+<span class="sig-name descname"><span class="pre">thumb_inactive_color</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.thumb_inactive_color" title="Link to this definition">¶</a></dt>
+<dd><p>The color to use on the thumb when the switch is off.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.track_active_color">
+<span class="sig-name descname"><span class="pre">track_active_color</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.track_active_color" title="Link to this definition">¶</a></dt>
+<dd><p>The color to use for the track when the switch is on.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.track_disabled_color">
+<span class="sig-name descname"><span class="pre">track_disabled_color</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.track_disabled_color" title="Link to this definition">¶</a></dt>
+<dd><p>The color to use for the track when the switch is disabled.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.track_height">
+<span class="sig-name descname"><span class="pre">track_height</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.track_height" title="Link to this definition">¶</a></dt>
+<dd><p>The height of the switch track.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.track_inactive_color">
+<span class="sig-name descname"><span class="pre">track_inactive_color</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.track_inactive_color" title="Link to this definition">¶</a></dt>
+<dd><p>The color to use for the track when the switch is off.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.track_size">
+<span class="sig-name descname"><span class="pre">track_size</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.track_size" title="Link to this definition">¶</a></dt>
+<dd><p>The size of the switch track. (<a class="reference external" href="https://kivy.org/doc/master/api-kivy.properties.html#kivy.properties.ReferenceListProperty" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReferenceListProperty</span></code></a> of
+<a class="reference internal" href="#kivyx.uix.switch.KXSwitch.track_width" title="kivyx.uix.switch.KXSwitch.track_width"><code class="xref py py-attr docutils literal notranslate"><span class="pre">track_width</span></code></a> and <a class="reference internal" href="#kivyx.uix.switch.KXSwitch.track_height" title="kivyx.uix.switch.KXSwitch.track_height"><code class="xref py py-attr docutils literal notranslate"><span class="pre">track_height</span></code></a>)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.switch.KXSwitch.track_width">
+<span class="sig-name descname"><span class="pre">track_width</span></span><a class="headerlink" href="#kivyx.uix.switch.KXSwitch.track_width" title="Link to this definition">¶</a></dt>
+<dd><p>The width of the switch track.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">kivyx</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../reference.html#behaviors">Behaviors</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../reference.html#widgets">Widgets</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="drawer.html">Drawer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="scrollview.html">ScrollView</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Switch</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes.html">Notes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../../reference.html">API Reference</a><ul>
+      <li>Previous: <a href="scrollview.html" title="previous chapter">ScrollView</a></li>
+      <li>Next: <a href="../touch_filters.html" title="next chapter">Touch Filters</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Mitō Nattōsai.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../_sources/modules/uix/switch.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

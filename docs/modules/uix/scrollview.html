@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>ScrollView &#8212; kivyx 0.1.0.dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=5c15dc28" />
+    <script src="../../_static/documentation_options.js?v=965fac30"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Switch" href="switch.html" />
+    <link rel="prev" title="Drawer" href="drawer.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-kivyx.uix.scrollview">
+<span id="scrollview"></span><h1>ScrollView<a class="headerlink" href="#module-kivyx.uix.scrollview" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">KXScrollView</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView" title="Link to this definition">¶</a></dt>
+<dd><p>Main differences from the official <a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.scrollview.html#kivy.uix.scrollview.ScrollView" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScrollView</span></code></a>:</p>
+<ul class="simple">
+<li><p>When <a class="reference internal" href="#kivyx.uix.scrollview.KXScrollView.do_scroll_x" title="kivyx.uix.scrollview.KXScrollView.do_scroll_x"><code class="xref py py-attr docutils literal notranslate"><span class="pre">do_scroll_x</span></code></a> is False, the content’s X position can be controlled via <code class="docutils literal notranslate"><span class="pre">pos_hint</span></code>.</p></li>
+<li><p>When <a class="reference internal" href="#kivyx.uix.scrollview.KXScrollView.do_scroll_y" title="kivyx.uix.scrollview.KXScrollView.do_scroll_y"><code class="xref py py-attr docutils literal notranslate"><span class="pre">do_scroll_y</span></code></a> is False, the content’s Y position can be controlled via <code class="docutils literal notranslate"><span class="pre">pos_hint</span></code>.</p></li>
+<li><p>Nested instances work as expected, avoiding many of the issues present in the original.</p></li>
+<li><p>The content can be scrolled even when it’s smaller than the KXScrollView.</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.cancel_user_scroll">
+<span class="sig-name descname"><span class="pre">cancel_user_scroll</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.cancel_user_scroll" title="Link to this definition">¶</a></dt>
+<dd><p>Cancel ongoing user scroll.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.content">
+<span class="sig-name descname"><span class="pre">content</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.content" title="Link to this definition">¶</a></dt>
+<dd><p>(read-only)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.content_max_x">
+<span class="sig-name descname"><span class="pre">content_max_x</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.content_max_x" title="Link to this definition">¶</a></dt>
+<dd><p>(read-only) The higher bound of the content’s X position relative to the KXScrollView.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.content_max_y">
+<span class="sig-name descname"><span class="pre">content_max_y</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.content_max_y" title="Link to this definition">¶</a></dt>
+<dd><p>(read-only) The higher bound of the content’s Y position relative to the KXScrollView.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.content_min_x">
+<span class="sig-name descname"><span class="pre">content_min_x</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.content_min_x" title="Link to this definition">¶</a></dt>
+<dd><p>(read-only) The lower bound of the content’s X position relative to the KXScrollView.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.content_min_y">
+<span class="sig-name descname"><span class="pre">content_min_y</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.content_min_y" title="Link to this definition">¶</a></dt>
+<dd><p>(read-only) The lower bound of the content’s Y position relative to the KXScrollView.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.content_pos">
+<span class="sig-name descname"><span class="pre">content_pos</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.content_pos" title="Link to this definition">¶</a></dt>
+<dd><p>(read-only) A <a class="reference external" href="https://kivy.org/doc/master/api-kivy.properties.html#kivy.properties.ReferenceListProperty" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReferenceListProperty</span></code></a> of
+(<a class="reference internal" href="#kivyx.uix.scrollview.KXScrollView.content_x" title="kivyx.uix.scrollview.KXScrollView.content_x"><code class="xref py py-attr docutils literal notranslate"><span class="pre">content_x</span></code></a> and <a class="reference internal" href="#kivyx.uix.scrollview.KXScrollView.content_y" title="kivyx.uix.scrollview.KXScrollView.content_y"><code class="xref py py-attr docutils literal notranslate"><span class="pre">content_y</span></code></a>) properties.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.content_x">
+<span class="sig-name descname"><span class="pre">content_x</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.content_x" title="Link to this definition">¶</a></dt>
+<dd><p>(read-only) The X position of the content relative to the KXScrollView.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.content_y">
+<span class="sig-name descname"><span class="pre">content_y</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.content_y" title="Link to this definition">¶</a></dt>
+<dd><p>(read-only) The Y position of the content relative to the KXScrollView.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.do_overscroll_x">
+<span class="sig-name descname"><span class="pre">do_overscroll_x</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.do_overscroll_x" title="Link to this definition">¶</a></dt>
+<dd><p>…</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.do_overscroll_y">
+<span class="sig-name descname"><span class="pre">do_overscroll_y</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.do_overscroll_y" title="Link to this definition">¶</a></dt>
+<dd><p>…</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.do_scroll_x">
+<span class="sig-name descname"><span class="pre">do_scroll_x</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.do_scroll_x" title="Link to this definition">¶</a></dt>
+<dd><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">kivy.uix.scrollview.ScrollView.do_scroll_x</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.do_scroll_y">
+<span class="sig-name descname"><span class="pre">do_scroll_y</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.do_scroll_y" title="Link to this definition">¶</a></dt>
+<dd><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">kivy.uix.scrollview.ScrollView.do_scroll_y</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.effect_x">
+<span class="sig-name descname"><span class="pre">effect_x</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.effect_x" title="Link to this definition">¶</a></dt>
+<dd><p>Effect to apply for the X axis. If None is set, KXScrollView internally
+creates an appropriate instance with the following rules:</p>
+<ul class="simple">
+<li><p>If <a class="reference internal" href="#kivyx.uix.scrollview.KXScrollView.do_overscroll_x" title="kivyx.uix.scrollview.KXScrollView.do_overscroll_x"><code class="xref py py-attr docutils literal notranslate"><span class="pre">do_overscroll_x</span></code></a> is True, it creates a <code class="xref py py-class docutils literal notranslate"><span class="pre">KXDampedScrollEffect</span></code>.</p></li>
+<li><p>If <a class="reference internal" href="#kivyx.uix.scrollview.KXScrollView.do_overscroll_x" title="kivyx.uix.scrollview.KXScrollView.do_overscroll_x"><code class="xref py py-attr docutils literal notranslate"><span class="pre">do_overscroll_x</span></code></a> is False, it creates a <code class="xref py py-class docutils literal notranslate"><span class="pre">KXScrollEffect</span></code>.</p></li>
+</ul>
+<p>You may want to set this to non-None when:</p>
+<ul class="simple">
+<li><p>You want to use a custom effect.</p></li>
+<li><p>You want to use an existing effect but with a different configuration.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.effect_y">
+<span class="sig-name descname"><span class="pre">effect_y</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.effect_y" title="Link to this definition">¶</a></dt>
+<dd><p>…</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.hbar_color">
+<span class="sig-name descname"><span class="pre">hbar_color</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.hbar_color" title="Link to this definition">¶</a></dt>
+<dd><p>…</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.hbar_enabled">
+<span class="sig-name descname"><span class="pre">hbar_enabled</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.hbar_enabled" title="Link to this definition">¶</a></dt>
+<dd><p>…</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.hbar_length_min">
+<span class="sig-name descname"><span class="pre">hbar_length_min</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.hbar_length_min" title="Link to this definition">¶</a></dt>
+<dd><p>…</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.hbar_thickness">
+<span class="sig-name descname"><span class="pre">hbar_thickness</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.hbar_thickness" title="Link to this definition">¶</a></dt>
+<dd><p>…</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.hbar_x">
+<span class="sig-name descname"><span class="pre">hbar_x</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.hbar_x" title="Link to this definition">¶</a></dt>
+<dd><p>(read-only) The X position of the horizontal scrollbar relative to the KXScrollView.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.hbar_y">
+<span class="sig-name descname"><span class="pre">hbar_y</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.hbar_y" title="Link to this definition">¶</a></dt>
+<dd><p>The Y position of the horizontal scrollbar relative to the KXScrollView.</p>
+<p>By default, the horizontal scrollbar is placed at the bottom of the KXScrollView.
+To move it to the top, do the following:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">KXScrollView</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">hbar_y</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">self.height - self.hbar_thickness</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.scroll_by_distance">
+<span class="sig-name descname"><span class="pre">scroll_by_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">prioritize_user_scroll</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.scroll_by_distance" title="Link to this definition">¶</a></dt>
+<dd><p>Adjusts the momentum to achieve a specified scroll distance.</p>
+<p>By default, this method does nothing if the KXScrollView is currently being scrolled by the user.
+However, if <code class="docutils literal notranslate"><span class="pre">prioritize_user_scroll</span></code> is set to False, the method will cancel the ongoing user scroll
+and perform the adjustment.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.scroll_distance">
+<span class="sig-name descname"><span class="pre">scroll_distance</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.scroll_distance" title="Link to this definition">¶</a></dt>
+<dd><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">kivy.uix.scrollview.ScrollView.scroll_distance</span></code></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.scroll_to_pos">
+<span class="sig-name descname"><span class="pre">scroll_to_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">prioritize_user_scroll</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.scroll_to_pos" title="Link to this definition">¶</a></dt>
+<dd><p>Adjusts the momentum to reach a specified scroll position.</p>
+<p>By default, this method does nothing if the KXScrollView is currently being scrolled by the user.
+However, if <code class="docutils literal notranslate"><span class="pre">prioritize_user_scroll</span></code> is set to False, the method will cancel the ongoing user scroll
+and perform the adjustment.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.scroll_to_widget">
+<span class="sig-name descname"><span class="pre">scroll_to_widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">prioritize_user_scroll</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.scroll_to_widget" title="Link to this definition">¶</a></dt>
+<dd><p>Adjusts the momentum to scroll until a specified widget is visible.</p>
+<p>By default, this method does nothing if the KXScrollView is currently being scrolled by the user.
+However, if <code class="docutils literal notranslate"><span class="pre">prioritize_user_scroll</span></code> is set to False, the method will cancel the ongoing user scroll
+and perform the adjustment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>widget</strong> – This must be a child or descendant of the <a class="reference internal" href="#kivyx.uix.scrollview.KXScrollView.content" title="kivyx.uix.scrollview.KXScrollView.content"><code class="xref py py-attr docutils literal notranslate"><span class="pre">content</span></code></a>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.scroll_wheel_distance">
+<span class="sig-name descname"><span class="pre">scroll_wheel_distance</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.scroll_wheel_distance" title="Link to this definition">¶</a></dt>
+<dd><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">kivy.uix.scrollview.ScrollView.scroll_wheel_distance</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.smooth_scroll_end">
+<span class="sig-name descname"><span class="pre">smooth_scroll_end</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.smooth_scroll_end" title="Link to this definition">¶</a></dt>
+<dd><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">kivy.uix.scrollview.ScrollView.smooth_scroll_end</span></code>,
+with the only difference being a default value of “100dp”.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.stop_scroll_momentum">
+<span class="sig-name descname"><span class="pre">stop_scroll_momentum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.stop_scroll_momentum" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.vbar_color">
+<span class="sig-name descname"><span class="pre">vbar_color</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.vbar_color" title="Link to this definition">¶</a></dt>
+<dd><p>…</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.vbar_enabled">
+<span class="sig-name descname"><span class="pre">vbar_enabled</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.vbar_enabled" title="Link to this definition">¶</a></dt>
+<dd><p>…</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.vbar_length_min">
+<span class="sig-name descname"><span class="pre">vbar_length_min</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.vbar_length_min" title="Link to this definition">¶</a></dt>
+<dd><p>…</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.vbar_thickness">
+<span class="sig-name descname"><span class="pre">vbar_thickness</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.vbar_thickness" title="Link to this definition">¶</a></dt>
+<dd><p>…</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.vbar_x">
+<span class="sig-name descname"><span class="pre">vbar_x</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.vbar_x" title="Link to this definition">¶</a></dt>
+<dd><p>The X position of the vertical scrollbar relative to the KXScrollView.</p>
+<p>By default, the vertical scrollbar is placed on the left side of the KXScrollView.
+To move it to the right, do the following:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">KXScrollView</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">vbar_x</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">self.width - self.vbar_thickness</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.scrollview.KXScrollView.vbar_y">
+<span class="sig-name descname"><span class="pre">vbar_y</span></span><a class="headerlink" href="#kivyx.uix.scrollview.KXScrollView.vbar_y" title="Link to this definition">¶</a></dt>
+<dd><p>(read-only) The Y position of the vertical scrollbar relative to the KXScrollView.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">kivyx</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../reference.html#behaviors">Behaviors</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../reference.html#widgets">Widgets</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="drawer.html">Drawer</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ScrollView</a></li>
+<li class="toctree-l3"><a class="reference internal" href="switch.html">Switch</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes.html">Notes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../../reference.html">API Reference</a><ul>
+      <li>Previous: <a href="drawer.html" title="previous chapter">Drawer</a></li>
+      <li>Next: <a href="switch.html" title="next chapter">Switch</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Mitō Nattōsai.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../_sources/modules/uix/scrollview.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
