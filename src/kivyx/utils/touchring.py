@@ -143,14 +143,13 @@ async def _show_pulsing_ring(ring_texture, pulse_amplitude, pulse_frequency, win
     window.canvas.after.add(ig)
     try:
         async with (
-            # When this function is called from a `Window.on_touch_down` event,
-            # `touch.ud["kivyx_end"]` is not yet available.
-            ak.move_on_when_any(
-                ak.event(window, "on_touch_up", filter=is_the_same_touch),
-                _pulse(scale, pulse_amplitude, pulse_frequency),
-            ),
+            ak.open_nursery() as nursery,
             ak.event_freq(window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
         ):
+            # When this function is called from a `Window.on_touch_down` event,
+            # `touch.ud["kivyx_end"]` is not yet available.
+            nursery.start(ak.event(window, "on_touch_up", filter=is_the_same_touch), close_on_finish=True)
+            nursery.start(_pulse(scale, pulse_amplitude, pulse_frequency))
             while True:
                 await on_touch_move()
                 rect.pos = (touch.x + offset_x, touch.y + offset_y)
