@@ -2,7 +2,7 @@ __all__ = ("KXDrawer", )
 
 from functools import partial
 from typing import TypeAlias, Literal
-from contextlib import closing
+from contextlib import ExitStack
 
 from kivy.metrics import sp as metrics_sp
 from kivy.properties import NumericProperty, ColorProperty, OptionProperty
@@ -22,7 +22,7 @@ KV_CODE = '''
 <KXDrawerTab>:
     canvas.before:
         Color:
-            rgba: self.bg_color
+            group: "bg_color"
         Rectangle:
             pos: self.pos
             size: self.size
@@ -31,9 +31,9 @@ KV_CODE = '''
         Translate:
             xy: self.center
         Rotate:
-            angle: self.icon_angle
+            group: "icon_rotate"
         Color:
-            rgba: self.fg_color
+            group: "fg_color"
         Triangle:
             points: (s := min(*self.size) * 0.2, ) and (-s, -s, -s, s, s, 0.)
         PopMatrix:
@@ -55,9 +55,6 @@ Builder.load_string(KV_CODE)
 
 
 class KXDrawerTab(Widget):
-    bg_color = ColorProperty()
-    fg_color = ColorProperty()
-    icon_angle = NumericProperty(0.)
     anchor: Anchor = OptionProperty("lm", options=Anchor.__args__)
 
     __ = {
@@ -103,7 +100,7 @@ class KXDrawer(RelativeLayout):
         self._main_task = ak.dummy_task
         super().__init__(**kwargs)
         t = Clock.schedule_once(self._reset, -1)
-        self.bind(parent=t, anchor=t)
+        self.bind(parent=t, anchor=t, disabled=t, fg_color=t, bg_color=t)
 
     def _reset(self, dt):
         self._main_task.cancel()
@@ -122,6 +119,7 @@ class KXDrawer(RelativeLayout):
         close_request = self._close_request
         tab = self.ids.tab.__self__
         anchor = self.anchor
+        icon_rotate = tab.canvas.get_group("icon_rotate")[0]
 
         self.pos_hint = _get_fixed_part_of_pos_hint(anchor)
         # CAUTION: Kivyのプロパティへ等値を代入しようとすると実際には代入が行われない為、上の行と纏める事はできない。
@@ -132,7 +130,7 @@ class KXDrawer(RelativeLayout):
         icon_angle_o = icon_angle_c + 180.
         pos_key_o, pos_key_c = _get_animated_pos_keys(anchor)
         ph_value = 0. if anchor[0] in "lb" else 1.
-        tab.icon_angle = icon_angle_c
+        icon_rotate.angle = icon_angle_c
         ph[pos_key_c] = ph_value
         get_parent_pos = partial(_get_parent_pos_in_local_coordinates, parent, pos_key_o, anchor[0] in "tb")
 
@@ -140,10 +138,19 @@ class KXDrawer(RelativeLayout):
         # 理由はpos_hintに変化が起きずlayoutの再計算を引き起こさないから。
         parent._trigger_layout()
 
-        on_tab_tap = ak.ExclusiveEvent()
-        with closing(ak.start(enable_tap_gesture_recognition(
-            tab, consume_touch=True, on_tap=on_tab_tap.fire,
-        ))):
+        with ExitStack() as stack:
+            stack.enter_context(ak.sync_attr(
+                (self, "bg_color"),
+                (tab.canvas.before.get_group("bg_color")[0], "rgba"),
+            ))
+            stack.enter_context(ak.sync_attr(
+                (self, "fg_color"),
+                (tab.canvas.get_group("fg_color")[0], "rgba"),
+            ))
+            on_tab_tap = ak.ExclusiveEvent()
+            stack.callback(ak.start(enable_tap_gesture_recognition(
+                tab, consume_touch=True, on_tap=on_tab_tap.fire,
+            )).cancel)
             while True:
                 await ak.wait_any(
                     open_request.wait(),
@@ -153,7 +160,7 @@ class KXDrawer(RelativeLayout):
                 self.dispatch("on_pre_open")
                 del ph[pos_key_c]
                 await ak.anim_attrs(self, duration=self.anim_duration, **{pos_key_o: get_parent_pos()})
-                await ak.anim_attrs(tab, duration=self.anim_duration, icon_angle=icon_angle_o)
+                await ak.anim_attrs(icon_rotate, duration=self.anim_duration, angle=icon_angle_o)
                 ph[pos_key_o] = ph_value
                 self.dispatch("on_open")
                 await ak.wait_any(
@@ -164,7 +171,7 @@ class KXDrawer(RelativeLayout):
                 self.dispatch("on_pre_close")
                 del ph[pos_key_o]
                 await ak.anim_attrs(self, duration=self.anim_duration, **{pos_key_c: get_parent_pos()})
-                await ak.anim_attrs(tab, duration=self.anim_duration, icon_angle=icon_angle_c)
+                await ak.anim_attrs(icon_rotate, duration=self.anim_duration, angle=icon_angle_c)
                 ph[pos_key_c] = ph_value
                 self.dispatch("on_close")
 
