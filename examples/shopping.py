@@ -26,6 +26,8 @@ except ImportError:
 else:
     posani.install(target="SHFood")
 
+from kivyx.utils.touchring import enable_touch_ring
+
 
 def detect_image_format(image_data: bytes) -> str:
     if image_data.startswith(b"\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"):
@@ -237,6 +239,7 @@ class ShoppingApp(App):
         ]
 
         ak.managed_start(ak.wait_all(
+            enable_touch_ring(pulse=True),
             dnd.enable_drop_target_with_insertion_indicator(shelf),
             dnd.enable_drop_target_with_insertion_indicator(cart),
             dnd.enable_drag_for_children(shelf, triggers=(long_press, horizontal_swipe)),
