@@ -6,9 +6,8 @@ import math
 
 from kivy.utils import get_color_from_hex
 from kivy.graphics import (
-    Fbo, Color, Line, ClearColor, ClearBuffers, Rectangle, InstructionGroup, PushMatrix, PopMatrix, Scale,
+    Fbo, Color, Line, Rectangle, InstructionGroup, PushMatrix, PopMatrix, Scale,
 )
-from kivy.graphics.texture import Texture
 from kivy.core.window import Window
 import asynckivy as ak
 
@@ -26,24 +25,16 @@ def generate_ring_texture(*, size=256, thickness=3, color: Sequence[float] | str
     '''
     if isinstance(color, str):
         color = get_color_from_hex(color)
-    ig = InstructionGroup()
-    for inst in (
-         ClearColor(0, 0, 0, 0),
-         ClearBuffers(),
-         Color(*color),
-         Line(circle=(size / 2, size / 2, size / 2 - thickness), width=thickness),
-    ):
-        ig.add(inst)
-    tex = Texture.create(size=(size, size))
+    fbo = Fbo(size=(size, size))
+    fbo.add(Color(*color))
+    fbo.add(Line(circle=(size / 2, size / 2, size / 2 - thickness), width=thickness))
+    fbo.draw()
+    fbo.clear()
 
-    def restore(tex, ig=ig):
-        fbo = Fbo(texture=tex)
-        fbo.add(ig)
-        fbo.draw()
-        fbo.remove(ig)
-    restore(tex)
-    tex.add_reload_observer(restore)
-    return tex
+    def reload(tex, pixels=fbo.pixels):
+        tex.blit_buffer(pixels, colorfmt="rgba", bufferfmt="ubyte")
+    fbo.texture.add_reload_observer(reload)
+    return fbo.texture
 
 
 async def enable_touch_ring(
