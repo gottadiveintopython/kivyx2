@@ -46,20 +46,20 @@ async def enable_tap_gesture_recognition(
         For its parameters, see :meth:`KXTapGestureRecognizer.on_tap`.
     '''
     on_touch_down = partial(ak.event, widget, "on_touch_down", filter=touch_filter, stop_dispatching=consume_touch)
-    handler = _handle_a_potential_tap_gesture
+    watch_for_release = _watch_for_release
     with ak.suppress_event(widget, "on_touch_down", filter=touch_filter) if consume_touch else nullcontext():
         if track_multiple_touches:
             async with ak.open_nursery() as nursery:
                 while True:
                     __, touch = await on_touch_down()
-                    nursery.start(handler(on_tap, widget, touch))
+                    nursery.start(watch_for_release(on_tap, widget, touch))
         else:
             while True:
                 __, touch = await on_touch_down()
-                await handler(on_tap, widget, touch)
+                await watch_for_release(on_tap, widget, touch)
 
 
-async def _handle_a_potential_tap_gesture(on_tap, widget, touch):
+async def _watch_for_release(on_tap, widget, touch):
     ud = touch.ud
     ex_access = ud["kivyx_exclusive_access"]
     tasks = await ak.wait_any(
