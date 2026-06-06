@@ -129,10 +129,7 @@ async def _show_insertion_indicator(spacer_widgets, layout, touch, dragged_widge
                         continue
                     remove_widget(spacer)
                     if child is None:
-                        if children:
-                            continue
-                        else:
-                            idx = 0
+                        idx = 0
                     add_widget(spacer, index=idx)
                 elif was_inside and spacer is not None:
                     remove_widget(spacer)
