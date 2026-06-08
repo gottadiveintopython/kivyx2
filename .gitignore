@@ -7,5 +7,6 @@ bin/
 /asynckivy.egg-info/
 /.pytest_cache/
 /.vscode/
+/.kivy/
 /dist
 /docs/

@@ -19,7 +19,7 @@ classifiers=[
 requires-python = ">=3.11"
 dependencies = [
     "asynckivy>=0.11",
-    "kivy==2.3.1",
+    "kivy",
 ]
 
 [build-system]
@@ -37,3 +37,6 @@ doc = [
 [tool.pytest]
 xfail_strict = true
 addopts = ["--maxfail=4", "--strict-markers"]
+
+[tool.uv.sources]
+kivy = { git = "https://github.com/kivy/kivy", rev = "be90b9f4bdb28c734e1cc01d6e7a7e1440e5216e" }
