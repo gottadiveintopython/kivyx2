@@ -68,7 +68,7 @@ class KXScrollEffect(EventDispatcher):
             self.value = value
             self.velocity = velocity
 
-    _update = partial(_update, abs)
+    _update = staticmethod(partial(_update, abs))
 
     def scroll_by(self, distance):
         ''' Adjust the :attr:`velocity` to achieve a specified movement distance. '''
