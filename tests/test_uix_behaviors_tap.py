@@ -5,7 +5,7 @@ import pytest
 
 from kivy.tests.common import UnitTestTouch
 import asynckivy as ak
-from kivyx.uix.behaviors.tap import enable_tap_gesture_recognition
+from kivyx.uix.behaviors.tap import TapGestureRecognizer
 
 
 KV = '''
@@ -21,7 +21,7 @@ def test_initial_state_of_target_widget(kivy_runner):
     kr = kivy_runner
     tree = kr.builder.load_string(KV)
     kr.window.add_widget(tree)
-    kr.advance_a_frame()
+    kr.advance_frame()
     w = tree.ids.target
     assert w.pos == [0, 0]
     assert w.size == [100, 100]
@@ -30,78 +30,85 @@ def test_initial_state_of_target_widget(kivy_runner):
 @pytest.mark.parametrize("track_multiple_touches", [False, True])
 def test__inside_touch_down__inside_touch_up(kivy_runner, track_multiple_touches):
     kr = kivy_runner
-    tap_event = ak.StatefulEvent()
+    event_log = []
     tree = kr.builder.load_string(KV)
     kr.window.add_widget(tree)
-    kr.advance_a_frame()
+    kr.advance_frame()
     w = tree.ids.target
-    with closing(ak.start(enable_tap_gesture_recognition(
-            w, on_tap=tap_event.fire, track_multiple_touches=track_multiple_touches))):
+    rcg = TapGestureRecognizer(track_multiple_touches=track_multiple_touches)
+    rcg.fbind("on_tap", lambda *args: event_log.extend(args))
+    with closing(ak.start(rcg.enable_on(w))):
+        kr.advance_frame()
         t = UnitTestTouch(50, 50)
-        assert not tap_event.is_fired
+        assert event_log == []
         t.touch_down()
-        assert not tap_event.is_fired
+        assert event_log == []
         t.touch_up()
-        assert tap_event.is_fired
-        assert tap_event.params[0] == (w, t)
+        assert event_log == [rcg, w, t]
 
 
 @pytest.mark.parametrize("track_multiple_touches", [False, True])
 def test__inside_touch_down__outside_touch_up(kivy_runner, track_multiple_touches):
     kr = kivy_runner
-    tap_event = ak.StatefulEvent()
+    event_log = []
     tree = kr.builder.load_string(KV)
     kr.window.add_widget(tree)
-    kr.advance_a_frame()
+    kr.advance_frame()
     w = tree.ids.target
-    with closing(ak.start(enable_tap_gesture_recognition(
-            w, on_tap=tap_event.fire, track_multiple_touches=track_multiple_touches))):
+    rcg = TapGestureRecognizer(track_multiple_touches=track_multiple_touches)
+    rcg.fbind("on_tap", lambda *args: event_log.extend(args))
+    with closing(ak.start(rcg.enable_on(w))):
+        kr.advance_frame()
         t = UnitTestTouch(50, 50)
-        assert not tap_event.is_fired
+        assert event_log == []
         t.touch_down()
-        assert not tap_event.is_fired
+        assert event_log == []
         t.touch_move(150, 50)
-        assert not tap_event.is_fired
+        assert event_log == []
         t.touch_up()
-        assert not tap_event.is_fired
+        assert event_log == []
 
 
 @pytest.mark.parametrize("track_multiple_touches", [False, True])
 def test__outside_touch_down__inside_touch_up(kivy_runner, track_multiple_touches):
     kr = kivy_runner
-    tap_event = ak.StatefulEvent()
+    event_log = []
     tree = kr.builder.load_string(KV)
     kr.window.add_widget(tree)
-    kr.advance_a_frame()
+    kr.advance_frame()
     w = tree.ids.target
-    with closing(ak.start(enable_tap_gesture_recognition(
-            w, on_tap=tap_event.fire, track_multiple_touches=track_multiple_touches))):
+    rcg = TapGestureRecognizer(track_multiple_touches=track_multiple_touches)
+    rcg.fbind("on_tap", lambda *args: event_log.extend(args))
+    with closing(ak.start(rcg.enable_on(w))):
+        kr.advance_frame()
         t = UnitTestTouch(150, 50)
-        assert not tap_event.is_fired
+        assert event_log == []
         t.touch_down()
-        assert not tap_event.is_fired
+        assert event_log == []
         t.touch_move(50, 50)
-        assert not tap_event.is_fired
+        assert event_log == []
         t.touch_up()
-        assert not tap_event.is_fired
+        assert event_log == []
 
 
 @pytest.mark.parametrize("track_multiple_touches", [False, True])
 def test__outside_touch_down__outside_touch_up(kivy_runner, track_multiple_touches):
     kr = kivy_runner
-    tap_event = ak.StatefulEvent()
+    event_log = []
     tree = kr.builder.load_string(KV)
     kr.window.add_widget(tree)
-    kr.advance_a_frame()
+    kr.advance_frame()
     w = tree.ids.target
-    with closing(ak.start(enable_tap_gesture_recognition(
-            w, on_tap=tap_event.fire, track_multiple_touches=track_multiple_touches))):
+    rcg = TapGestureRecognizer(track_multiple_touches=track_multiple_touches)
+    rcg.fbind("on_tap", lambda *args: event_log.extend(args))
+    with closing(ak.start(rcg.enable_on(w))):
+        kr.advance_frame()
         t = UnitTestTouch(150, 50)
-        assert not tap_event.is_fired
+        assert event_log == []
         t.touch_down()
-        assert not tap_event.is_fired
+        assert event_log == []
         t.touch_up()
-        assert not tap_event.is_fired
+        assert event_log == []
 
 
 @pytest.mark.parametrize("track_multiple_touches", [True, False])
@@ -110,10 +117,12 @@ def test__multi_touch(kivy_runner, track_multiple_touches):
     event_log = []
     tree = kr.builder.load_string(KV)
     kr.window.add_widget(tree)
-    kr.advance_a_frame()
-    w = tree.ids.target
-    with closing(ak.start(enable_tap_gesture_recognition(
-            w, on_tap=lambda *args: event_log.extend(args), track_multiple_touches=track_multiple_touches))):
+    kr.advance_frame()
+    w = tree.ids.target.__self__
+    rcg = TapGestureRecognizer(track_multiple_touches=track_multiple_touches)
+    rcg.fbind("on_tap", lambda *args: event_log.extend(args))
+    with closing(ak.start(rcg.enable_on(w))):
+        kr.advance_frame()
         t1 = UnitTestTouch(20, 20)
         assert event_log == []
         t1.touch_down()
@@ -122,18 +131,18 @@ def test__multi_touch(kivy_runner, track_multiple_touches):
         t2.touch_down()
         assert event_log == []
         t1.touch_up()
-        assert event_log == [w, t1]
+        assert event_log == [rcg, w, t1]
         event_log.clear()
         t2.touch_up()
         if track_multiple_touches:
-            assert event_log == [w, t2]
+            assert event_log == [rcg, w, t2]
         else:
             assert event_log == []
 
 
 @pytest.mark.parametrize("track_multiple_touches", [True, False])
 @pytest.mark.parametrize("consume_touch", [True, False])
-def test__overlap(kivy_runner, consume_touch, track_multiple_touches):
+def test__overlapping_widgets(kivy_runner, consume_touch, track_multiple_touches):
     kr = kivy_runner
     event_log = []
 
@@ -151,21 +160,25 @@ def test__overlap(kivy_runner, consume_touch, track_multiple_touches):
                 size: 100, 100
         '''))
     kr.window.add_widget(tree)
-    kr.advance_a_frame()
-    top = tree.ids.top
-    bottom = tree.ids.bottom
+    kr.advance_frame()
+    top = tree.ids.top.__self__
+    bottom = tree.ids.bottom.__self__
+    rcg = TapGestureRecognizer(
+        track_multiple_touches=track_multiple_touches,
+        consume_touch=consume_touch,
+    )
+    rcg.fbind("on_tap", lambda *args: event_log.extend(args))
     with (
-        closing(ak.start(enable_tap_gesture_recognition(
-            top, on_tap=on_tap, consume_touch=consume_touch, track_multiple_touches=track_multiple_touches))),
-        closing(ak.start(enable_tap_gesture_recognition(
-            bottom, on_tap=on_tap, consume_touch=consume_touch, track_multiple_touches=track_multiple_touches))),
+        closing(ak.start(rcg.enable_on(top))),
+        closing(ak.start(rcg.enable_on(bottom))),
     ):
+        kr.advance_frame()
         t = UnitTestTouch(75, 75)
         assert event_log == []
         t.touch_down()
         assert event_log == []
         t.touch_up()
-        assert event_log == [top if consume_touch else bottom, t]
+        assert event_log == [rcg, top if consume_touch else bottom, t]
         event_log.clear()
 
         t = UnitTestTouch(25, 25)
@@ -173,7 +186,7 @@ def test__overlap(kivy_runner, consume_touch, track_multiple_touches):
         t.touch_down()
         assert event_log == []
         t.touch_up()
-        assert event_log == [bottom, t]
+        assert event_log == [rcg, bottom, t]
         event_log.clear()
 
         t = UnitTestTouch(125, 125)
@@ -181,30 +194,5 @@ def test__overlap(kivy_runner, consume_touch, track_multiple_touches):
         t.touch_down()
         assert event_log == []
         t.touch_up()
-        assert event_log == [top, t]
+        assert event_log == [rcg, top, t]
         event_log.clear()
-
-
-def test_mixin_class(kivy_runner, isolate_builder_and_factory):
-    kr = kivy_runner
-    tap_event = ak.StatefulEvent()
-    tree = kr.builder.load_string(dedent('''
-        <MyWidget@KXTapGestureRecognizer+Widget>:
-        Widget:
-            MyWidget:
-                id: target
-                pos: 0, 0
-                size: 100, 100
-        '''))
-    w = tree.ids.target
-    w.fbind("on_tap", tap_event.fire)
-    kr.window.add_widget(tree)
-    kr.advance_a_frame()
-    t = UnitTestTouch(50, 50)
-    assert not tap_event.is_fired
-    t.touch_down()
-    assert not tap_event.is_fired
-    t.touch_up()
-    assert tap_event.is_fired
-    assert tap_event.params[0] == (w, t)
-    ak.cancel_managed_tasks()
