@@ -124,9 +124,9 @@ class KXSwitch(Widget):
 
     def _setup_smoothing(self, __):
         track_color, thumb_color, thumb_ellipse = self.canvas.get_group("smoothing_target")
-        ak.smooth_attr((self, "_thumb_color"), (thumb_color, "rgba"), min_diff=0.02)
-        ak.smooth_attr((self, "_track_color"), (track_color, "rgba"), min_diff=0.02)
-        ak.smooth_attr((self, "_thumb_pos"), (thumb_ellipse, "pos"))
+        ak.smooth_attr((self, "_thumb_color"), (thumb_color, "rgba"), min_diff=0.02).__enter__()
+        ak.smooth_attr((self, "_track_color"), (track_color, "rgba"), min_diff=0.02).__enter__()
+        ak.smooth_attr((self, "_thumb_pos"), (thumb_ellipse, "pos")).__enter__()
 
     def _reset(self, __):
         self._main_task.cancel()

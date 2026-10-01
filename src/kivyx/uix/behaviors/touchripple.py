@@ -99,7 +99,7 @@ async def enable_touch_ripple_effect(
             root_pane = InstructionGroup()
             add = root_pane.add
             add(StencilPush())
-            add(bbox := Rectangle())
+            add(bbox := Rectangle(size=widget.size))
             add(StencilUse())
             add(ripple_pane)
             add(StencilUnUse())
@@ -107,6 +107,7 @@ async def enable_touch_ripple_effect(
             add(StencilPop())
             stack.enter_context(ak.sync_attr((widget, "size"), (bbox, "size")))
             if not relative_coordinates:
+                bbox.pos = widget.pos
                 stack.enter_context(ak.sync_attr((widget, "pos"), (bbox, "pos")))
         widget.canvas.after.insert(0, root_pane)
         stack.callback(widget.canvas.after.remove, root_pane)

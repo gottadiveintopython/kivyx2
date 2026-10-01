@@ -142,10 +142,12 @@ class KXDrawer(RelativeLayout):
             stack.enter_context(ak.sync_attr(
                 (self, "bg_color"),
                 (tab.canvas.before.get_group("bg_color")[0], "rgba"),
+                eager=True,
             ))
             stack.enter_context(ak.sync_attr(
                 (self, "fg_color"),
                 (tab.canvas.get_group("fg_color")[0], "rgba"),
+                eager=True,
             ))
             on_tab_tap = ak.ExclusiveEvent()
             stack.callback(ak.start(enable_tap_gesture_recognition(

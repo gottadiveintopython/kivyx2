@@ -402,10 +402,10 @@ class KXScrollView(Widget):
         self._effect_x = e
         try:
             with (
-                sync_attr((self, "content_x"), (e, "value")),
-                sync_attr((e, "value"), (self, "content_x")),
-                sync_attr((self, "content_min_x"), (e, "min")),
-                sync_attr((self, "content_max_x"), (e, "max")),
+                sync_attr((self, "content_x"), (e, "value"), eager=True),
+                sync_attr((e, "value"), (self, "content_x"), eager=True),
+                sync_attr((self, "content_min_x"), (e, "min"), eager=True),
+                sync_attr((self, "content_max_x"), (e, "max"), eager=True),
             ):
                 yield
         finally:
@@ -425,10 +425,10 @@ class KXScrollView(Widget):
         self._effect_y = e
         try:
             with (
-                sync_attr((self, "content_y"), (e, "value")),
-                sync_attr((e, "value"), (self, "content_y")),
-                sync_attr((self, "content_min_y"), (e, "min")),
-                sync_attr((self, "content_max_y"), (e, "max")),
+                sync_attr((self, "content_y"), (e, "value"), eager=True),
+                sync_attr((e, "value"), (self, "content_y"), eager=True),
+                sync_attr((self, "content_min_y"), (e, "min"), eager=True),
+                sync_attr((self, "content_max_y"), (e, "max"), eager=True),
             ):
                 yield
         finally:
@@ -758,7 +758,7 @@ class KXScrollView(Widget):
     @contextmanager
     def _keep_updating_content_x(self):
         if self.do_overscroll_x:
-            with ak.sync_attr((self, "_content_x"), (self, "content_x")):
+            with ak.sync_attr((self, "_content_x"), (self, "content_x"), eager=True):
                 yield
         else:
             t = Clock.create_trigger(self._clamp_content_x, -1, interval=True)
@@ -776,7 +776,7 @@ class KXScrollView(Widget):
     @contextmanager
     def _keep_updating_content_y(self):
         if self.do_overscroll_y:
-            with ak.sync_attr((self, "_content_y"), (self, "content_y")):
+            with ak.sync_attr((self, "_content_y"), (self, "content_y"), eager=True):
                 yield
         else:
             t = Clock.create_trigger(self._clamp_content_y, -1, interval=True)

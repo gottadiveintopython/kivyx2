@@ -57,9 +57,9 @@ async def enable_drop_target_with_insertion_indicator(
 def _create_default_spacer() -> Widget:
     w = Widget()
     w.canvas.add(Color(.2, .2, .2, .7))
-    w.canvas.add(rect := Rectangle())
-    ak.sync_attr((w, "pos"), (rect, "pos"))
-    ak.sync_attr((w, "size"), (rect, "size"))
+    w.canvas.add(rect := Rectangle(pos=w.pos, size=w.size))
+    ak.sync_attr((w, "pos"), (rect, "pos")).__enter__()
+    ak.sync_attr((w, "size"), (rect, "size")).__enter__()
     return w
 
 
