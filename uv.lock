@@ -264,12 +264,22 @@ wheels = [
 ]
 
 [[package]]
+name = "kivy-garden-pyle"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/16/35/b1ece23ae3315408b05986297be1ee9f37fb009830a38265c564dda834c5/kivy_garden_pyle-0.1.0.tar.gz", hash = "sha256:3a66d1fdef225ad4f5e0d3642b231137ba2ffaddaca0b00853c58606c4baee16", size = 4097, upload-time = "2026-08-08T00:12:41.346Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fd/45/b5fd9e6df43b9062043608dbc710dbfa2dc23fa3597a251e2d849a580fac/kivy_garden_pyle-0.1.0-py3-none-any.whl", hash = "sha256:b8a3118434125b93c93f795cd2e376f54b9905c16d46ad0ee68602e51c04684d", size = 4758, upload-time = "2026-08-08T00:12:40.284Z" },
+]
+
+[[package]]
 name = "kivyx"
 version = "0.1.0.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "asynckivy" },
     { name = "kivy" },
+    { name = "kivy-garden-pyle" },
 ]
 
 [package.dev-dependencies]
@@ -284,6 +294,7 @@ doc = [
 requires-dist = [
     { name = "asynckivy", git = "https://github.com/asyncgui/asynckivy?branch=eager" },
     { name = "kivy", git = "https://github.com/kivy/kivy?rev=be90b9f4bdb28c734e1cc01d6e7a7e1440e5216e" },
+    { name = "kivy-garden-pyle", specifier = ">=0.1.0" },
 ]
 
 [package.metadata.requires-dev]
