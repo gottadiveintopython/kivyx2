@@ -20,6 +20,7 @@ requires-python = ">=3.11"
 dependencies = [
     "asynckivy",
     "kivy",
+    "kivy-garden-pyle>=0.1.0",
 ]
 
 [build-system]
