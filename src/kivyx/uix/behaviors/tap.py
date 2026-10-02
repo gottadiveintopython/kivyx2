@@ -11,7 +11,7 @@ from kivyx.touch_filters import is_colliding_and_not_wheel
 
 
 class TapGestureRecognizer(EventDispatcher):
-    '''
+    """
     Enables tap gesture recognition on a widget.
 
     .. code-block::
@@ -22,35 +22,35 @@ class TapGestureRecognizer(EventDispatcher):
         ak.managed_start(recognizer.enable_on(widget))
         ...
         __, widget, touch = await ak.event(recognizer, "on_tap")
-    '''
+    """
 
     disabled = BooleanProperty(False)
-    '''If either :attr:`~kivy.uix.widget.Widget.disabled` or :attr:`disabled` is True,
+    """If either :attr:`~kivy.uix.widget.Widget.disabled` or :attr:`disabled` is True,
     tap gesture recognition is disabled.
-    '''
+    """
 
     touch_filter = ObjectProperty(is_colliding_and_not_wheel)
-    '''
+    """
     Any touch whose ``on_touch_down`` event does not pass this filter is ignored.
     Defaults to :func:`~kivyx.touch_filters.is_colliding_and_not_wheel`.
-    '''
+    """
 
     consume_touch = BooleanProperty(True)
-    '''
+    """
     Whether to consume ``on_touch_down`` events that pass the :attr:`touch_filter`.
-    '''
+    """
 
     track_multiple_touches = BooleanProperty(False)
-    '''
+    """
     Whether to track multiple touches simultaneously (multi-touch). If False (the default),
     once a touch starts being tracked, subsequent touches are ignored until the tracked touch
     ends or exclusive access to it is claimed by someone else.
-    '''
+    """
 
     __events__ = ("on_tap", )
 
     def on_tap(self, widget, touch):
-        '''
+        """
         Fired each time a tap gesture is successfully recognized.
 
         :param widget:
@@ -58,13 +58,13 @@ class TapGestureRecognizer(EventDispatcher):
 
         :param touch:
             The :class:`~kivy.input.motionevent.MotionEvent` instance that triggered the
-            ``on_tap`` event (window coordinates).
-        '''
+            ``on_tap`` event, represented in window coordinates.
+        """
 
     async def enable_on(self, widget):
-        '''
+        """
         Enables tap gesture recognition on the given widget until the returned coroutine is cancelled.
-        '''
+        """
         with ExitStack() as stack:
             defer = stack.callback
 
