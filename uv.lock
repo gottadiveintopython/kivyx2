@@ -1,6 +1,6 @@
 version = 1
-revision = 3
-requires-python = ">=3.11"
+revision = 5
+requires-python = ">=3.11, <4"
 
 [[package]]
 name = "alabaster"
@@ -13,19 +13,23 @@ wheels = [
 
 [[package]]
 name = "asyncgui"
-version = "0.11.1"
+version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e7/43/170821d7a1bcc8a1b9908f914a92478348abd35e9f1b845f01689d44e1f3/asyncgui-0.11.1.tar.gz", hash = "sha256:f4aebe9f3b9aef7107c0ed9734a56aec9497814f964209680d787396112479bd", size = 8418, upload-time = "2026-04-30T09:08:57.711Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7b/21/9b94dd9b32e1a99b384955b035c78e1b3965cbc14b065c5a016bf595a373/asyncgui-1.0.0.tar.gz", hash = "sha256:7e2929621e9e34496265fd2316ad5e82fd11632cc632b5153f9e73e4fd600262", size = 8275, upload-time = "2026-10-18T09:13:53.308Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a9/5a/ec833ad479982435c0eadd79b36b31893473de263e07d657c1cc0304f7bc/asyncgui-0.11.1-py3-none-any.whl", hash = "sha256:be25aa813e6a84be4d01c11a895ce7ad9962176ef8fb128fd51622463fb1e6c3", size = 8877, upload-time = "2026-04-30T09:08:56.357Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/03/a30e551bb70538234d3eb8b8063eb183a5042fe2a5b16e8cbc4e64b1413a/asyncgui-1.0.0-py3-none-any.whl", hash = "sha256:bff8f26d521dbb715472e02ca0752a0038e05a890787425614445a40fbb425db", size = 8481, upload-time = "2026-10-18T09:13:52.214Z" },
 ]
 
 [[package]]
 name = "asynckivy"
-version = "0.12.1.dev0"
-source = { git = "https://github.com/asyncgui/asynckivy?branch=eager#eec20424ecf8583bd0f5dd226726bc1117f3f17f" }
+version = "0.12.1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asyncgui" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2d/5e/c2d9603cb5bb24a9bfab3a2803f662adb9f46ee538f748d390e64598029b/asynckivy-0.12.1.tar.gz", hash = "sha256:08c8c1e6852053de6a7dbaadae52162e4c4480a4914738fe8dbf81bb716bd56f", size = 20496, upload-time = "2026-10-23T22:57:05.284Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f7/3d/4334d5cdb82872092e0e76b6ae7328ec635fd4eb29d3a590a4f9aecdd4c5/asynckivy-0.12.1-py3-none-any.whl", hash = "sha256:4b54bf257a4e62db25788410eb077a82f9676242dc00e4e1de9ddb38bbb6d864", size = 24084, upload-time = "2026-10-23T22:57:03.835Z" },
 ]
 
 [[package]]
@@ -39,11 +43,11 @@ wheels = [
 
 [[package]]
 name = "certifi"
-version = "2026.5.20"
+version = "2026.10.23"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f3/ce/ee2ecad540810a79593028e88299baeae54d346cc7a0d94b6199988b89b1/certifi-2026.5.20.tar.gz", hash = "sha256:69dea482ab64caa7b9f6aba1c6bf48bb6a5448d1c0f1b17ab42ad8c763a5344d", size = 135422, upload-time = "2026-05-20T11:46:50.073Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fd/11/b524cbd9bbdaca58608e4cf4053fd463417549e1959fa8d3aa18319f9555/certifi-2026.10.23.tar.gz", hash = "sha256:a9895e6e2758b371e0545e321a3a8fd1fcfd9829ada8824a936dfb16aaaf36cd", size = 136225, upload-time = "2026-10-23T11:36:16.478Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/8c/57e832b7af6d7c5abe66eb3fbe3a3a32f4d11ea23a1aa7131371035be991/certifi-2026.5.20-py3-none-any.whl", hash = "sha256:3c52e209ba0a4ad7aebe60436a4ab349c39e1e602e8c134221e546902ad25897", size = 134134, upload-time = "2026-05-20T11:46:48.578Z" },
+    { url = "https://files.pythonhosted.org/packages/32/d1/a3652fe2c19134d0d15922177821d863cbd7e842d53a21bbe7e8e3a1b5ac/certifi-2026.10.23-py3-none-any.whl", hash = "sha256:e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1", size = 135082, upload-time = "2026-10-23T11:36:14.763Z" },
 ]
 
 [[package]]
@@ -204,7 +208,7 @@ wheels = [
 [[package]]
 name = "kivy"
 version = "3.0.0.dev0"
-source = { git = "https://github.com/kivy/kivy?rev=be90b9f4bdb28c734e1cc01d6e7a7e1440e5216e#be90b9f4bdb28c734e1cc01d6e7a7e1440e5216e" }
+source = { git = "https://github.com/kivy/kivy?rev=c8e1f5f25802924e92f4f7f41851c9669778359e#c8e1f5f25802924e92f4f7f41851c9669778359e" }
 dependencies = [
     { name = "docutils" },
     { name = "filetype" },
@@ -265,11 +269,11 @@ wheels = [
 
 [[package]]
 name = "kivy-garden-pyle"
-version = "0.1.0"
+version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/16/35/b1ece23ae3315408b05986297be1ee9f37fb009830a38265c564dda834c5/kivy_garden_pyle-0.1.0.tar.gz", hash = "sha256:3a66d1fdef225ad4f5e0d3642b231137ba2ffaddaca0b00853c58606c4baee16", size = 4097, upload-time = "2026-08-08T00:12:41.346Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fd/db/03eff3825accabf806020069ee01a3b24492338206886c606c9365c0a481/kivy_garden_pyle-0.2.0.tar.gz", hash = "sha256:c2ce176cd006203634b647e095774755ae7b6672cf744e6c3e7cbc50d0304b24", size = 4115, upload-time = "2026-10-13T02:11:41.453Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fd/45/b5fd9e6df43b9062043608dbc710dbfa2dc23fa3597a251e2d849a580fac/kivy_garden_pyle-0.1.0-py3-none-any.whl", hash = "sha256:b8a3118434125b93c93f795cd2e376f54b9905c16d46ad0ee68602e51c04684d", size = 4758, upload-time = "2026-08-08T00:12:40.284Z" },
+    { url = "https://files.pythonhosted.org/packages/eb/cf/e6606d03f69e44f8e0a2b9c6c937d826311c3c9b86f6660947389ffad6d6/kivy_garden_pyle-0.2.0-py3-none-any.whl", hash = "sha256:b295d637a0a861271dd08bc586c7a7c27481b18ffc5278d9793b56ec4b593227", size = 4800, upload-time = "2026-10-13T02:11:40.207Z" },
 ]
 
 [[package]]
@@ -292,14 +296,14 @@ doc = [
 
 [package.metadata]
 requires-dist = [
-    { name = "asynckivy", git = "https://github.com/asyncgui/asynckivy?branch=eager" },
-    { name = "kivy", git = "https://github.com/kivy/kivy?rev=be90b9f4bdb28c734e1cc01d6e7a7e1440e5216e" },
-    { name = "kivy-garden-pyle", specifier = ">=0.1.0" },
+    { name = "asynckivy", specifier = ">=0.12.1" },
+    { name = "kivy", git = "https://github.com/kivy/kivy?rev=c8e1f5f25802924e92f4f7f41851c9669778359e" },
+    { name = "kivy-garden-pyle", specifier = ">=0.2.0" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.0.2" }]
-doc = [{ name = "sphinx", specifier = "==8.2.3" }]
+dev = [{ name = "pytest", specifier = ">=9.0.3" }]
+doc = [{ name = "sphinx", specifier = ">=8.2.3" }]
 
 [[package]]
 name = "markupsafe"
