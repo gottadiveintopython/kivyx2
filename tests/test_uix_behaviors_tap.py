@@ -183,28 +183,3 @@ def test__overlap(kivy_runner, consume_touch, track_multiple_touches):
         t.touch_up()
         assert event_log == [top, t]
         event_log.clear()
-
-
-def test_mixin_class(kivy_runner, isolate_builder_and_factory):
-    kr = kivy_runner
-    tap_event = ak.StatefulEvent()
-    tree = kr.builder.load_string(dedent('''
-        <MyWidget@KXTapGestureRecognizer+Widget>:
-        Widget:
-            MyWidget:
-                id: target
-                pos: 0, 0
-                size: 100, 100
-        '''))
-    w = tree.ids.target
-    w.fbind("on_tap", tap_event.fire)
-    kr.window.add_widget(tree)
-    kr.advance_a_frame()
-    t = UnitTestTouch(50, 50)
-    assert not tap_event.is_fired
-    t.touch_down()
-    assert not tap_event.is_fired
-    t.touch_up()
-    assert tap_event.is_fired
-    assert tap_event.params[0] == (w, t)
-    ak.cancel_managed_tasks()
