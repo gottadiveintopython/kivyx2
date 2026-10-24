@@ -7,6 +7,8 @@ Kivyx2 is an experiment to explore whether Kivy widgets can be designed accordin
   - To avoid missing `on_touch_move` events, directly receive them from the `kivy.core.window.Window`.
 - Do not emulate touch events.
   - Widgets like `KXScrollView` immediately dispatch touch events to their children, minimizing input latency.
+
+<!--
 - A widget that is interested in a touch must listen for its `touch.ud["kivyx_abandon"]` event.
   If the event is fired, the widget must cancel any operations associated with the touch.
 - A widget that wants exclusive access to a touch must call its `touch.ud["kivyx_exclusive_access"].claim()` method to notify other widgets.
@@ -39,10 +41,12 @@ it begins not only tracking the finger's movement but also listening for the `to
 At this point, the `KXScrollView` cannot immediately claim exclusive access to the touch, as the gesture may not yet be identified as a scrolling gesture.
 Then, if the finger travels a certain distance before any other widget claims exclusive access,
 the `KXScrollView` will recognize the touch as a scrolling gesture, claim exclusive access, and begin scrolling.
+-->
 
 ## A major drawback
 
-Due to the rules above, widgets that handle touches in the standard Kivy way **might not behave as expected**.
+This library introduces a new way of handling touch events.
+Widgets that handle touches in the standard Kivy way **might not behave as expected**.
 
 ## Notes
 

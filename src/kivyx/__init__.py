@@ -10,20 +10,10 @@ def register_components_to_factory():
     from kivy.factory import Factory
     r = Factory.register
 
-    # Behaviors
-    r('KXDraggableBehavior', module="kivyx.uix.behaviors.drag_n_drop")
-    r('KXDropTargetBehavior', module="kivyx.uix.behaviors.drag_n_drop")
-    r('KXDropTargetBehaviorWithInsertionIndicator', module="kivyx.uix.behaviors.drag_n_drop")
-    r("KXMultiTapGestureRecognizer", module="kivyx.uix.behaviors.multitap")
-    r("KXSwipe2DeleteBehavior", module="kivyx.uix.behaviors.swipe2delete")
-    r("KXTapGestureRecognizer", module="kivyx.uix.behaviors.tap")
-    r("KXTouchRippleBehavior", module="kivyx.uix.behaviors.touchripple")
-
     # Widgets
     r("KXButton", module="kivyx.uix.button")
     r("KXDrawer", module="kivyx.uix.drawer")
     r("KXDrawerTab", module="kivyx.uix.drawer")
-    r("KXMultiTapButton", module="kivyx.uix.button")
     r("KXScrollView", module="kivyx.uix.scrollview")
     r("KXSwitch", module="kivyx.uix.switch")
 
