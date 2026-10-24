@@ -34,12 +34,12 @@ gettext_location = False
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
-html_theme = "alabaster"
+html_theme = "haiku"
 html_static_path = ['_static']
-html_theme_options = {
-    'page_width': '1280px',
-    'sidebar_width': '380px',
-}
+# html_theme_options = {
+#     'page_width': '1280px',
+#     'sidebar_width': '380px',
+# }
 
 # -- Options for todo extension ----------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/extensions/todo.html#configuration
