@@ -1,10 +1,13 @@
+import inspect
+
 from kivy.app import App
 from kivy.lang import Builder
 from kivyx.uix.button import KXButton
+import asynckivy as ak
+
+from kivyx.uix.behaviors.swipe2delete import enable_swipe2delete_for_children
 
 KV_CODE = '''
-#:import defaults kivyx.uix.behaviors.swipe2delete.defaults
-
 <Separator@Widget>:
     canvas:
         Color:
@@ -19,86 +22,92 @@ KV_CODE = '''
     height: 1
     size_hint_y: None
 
-<S2DBoxLayout@KXSwipe2DeleteBehavior+BoxLayout>:
-    
 BoxLayout:
     BoxLayout:
         orientation: "vertical"
         spacing :4
         Label:
-            text: "disabled"
+            text: "track_multiple_touches"
             color: 0, 1, 0, 1
         Switch:
-            id: disabled
+            id: track_multiple_touches
         HSep:
         Label:
-            text: "s2d_disabled"
-            color: 0, 1, 0, 1
-        Switch:
-            id: s2d_disabled
-        HSep:
-        Label:
-            text: "s2d_track_multiple_touches"
-            color: 0, 1, 0, 1
-        Switch:
-            id: s2d_track_multiple_touches
-        HSep:
-        Label:
-            text: f"s2d_swipe_distance: {int(s2d_swipe_distance.value)}"
+            text: f"swipe_distance: {int(swipe_distance.value)}"
             color: 0, 1, 0, 1
         Slider:
-            id: s2d_swipe_distance
+            id: swipe_distance
             min: 0
             max: dp(100)
             step: 1
-            value: defaults.swipe_distance
         HSep:
         Label:
-            text: f"s2d_delete_distance: {int(s2d_delete_distance.value)}"
+            text: f"delete_distance: {int(delete_distance.value)}"
             color: 0, 1, 0, 1
         Slider:
-            id: s2d_delete_distance
+            id: delete_distance
             min: 0
             max: dp(500)
             step: 1
-            value: defaults.delete_distance
         HSep:
         Label:
-            text: f"s2d_direction: {'horizontal' if s2d_direction.active else 'vertical'}"
+            text: f"direction: {'horizontal' if direction.active else 'vertical'}"
             color: 0, 1, 0, 1
         Switch:
-            id: s2d_direction
+            id: direction
             active: True
     VSep:
     KXScrollView:
         do_scroll_x: False
-        S2DBoxLayout:
+        BoxLayout:
             id: container
             orientation: "vertical"
             size_hint_y: None
             height: self.minimum_height
             spacing: "10dp"
             padding: "10dp"
-            disabled: disabled.active
-            s2d_disabled: s2d_disabled.active
-            s2d_swipe_distance: s2d_swipe_distance.value
-            s2d_delete_distance: s2d_delete_distance.value
-            s2d_track_multiple_touches: s2d_track_multiple_touches.active
-            s2d_direction: "horizontal" if s2d_direction.active else "vertical"
 '''
 
 
 class SampleApp(App):
     def build(self):
-        root = Builder.load_string(KV_CODE)
-
         def on_tap(btn, touch):
             print(btn.text, "tapped.")
+        root = Builder.load_string(KV_CODE)
         add_widget = root.ids.container.add_widget
         for i in range(20):
             add_widget(KXButton(text=str(i), font_size="30dp", size_hint_y=None, height="80dp", on_tap=on_tap))
         return root
 
+    def on_start(self):
+        ak.managed_start(self.main())
 
-if __name__ == '__main__':
+    async def main(self):
+        reset_event = ak.Event()
+        params = inspect.signature(enable_swipe2delete_for_children).parameters
+        ids = self.root.ids
+        for name in ["swipe_distance", "delete_distance", ]:
+            ids[name].value = params[name].default
+            ids[name].bind(value=reset_event.fire)
+        for name in ["track_multiple_touches", ]:
+            ids[name].active = params[name].default
+            ids[name].bind(active=reset_event.fire)
+        ids["direction"].active = params["direction"].default == "horizontal"
+        ids["direction"].bind(active=reset_event.fire)
+
+        while True:
+            await ak.sleep(0.2)
+            async with ak.open_nursery() as nursery:
+                s = nursery.start
+                s(reset_event.wait(), close_on_finish=True)
+                s(enable_swipe2delete_for_children(
+                    ids.container,
+                    swipe_distance=ids["swipe_distance"].value,
+                    delete_distance=ids["delete_distance"].value,
+                    track_multiple_touches=ids["track_multiple_touches"].active,
+                    direction="horizontal" if ids["direction"].active else "vertical",
+                ))
+
+
+if __name__ == "__main__":
     SampleApp(title="Swipe-to-Delete Playground").run()

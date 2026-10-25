@@ -1,7 +1,6 @@
 __all__ = (
     "enable_swipe2delete",
     "enable_swipe2delete_for_children",
-    "KXSwipe2DeleteBehavior",
     "disable_and_remove",
     "ongoing_swipe2deletes",
 )
@@ -11,8 +10,6 @@ from collections.abc import Callable
 from contextlib import AsyncExitStack
 
 from kivy.metrics import dp
-from kivy.properties import NumericProperty, BooleanProperty, OptionProperty, ObjectProperty
-from kivy.clock import Clock
 from kivy.base import EventLoop
 from kivy.core.window import Window
 from kivy.input.motionevent import MotionEvent
@@ -23,35 +20,29 @@ import asynckivy as ak
 from kivyx.touch_filters import is_colliding_and_not_wheel
 from kivyx.gesture_detectors import horizontal_swipe, vertical_swipe
 
-class defaults:
-    direction = "horizontal"
-    swipe_distance = dp(20)
-    delete_distance = dp(300)
-    track_multiple_touches = False
 
-
-def disable_and_remove(touch, widget):
+def disable_and_remove(target, touch):
     '''
     Default action performed when a swipe-to-delete gesture requests deletion.
 
     .. code-block::
 
-        def disable_and_remove(touch, widget):
-            widget.disabled = True
-            widget.parent.remove_widget(widget)
+        def disable_and_remove(target, touch):
+            target.disabled = True
+            target.parent.remove_widget(target)
     '''
-    widget.disabled = True
-    widget.parent.remove_widget(widget)
+    target.disabled = True
+    target.parent.remove_widget(target)
 
 
 async def enable_swipe2delete_for_children(
     layout, /, *,
     touch_filter: Callable[[Widget, MotionEvent], bool]=is_colliding_and_not_wheel,
-    direction: Literal["horizontal", "vertical"]=defaults.direction,
-    swipe_distance=defaults.swipe_distance,
-    delete_distance=defaults.delete_distance,
-    on_delete_requested: Callable[[MotionEvent, Widget], None]=disable_and_remove,
-    track_multiple_touches=defaults.track_multiple_touches,
+    direction: Literal["horizontal", "vertical"]="horizontal",
+    swipe_distance=dp(20),
+    delete_distance=dp(300),
+    on_delete_requested: Callable[[Widget, MotionEvent], None]=disable_and_remove,
+    track_multiple_touches=False,
 ):
     '''
     Enables swipe-to-delete functionality for a layout's children until the returned coroutine is cancelled.
@@ -65,14 +56,14 @@ async def enable_swipe2delete_for_children(
 
     :param swipe_distance:
         The minimum distance a touch must travel to be recognized as a swipe gesture.
+        Defaults to ``dp(20)``.
 
     :param delete_distance:
         The minimum distance a recognized swipe gesture must travel to trigger ``on_delete_requested``
-        when the touch is released.
+        when the touch is released. Defaults to ``dp(300)``.
 
     :param on_delete_requested:
         A callable invoked when a delete request is triggered. Defaults to :func:`disable_and_remove`.
-        For its parameters, see :meth:`KXSwipe2DeleteBehavior.on_delete_requested`.
 
     :param track_multiple_touches:
         Whether to track multiple touches simultaneously (multi-touch). If False (the default),
@@ -124,10 +115,10 @@ async def enable_swipe2delete_for_children(
 async def enable_swipe2delete(
     widget, /, *,
     touch_filter: Callable[[Widget, MotionEvent], bool]=is_colliding_and_not_wheel,
-    direction: Literal["horizontal", "vertical"]=defaults.direction,
-    swipe_distance=defaults.swipe_distance,
-    delete_distance=defaults.delete_distance,
-    on_delete_requested: Callable[[MotionEvent, Widget], None]=disable_and_remove,
+    direction: Literal["horizontal", "vertical"]="horizontal",
+    swipe_distance=dp(20),
+    delete_distance=dp(300),
+    on_delete_requested: Callable[[Widget, MotionEvent], None]=disable_and_remove,
 ):
     '''
     Enables swipe-to-delete functionality for a widget until the returned coroutine is cancelled.
@@ -163,7 +154,7 @@ async def enable_swipe2delete(
 
 async def _handle_potential_swipe2delete(
     is_horizontal,
-    swipe_trigger,
+    swipe_detector,
     delete_distance,
     on_delete_requested,
     target: Widget,
@@ -181,7 +172,7 @@ async def _handle_potential_swipe2delete(
         tasks = await ak.wait_any(
             touch.ud["kivyx_end"].wait(),
             ex_access.wait_for_one_to_claim(),
-            swipe_trigger(touch),
+            swipe_detector(touch),
         )
         if tasks[2].cancelled or target in _active_targets:
             return
@@ -214,80 +205,7 @@ async def _handle_potential_swipe2delete(
                         translate.y = offset
                         target.opacity = (1.0 - abs_(offset) / delete_distance) * orig_opacity
         if abs_(offset) > delete_distance:
-            on_delete_requested(touch, target)
-
-
-class KXSwipe2DeleteBehavior:
-    '''
-    A mix-in class that adds swipe-to-delete functionality to a layout's children.
-
-    (Some docstrings in this class are written in Japanese because the corresponding English
-    documentation is already available in :func:`enable_swipe2delete_for_children`.)
-    '''
-
-    s2d_disabled = BooleanProperty(False)
-    '''If either :attr:`~kivy.uix.widget.Widget.disabled` or :attr:`s2d_disabled` is True,
-    the swipe-to-delete functionality is disabled. '''
-
-    s2d_touch_filter = ObjectProperty(is_colliding_and_not_wheel)
-    '''
-    ``on_touch_down`` イベントがこの選別をくぐり抜けたタッチのみがスワイプとして認識され得る。
-    既定値は :func:`~kivyx.touch_filters.is_colliding_and_not_wheel`。
-    '''
-
-    s2d_swipe_distance = NumericProperty(defaults.swipe_distance)
-    '''タッチがスワイプとして認識されるために必要な移動量'''
-
-    s2d_delete_distance = NumericProperty(defaults.delete_distance)
-    '''指が離れた際に ``on_delete_requested`` イベントを引き起こすのに必要なスワイプの移動量'''
-
-    s2d_direction = OptionProperty(defaults.direction, options=("horizontal", "vertical", ))
-    '''スワイプの方向'''
-
-    s2d_track_multiple_touches = BooleanProperty(defaults.track_multiple_touches)
-    '''偽(既定値)の場合、１つタッチを監視している間に始まった他のタッチは無視される。'''
-
-    def on_delete_requested(self, touch, child):
-        '''
-        :param touch: The :class:`~kivy.input.motionevent.MotionEvent` that triggered the
-            ``on_delete_requested`` event, in window coordinates.
-        :param child: The child widget for which deletion was requested.
-        '''
-        child.disabled = True
-        self.remove_widget(child)
-
-    def __init__(self, **kwargs):
-        self.__main_task = ak.dummy_task
-        self.register_event_type("on_delete_requested")
-        super().__init__(**kwargs)
-        t = Clock.schedule_once(self.__reset)
-        self.bind(
-            disabled=t,
-            s2d_disabled=t,
-            s2d_touch_filter=t,
-            s2d_swipe_distance=t,
-            s2d_delete_distance=t,
-            s2d_direction=t,
-            s2d_track_multiple_touches=t,
-        )
-
-    # Python's name mangling is weird. This method cannot be named '__reset'.
-    def _KXSwipe2DeleteBehavior__reset(self, __):
-        self.__main_task.cancel()
-        if self.disabled or self.s2d_disabled:
-            return
-        self.__main_task = ak.managed_start(enable_swipe2delete_for_children(
-            self,
-            touch_filter=self.s2d_touch_filter,
-            swipe_distance=self.s2d_swipe_distance,
-            delete_distance=self.s2d_delete_distance,
-            direction=self.s2d_direction,
-            track_multiple_touches=self.s2d_track_multiple_touches,
-            on_delete_requested=self.__dispatch_on_delete_requested_event,
-        ))
-
-    def __dispatch_on_delete_requested_event(self, touch, child):
-        self.dispatch("on_delete_requested", touch, child)
+            on_delete_requested(target, touch)
 
 
 def ongoing_swipe2deletes() -> list[tuple[Widget, MotionEvent]]:
