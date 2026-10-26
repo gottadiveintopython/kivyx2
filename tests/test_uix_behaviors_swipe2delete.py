@@ -9,7 +9,7 @@ from kivyx.utils import drop_active_touches
 from kivyx.uix.behaviors.swipe2delete import (
     enable_swipe2delete,
     enable_swipe2delete_for_children,
-    ongoing_swipe2deletes,
+    get_active_swipe2deletes,
 )
 
 # NOTE: A touch must generate at least two `on_touch_move` events to trigger `on_delete_requested`:
@@ -170,7 +170,7 @@ def test_simultaneous_swipe2delete(kivy_runner):
     kr.advance_a_frame()
     layout = tree.ids.layout
     children = layout.children
-    ongoing_ones = ongoing_swipe2deletes
+    ongoing_ones = get_active_swipe2deletes
     with closing(ak.start(enable_swipe2delete_for_children(layout, swipe_distance=100, delete_distance=200, track_multiple_touches=True))):
         t1 = UnitTestTouch(50, 50)
         t2 = UnitTestTouch(50, 250)
@@ -209,7 +209,7 @@ def test_cancel(kivy_runner):
     kr.advance_a_frame()
     layout = tree.ids.layout
     children = layout.children
-    ongoing_ones = ongoing_swipe2deletes
+    ongoing_ones = get_active_swipe2deletes
     with closing(ak.start(enable_swipe2delete_for_children(layout, swipe_distance=100, delete_distance=200, track_multiple_touches=True))):
         t1 = UnitTestTouch(50, 50)
         t2 = UnitTestTouch(50, 250)

@@ -2,7 +2,7 @@ __all__ = (
     "enable_swipe2delete",
     "enable_swipe2delete_for_children",
     "disable_and_remove",
-    "ongoing_swipe2deletes",
+    "get_active_swipe2deletes",
 )
 from typing import Literal
 from functools import partial
@@ -208,7 +208,7 @@ async def _handle_potential_swipe2delete(
             on_delete_requested(target, touch)
 
 
-def ongoing_swipe2deletes() -> list[tuple[Widget, MotionEvent]]:
+def get_active_swipe2deletes() -> list[tuple[Widget, MotionEvent]]:
     '''
     Returns a list of (widget, touch) pairs for all ongoing swipe-to-delete gestures,
     where the ``widget`` is the widget being swiped and the ``touch`` is the
