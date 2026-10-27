@@ -3,10 +3,8 @@ from collections.abc import Sequence, Callable
 from functools import partial
 from contextlib import ExitStack, nullcontext
 
-from kivy.properties import BooleanProperty, ListProperty, ObjectProperty
 from kivy.graphics import PushMatrix, PopMatrix, Translate, InstructionGroup
 from kivy.base import EventLoop
-from kivy.clock import Clock
 from kivy.input.motionevent import MotionEvent
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
@@ -33,7 +31,7 @@ async def perform_drag(widget, touch, *, drag_cls=None, include_pre_drag_distanc
         Whether the dragged widget was accepted by a drop target.
 
     :param widget:
-        The widget being dragged.
+        The widget to be dragged.
 
     :param touch:
         The touch to drag with. Exclusive access to this touch must not have been claimed.
@@ -191,6 +189,14 @@ async def enable_drag_for_children(
         Whether to track multiple touches simultaneously (multi-touch). If False (the default),
         once a touch starts being tracked, subsequent touches are ignored until the tracked touch
         ends or exclusive access to it is claimed by someone else.
+
+    :param on_start:
+        Called each time a drag starts.
+        See :func:`on_start` for the callback parameters.
+
+    :param on_end:
+        Called each time a drag ends.
+        See :func:`on_end` for the callback parameters.
     '''
     from kivyx.utils import find_child_at
 
@@ -219,7 +225,7 @@ async def enable_drag_for_children(
 
 def get_active_drags() -> list[tuple[Widget, MotionEvent, DragCls]]:
     '''
-    Returns a list of ``(dragged_widget, touch, drag_cls)`` tuples for all active drags.
+    Returns a list of ``(dragged_widget, touch, drag_cls)`` tuples for all ongoing drags.
     '''
     result = []
     for t in EventLoop.touches:
@@ -235,83 +241,23 @@ def get_active_drags() -> list[tuple[Widget, MotionEvent, DragCls]]:
     return result
 
 
-class KXDraggableBehavior:
+def on_start(widget, touch, drag_cls):
     '''
-    Mixin class that adds draggable behavior to widgets.
-    '''
+    :param widget:
+        The widget to be dragged.
 
-    drag_disabled = BooleanProperty(False)
-    '''If either :attr:`~kivy.uix.widget.Widget.disabled` or :attr:`drag_disabled` is True,
-    dragging is disabled.'''
-
-    drag_touch_filter = ObjectProperty(is_colliding_and_not_wheel)
-    '''
-    Any touch whose ``on_touch_down`` event does not pass this filter is ignored.
-    Defaults to :func:`~kivyx.touch_filters.is_colliding_and_not_wheel`.
+    :param touch:
+        The :class:`~kivy.input.motionevent.MotionEvent` that triggered the drag.
+        It is usually represented in window coordinates, but that depends on :attr:`drag_triggers`.
     '''
 
-    drag_is_in_progress = BooleanProperty(False)
-    '''(read-only) Whether a drag is currently in progress on this widget.'''
 
-    drag_cls = ObjectProperty(None, allownone=True)
-    '''The drag class associated with this widget.'''
+def on_end(widget, touch, drag_cls, result: DragResult):
+    '''
+    :param widget:
+        The widget that was being dragged.
 
-    drag_triggers = ListProperty([long_press])
-    '''Drag starts when any of these gestures is detected.'''
-
-    def drag_cancel(self):
-        '''Cancels the ongoing drag on this widget, if any.'''
-
-    def on_drag_start(self, touch, drag_cls):
-        '''
-        :param touch:
-            The :class:`~kivy.input.motionevent.MotionEvent` that triggered the drag.
-            It is usually in window coordinates, but that depends on :attr:`drag_triggers`.
-        '''
-        self.drag_cancel = touch.ud["kivyx_abandon"].fire
-        self.drag_is_in_progress = True
-
-    def on_drag_end(self, touch, drag_cls, result: DragResult):
-        '''
-        :param touch:
-            The :class:`~kivy.input.motionevent.MotionEvent` that triggered the drag,
-            in window coordinates.
-        '''
-        self.drag_is_in_progress = False
-
-    def __init__(self, **kwargs):
-        self.__main_task = ak.dummy_task
-        self.register_event_type("on_drag_start")
-        self.register_event_type("on_drag_end")
-        super().__init__(**kwargs)
-        t = Clock.schedule_once(self.__reset, -1)
-        self.bind(
-            disabled=t,
-            drag_disabled=t,
-            drag_touch_filter=t,
-            drag_cls=t,
-            drag_triggers=t,
-        )
-
-    # Python's name mangling is weird. This method cannot be named '__reset'.
-    def _KXDraggableBehavior__reset(self, __):
-        self.__main_task.cancel()
-        if self.disabled or self.drag_disabled:
-            return
-        self.__main_task = ak.managed_start(enable_drag(
-            self,
-            touch_filter=self.drag_touch_filter,
-            drag_cls=self.drag_cls,
-            triggers=self.drag_triggers,
-            consume_touch=False,
-            on_start=self.__dispatch_on_drag_start_event,
-            on_end=self.__dispatch_on_drag_end_event,
-        ))
-
-    @staticmethod
-    def __dispatch_on_drag_start_event(self, touch, drag_cls):
-        self.dispatch("on_drag_start", touch, drag_cls)
-
-    @staticmethod
-    def __dispatch_on_drag_end_event(self, touch, drag_cls, result):
-        self.dispatch("on_drag_end", touch, drag_cls, result)
+    :param touch:
+        The :class:`~kivy.input.motionevent.MotionEvent` that triggered the drag,
+        represented in window coordinates.
+    '''

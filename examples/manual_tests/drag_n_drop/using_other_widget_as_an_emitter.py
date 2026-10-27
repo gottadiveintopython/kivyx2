@@ -1,12 +1,15 @@
+from contextlib import ExitStack
+
 from kivy.properties import ObjectProperty
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.label import Label
 from kivy.uix.floatlayout import FloatLayout
+from kivy.graphics import Color, Rectangle, Line
 
 import asynckivy as ak
 
-from kivyx.uix.behaviors.drag_n_drop import KXDropTargetBehavior, KXDraggableBehavior, perform_drag
+import kivyx.uix.behaviors.drag_n_drop as dnd
 
 KV_CODE = '''
 #:import ascii_uppercase string.ascii_uppercase
@@ -62,30 +65,34 @@ BoxLayout:
 '''
 
 
-class Cell(KXDropTargetBehavior, FloatLayout):
+class Cell(FloatLayout):
+    def on_kv_post(self, *args):
+        super().on_kv_post(*args)
+        ak.managed_start(dnd.enable_drop_target(self, on_drop=self.on_drop))
+
+    @staticmethod
     def on_drop(self, touch, drag_cls, dragged_widget) -> bool:
         if self.children:
             return False
-        return super().on_drop(touch, drag_cls, dragged_widget)
-
-
-class Card(KXDraggableBehavior, Label):
-    pass
+        self.add_widget(dragged_widget)
+        return True
 
 
 class Deck(Label):
-    text_iter = ObjectProperty()
-    board = ObjectProperty()
+    text_iter = None
+    board = None
 
     def on_touch_down(self, touch):
         ox, oy = touch.opos
         if self.collide_point(ox, oy):
-            if (text := next(self.text_iter, None)) is not None:
+            if (text := next(self.text_iter, None)) is None:
+                self.disabled = True
+            else:
                 card = Label(
                     size=self._get_cell_size(), center=self.to_window(ox, oy), pos_hint={"x": 0, "y": 0},
                     text=text, font_size=100,
                 )
-                ak.managed_start(perform_drag(card, touch))
+                ak.managed_start(dnd.perform_drag(card, touch))
             return True
 
     def _get_cell_size(self):

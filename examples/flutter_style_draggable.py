@@ -3,13 +3,13 @@ This example shows how to achieve the same functionality as Flutter one's
 'child', 'feedback' and 'childWhenDragging'.
 https://api.flutter.dev/flutter/widgets/Draggable-class.html
 '''
-
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.relativelayout import RelativeLayout
+import asynckivy as ak
 
 from kivyx import gesture_detectors
-from kivyx.uix.behaviors.drag_n_drop import KXDropTargetBehavior, KXDraggableBehavior
+import kivyx.uix.behaviors.drag_n_drop as dnd
 
 KV_CODE = '''
 <Cell>:
@@ -43,7 +43,7 @@ GridLayout:
     padding: 10
 '''
 
-class FlutterStyleDraggable(KXDraggableBehavior, RelativeLayout):
+class FlutterStyleDraggable(RelativeLayout):
     def on_kv_post(self, *args, **kwargs):
         super().on_kv_post(*args, **kwargs)
         self._widgets = ws = {
@@ -52,29 +52,41 @@ class FlutterStyleDraggable(KXDraggableBehavior, RelativeLayout):
         }
         self.remove_widget(ws["childWhenDragging"])
         self.remove_widget(ws["feedback"])
-        self.drag_triggers = (gesture_detectors.immediate, )
+        ak.managed_start(dnd.enable_drag(
+            self,
+            triggers=(gesture_detectors.immediate, ),
+            on_start=self.on_drag_start,
+            on_end=self.on_drag_end,
+        ))
 
+    @staticmethod
     def on_drag_start(self, touch, drag_cls):
         ws = self._widgets
         self.remove_widget(ws['child'])
         self.add_widget(ws['feedback'])
         self.parent.add_widget(ws['childWhenDragging'])
-        return super().on_drag_start(touch, drag_cls)
 
+    @staticmethod
     def on_drag_end(self, touch, drag_cls, drag_result):
         ws = self._widgets
         w = ws['childWhenDragging']
         w.parent.remove_widget(w)
         self.remove_widget(ws['feedback'])
         self.add_widget(ws['child'])
-        return super().on_drag_end(touch, drag_cls, drag_result)
 
 
-class Cell(KXDropTargetBehavior, RelativeLayout):
-    def on_drop(self, touch, drag_cls, dragged_widget) -> bool:
+class Cell(RelativeLayout):
+    def on_kv_post(self, *args, **kwargs):
+        super().on_kv_post(*args, **kwargs)
+        ak.managed_start(dnd.enable_drop_target(self, on_drop=self.on_drop))
+
+    @staticmethod    
+    def on_drop(self, touch, drag_cls, dragged_widget):
         if self.children:
-            return False
-        return super().on_drop(touch, drag_cls, dragged_widget)
+            return
+        self.add_widget(dragged_widget)
+        return True
+
 
 
 class SampleApp(App):

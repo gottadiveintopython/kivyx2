@@ -51,17 +51,31 @@ BoxLayout:
 '''
 
 
-class MyDropTarget(dnd.KXDropTargetBehavior, Label):
+class MyDropTarget(Label):
+    drag_classes = ""
     n_ongoing_drags_inside = NumericProperty(0)
 
+    def on_kv_post(self, *args):
+        super().on_kv_post(*args)
+        ak.managed_start(dnd.enable_drop_target(
+            self,
+            drag_classes=self.drag_classes,
+            on_enter=self.on_drag_enter,
+            on_leave=self.on_drag_leave,
+            on_drop=self.on_drop,
+        ))
+
+    @staticmethod
     def on_drag_enter(self, touch, drag_cls, dragged_widget):
         self.n_ongoing_drags_inside += 1
         print(f"{dragged_widget.text} entered {self.drag_classes}.")
 
+    @staticmethod
     def on_drag_leave(self, touch, drag_cls, dragged_widget):
         self.n_ongoing_drags_inside -= 1
         print(f"{dragged_widget.text} left {self.drag_classes}.")
 
+    @staticmethod
     def on_drop(self, touch, drag_cls, dragged_widget):
         print(f"{dragged_widget.text} dropped on {self.drag_classes}.")
         return True

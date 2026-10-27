@@ -1,8 +1,6 @@
 from collections.abc import Awaitable
 from functools import partial
 
-from kivy.clock import Clock
-from kivy.properties import BooleanProperty, ObjectProperty
 from kivy.graphics import Color, Rectangle
 from kivy.uix.widget import Widget
 import asynckivy as ak
@@ -150,43 +148,3 @@ async def _show_insertion_indicator(spacer_widgets, layout, touch, dragged_widge
                 remove_widget(spacer)
             spacer_widgets.append(spacer)
     return idx
-
-
-class KXDropTargetBehaviorWithInsertionIndicator:
-    '''
-    Mixin class that adds drop target behavior with insertion indicator to layouts.
-    '''
-
-    drop_target_disabled = BooleanProperty(False)
-    '''If either :attr:`~kivy.uix.widget.Widget.disabled` or :attr:`drop_target_disabled` is True,
-    drop target behavior is disabled.
-    '''
-
-    drag_classes = ObjectProperty(ACCEPT_ANY)
-    '''See :func:`enable_drop_target_with_insertion_indicator`.'''
-
-    drop_target_spacer_widgets = ObjectProperty(1)
-    '''See :func:`enable_drop_target_with_insertion_indicator`.'''
-
-    def __init__(self, **kwargs):
-        self.__main_task = ak.dummy_task
-        super().__init__(**kwargs)
-        t = Clock.schedule_once(self.__reset, -1)
-        self.bind(
-            disabled=t,
-            drop_target_disabled=t,
-            drag_classes=t,
-            drop_target_spacer_widgets=t,
-        )
-
-    # Python's name mangling is weird. This method cannot be named '__reset'.
-    def _KXDropTargetBehaviorWithInsertionIndicator__reset(self, __):
-        self.__main_task.cancel()
-        if self.disabled or self.drop_target_disabled:
-            return
-        self.__main_task = ak.managed_start(enable_drop_target_with_insertion_indicator(
-            self,
-            drag_classes=self.drag_classes,
-            spacer_widgets=self.drop_target_spacer_widgets,
-        ))
-
