@@ -1,8 +1,7 @@
 __all__ = (
-    "ACCEPT_ANY",
-    "DragClasses",
-    "DragCls",
     "DragResult",
+    "DragTags",
+    "DropTags",
     "enable_drag",
     "enable_drag_for_children",
     "enable_drop_target",
@@ -16,7 +15,7 @@ __all__ = (
     "perform_drag",
 )
 
-from ._common import DragCls, DragClasses, ACCEPT_ANY
+from ._common import DropTags, DragTags
 from ._draggable import (
     perform_drag,
     enable_drag,

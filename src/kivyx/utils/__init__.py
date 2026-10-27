@@ -1,5 +1,5 @@
 __all__ = (
-    "CancellableTimer", "copy_layout_state", "visibility_aware_touch_movements",
+    "noop", "CancellableTimer", "copy_layout_state", "visibility_aware_touch_movements",
     "drop_active_touches", "drop_touch", "find_child_at", "find_child_with_index_at",
 )
 
@@ -12,6 +12,12 @@ from kivy.base import EventLoop
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
 import asynckivy as ak
+
+
+def noop(*args, **kwargs):
+    """
+    A function that does nothing.
+    """
 
 
 class CancellableTimer:

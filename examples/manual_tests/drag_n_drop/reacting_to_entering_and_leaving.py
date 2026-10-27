@@ -35,16 +35,16 @@ BoxLayout:
     BoxLayout:
         MyDropTarget:
             text: "A"
-            drag_classes: "A"
+            drop_tags: {"A"}
         VDivider:
         MyDropTarget:
             text: "A[size=40][color=ffffff]or[/color][/size]B"
             markup: True
-            drag_classes: "AB"
+            drop_tags: {"A", "B"}
         VDivider:
         MyDropTarget:
             text: "B"
-            drag_classes: "B"
+            drop_tags: {"B"}
     HDivider:
     BoxLayout:
         id: initial_container
@@ -52,32 +52,32 @@ BoxLayout:
 
 
 class MyDropTarget(Label):
-    drag_classes = ""
+    drop_tags = set()
     n_ongoing_drags_inside = NumericProperty(0)
 
     def on_kv_post(self, *args):
         super().on_kv_post(*args)
         ak.managed_start(dnd.enable_drop_target(
             self,
-            drag_classes=self.drag_classes,
+            drop_tags=self.drop_tags,
             on_enter=self.on_drag_enter,
             on_leave=self.on_drag_leave,
             on_drop=self.on_drop,
         ))
 
     @staticmethod
-    def on_drag_enter(self, touch, drag_cls, dragged_widget):
+    def on_drag_enter(self, touch, drag_tags, dragged_widget):
         self.n_ongoing_drags_inside += 1
-        print(f"{dragged_widget.text} entered {self.drag_classes}.")
+        print(f"{dragged_widget.text} entered {self.drop_tags}.")
 
     @staticmethod
-    def on_drag_leave(self, touch, drag_cls, dragged_widget):
+    def on_drag_leave(self, touch, drag_tags, dragged_widget):
         self.n_ongoing_drags_inside -= 1
-        print(f"{dragged_widget.text} left {self.drag_classes}.")
+        print(f"{dragged_widget.text} left {self.drop_tags}.")
 
     @staticmethod
-    def on_drop(self, touch, drag_cls, dragged_widget):
-        print(f"{dragged_widget.text} dropped on {self.drag_classes}.")
+    def on_drop(self, touch, drag_tags, dragged_widget):
+        print(f"{dragged_widget.text} dropped on {self.drop_tags}.")
         return True
 
 
@@ -92,11 +92,11 @@ class SampleApp(App):
         from kivyx.gesture_detectors import immediate
         add_widget = self.root.ids.initial_container.add_widget
         async with ak.open_nursery() as nursery:
-            for drag_cls in "AB":
+            for drag_tags in "AB":
                 for i in range(1, 5):
-                    label = Label(text=f"{drag_cls}{i}", font_size=40)
+                    label = Label(text=f"{drag_tags}{i}", font_size=40)
                     add_widget(label)
-                    nursery.start(dnd.enable_drag(label, drag_cls=drag_cls, triggers=(immediate, )))
+                    nursery.start(dnd.enable_drag(label, drag_tags=drag_tags, triggers=(immediate, )))
 
 
 if __name__ == "__main__":

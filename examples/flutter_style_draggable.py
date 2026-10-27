@@ -60,14 +60,14 @@ class FlutterStyleDraggable(RelativeLayout):
         ))
 
     @staticmethod
-    def on_drag_start(self, touch, drag_cls):
+    def on_drag_start(self, touch, drag_tags):
         ws = self._widgets
         self.remove_widget(ws['child'])
         self.add_widget(ws['feedback'])
         self.parent.add_widget(ws['childWhenDragging'])
 
     @staticmethod
-    def on_drag_end(self, touch, drag_cls, drag_result):
+    def on_drag_end(self, touch, drag_tags, drag_result):
         ws = self._widgets
         w = ws['childWhenDragging']
         w.parent.remove_widget(w)
@@ -81,7 +81,7 @@ class Cell(RelativeLayout):
         ak.managed_start(dnd.enable_drop_target(self, on_drop=self.on_drop))
 
     @staticmethod    
-    def on_drop(self, touch, drag_cls, dragged_widget):
+    def on_drop(self, touch, drag_tags, dragged_widget):
         if self.children:
             return
         self.add_widget(dragged_widget)
