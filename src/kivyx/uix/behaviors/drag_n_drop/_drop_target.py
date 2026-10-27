@@ -3,20 +3,23 @@ from functools import partial
 import asynckivy as ak
 
 from kivyx.utils import visibility_aware_touch_movements
-from ._common import noop, ACCEPT_ANY, DragClasses
+from kivyx.utils import noop
+from ._common import DropTags, DEFAULT_DROP_TAGS
 
 
-def _add_widget_and_return_true(drop_target, touch, drag_cls, dragged_widget):
+def _add_widget_and_return_true(drop_target, touch, drag_tags, dragged_widget):
     drop_target.add_widget(dragged_widget)
     return True
 
 
-async def enable_drop_target(widget, *, drag_classes: DragClasses=ACCEPT_ANY,
-                             on_enter=noop, on_leave=noop, on_drop=_add_widget_and_return_true):
+async def enable_drop_target(
+    widget, *, drop_tags: DropTags=DEFAULT_DROP_TAGS,
+    on_enter=noop, on_leave=noop, on_drop=_add_widget_and_return_true,
+):
     '''
     Enables ``widget`` to act as a drop target until the returned coroutine is cancelled.
 
-    :param drag_classes:
+    :param drop_tags:
         Drag classes accepted by this drop target.
 
     :param on_enter:
@@ -41,7 +44,7 @@ async def enable_drop_target(widget, *, drag_classes: DragClasses=ACCEPT_ANY,
             widget, touch,
             seen="kivyx.enable_drop_target." + str(widget.uid),
             start=nursery.start,
-            watch_for_drop=partial(_watch_for_drop, drag_classes, on_enter, on_leave, on_drop),
+            watch_for_drop=partial(_watch_for_drop, drop_tags, on_enter, on_leave, on_drop),
         ):
             if seen in touch.ud:
                 return
@@ -57,7 +60,7 @@ async def enable_drop_target(widget, *, drag_classes: DragClasses=ACCEPT_ANY,
             widget.unbind(on_touch_down=on_touch_xxx, on_touch_move=on_touch_xxx)
 
 
-async def _watch_for_drop(drag_classes, on_enter, on_leave, on_drop, drop_target, touch):
+async def _watch_for_drop(drop_tags, on_enter, on_leave, on_drop, drop_target, touch):
     ud = touch.ud
     async with ak.move_on_when(ud["kivyx_abandon"].wait()):
         tasks = await ak.wait_any(
@@ -67,7 +70,7 @@ async def _watch_for_drop(drag_classes, on_enter, on_leave, on_drop, drop_target
         if tasks[0].finished:
             return
         match tasks[1].result:
-            case (dragged_widget, "drag_n_drop", drag_cls, drop_handlers) if drag_cls in drag_classes:
+            case (dragged_widget, "drag_n_drop", drag_tags, drop_handlers) if not drop_tags.isdisjoint(drag_tags):
                 pass
             case _:
                 return
@@ -83,18 +86,18 @@ async def _watch_for_drop(drag_classes, on_enter, on_leave, on_drop, drop_target
                     if is_inside is was_inside:
                         continue
                     if is_inside:
-                        on_enter(drop_target, touch, drag_cls, dragged_widget)
+                        on_enter(drop_target, touch, drag_tags, dragged_widget)
                     else:
-                        on_leave(drop_target, touch, drag_cls, dragged_widget)
+                        on_leave(drop_target, touch, drag_tags, dragged_widget)
                     was_inside = is_inside
             if is_inside:
-                drop_handlers.append(partial(on_drop, drop_target, touch, drag_cls, dragged_widget))
+                drop_handlers.append(partial(on_drop, drop_target, touch, drag_tags, dragged_widget))
         finally:
             if is_inside:
-                on_leave(drop_target, touch, drag_cls, dragged_widget)
+                on_leave(drop_target, touch, drag_tags, dragged_widget)
 
 
-def on_enter(drop_target, touch, drag_cls, dragged_widget):
+def on_enter(drop_target, touch, drag_tags, dragged_widget):
     '''
     :param drop_target:
         The widget that the ``dragged_widget`` entered.
@@ -107,7 +110,7 @@ def on_enter(drop_target, touch, drag_cls, dragged_widget):
         The widget being dragged.
     '''
 
-def on_leave(drop_target, touch, drag_cls, dragged_widget):
+def on_leave(drop_target, touch, drag_tags, dragged_widget):
     '''
     :param drop_target:
         The widget that the ``dragged_widget`` left.
@@ -120,7 +123,7 @@ def on_leave(drop_target, touch, drag_cls, dragged_widget):
         The widget being dragged.
     '''
 
-def on_drop(drop_target, touch, drag_cls, dragged_widget) -> bool:
+def on_drop(drop_target, touch, drag_tags, dragged_widget) -> bool:
     '''
     :return:
         Return True to indicate that the drop was accepted. If False, the caller

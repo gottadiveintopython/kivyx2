@@ -1,23 +1,7 @@
-from typing import TypeAlias, Any
-from collections.abc import Collection
+from typing import TypeAlias
+from collections.abc import Collection, Set
 
-DragCls: TypeAlias = Any
-DragClasses: TypeAlias = Collection
-
-
-def noop(*args, **kwargs): pass
-
-
-class AcceptAnyType:
-    def __contains__(self, item): return True
-    def __repr__(self): return "<ACCEPT_ANY>"
-    def __str__(self): return "ACCEPT_ANY"
-
-
-ACCEPT_ANY = AcceptAnyType()
-'''
-A special value for ``drag_classes`` parameters that indicates that
-dragged widgets of any class should be accepted.
-'''
-
-AcceptAnyType
+DropTags: TypeAlias = Set
+DragTags: TypeAlias = Collection
+DEFAULT_DROP_TAGS: DropTags = frozenset((None, ))
+DEFAULT_DRAG_TAGS: DragTags = DEFAULT_DROP_TAGS

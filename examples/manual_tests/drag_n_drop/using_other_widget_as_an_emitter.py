@@ -71,7 +71,7 @@ class Cell(FloatLayout):
         ak.managed_start(dnd.enable_drop_target(self, on_drop=self.on_drop))
 
     @staticmethod
-    def on_drop(self, touch, drag_cls, dragged_widget) -> bool:
+    def on_drop(self, touch, drag_tags, dragged_widget) -> bool:
         if self.children:
             return False
         self.add_widget(dragged_widget)

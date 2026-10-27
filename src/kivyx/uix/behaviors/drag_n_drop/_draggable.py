@@ -10,16 +10,17 @@ from kivy.core.window import Window
 from kivy.uix.widget import Widget
 import asynckivy as ak
 
+from kivyx.utils import noop
 from kivyx.touch_filters import is_colliding_and_not_wheel
 from kivyx.gesture_detectors import GestureDetector, long_press
-from ._common import DragCls, noop
+from ._common import DragTags, DEFAULT_DRAG_TAGS
 
 DragResult: TypeAlias = Literal["succeeded", "failed", "cancelled"]
-OnDragStart: TypeAlias = Callable[[Widget, MotionEvent, DragCls], Any]
-OnDragEnd: TypeAlias = Callable[[Widget, MotionEvent, DragCls, DragResult], Any]
+OnDragStart: TypeAlias = Callable[[Widget, MotionEvent, DragTags], Any]
+OnDragEnd: TypeAlias = Callable[[Widget, MotionEvent, DragTags, DragResult], Any]
 
 
-async def perform_drag(widget, touch, *, drag_cls=None, include_pre_drag_distance=True):
+async def perform_drag(widget, touch, *, drag_tags: DragTags=DEFAULT_DRAG_TAGS, include_pre_drag_distance=True):
     '''
     Drags the widget with the given touch until it is released.
 
@@ -51,7 +52,7 @@ async def perform_drag(widget, touch, *, drag_cls=None, include_pre_drag_distanc
         restore_original_placement = partial(parent.add_widget, widget, index=parent.children.index(widget))
 
     drop_handlers = []
-    touch.ud["kivyx_exclusive_access"].claim(widget, "drag_n_drop", drag_cls, drop_handlers)
+    touch.ud["kivyx_exclusive_access"].claim(widget, "drag_n_drop", drag_tags, drop_handlers)
     if parent is not None:
         parent.remove_widget(widget)
 
@@ -106,7 +107,7 @@ async def perform_drag(widget, touch, *, drag_cls=None, include_pre_drag_distanc
 
 async def _watch_for_drag_start(
     target: Widget, touch, *,
-    drag_cls,
+    drag_tags: DragTags,
     triggers: Sequence[GestureDetector],
     on_start: OnDragStart,
     on_end: OnDragEnd,
@@ -124,22 +125,22 @@ async def _watch_for_drag_start(
         )
         if any([t.finished for t in tasks[:2]]) or all([t.cancelled for t in tasks]) or target in _active_targets:
             return
-        on_start(target, touch, drag_cls)
+        on_start(target, touch, drag_tags)
         result = "cancelled"
         _active_targets.append(target)
         try:
-            if await perform_drag(target, touch, drag_cls=drag_cls):
+            if await perform_drag(target, touch, drag_tags=drag_tags):
                 result = "succeeded"
             else:
                 result = "failed"
         finally:
             _active_targets.remove(target)
-            on_end(target, touch, drag_cls, result)
+            on_end(target, touch, drag_tags, result)
 
 
 async def enable_drag(
     widget, *,
-    drag_cls=None,
+    drag_tags: DragTags=DEFAULT_DRAG_TAGS,
     touch_filter: Callable[[Widget, MotionEvent], bool]=is_colliding_and_not_wheel,
     consume_touch: bool=False,
     triggers: Sequence[GestureDetector]=(long_press, ),
@@ -154,7 +155,7 @@ async def enable_drag(
     widget = widget.__self__
     on_touch_down = partial(ak.event, widget, "on_touch_down", filter=touch_filter, stop_dispatching=consume_touch)
     watch_for_drag_start = partial(
-        _watch_for_drag_start, drag_cls=drag_cls, triggers=triggers, on_start=on_start, on_end=on_end)
+        _watch_for_drag_start, drag_tags=drag_tags, triggers=triggers, on_start=on_start, on_end=on_end)
 
     with ak.suppress_event(widget, "on_touch_down", filter=touch_filter) if consume_touch else nullcontext():
         while True:
@@ -164,7 +165,7 @@ async def enable_drag(
 
 async def enable_drag_for_children(
     layout, *,
-    drag_cls=None,
+    drag_tags: DragTags=DEFAULT_DRAG_TAGS,
     touch_filter: Callable[[Widget, MotionEvent], bool]=is_colliding_and_not_wheel,
     consume_touch: bool=False,
     triggers: Sequence[GestureDetector]=(long_press, ),
@@ -205,7 +206,7 @@ async def enable_drag_for_children(
     to_local = layout.to_local
     on_touch_down = partial(ak.event, layout, "on_touch_down", filter=touch_filter, stop_dispatching=consume_touch)
     watch_for_drag_start = partial(
-        _watch_for_drag_start, drag_cls=drag_cls, triggers=triggers, on_start=on_start, on_end=on_end)
+        _watch_for_drag_start, drag_tags=drag_tags, triggers=triggers, on_start=on_start, on_end=on_end)
 
     with ak.suppress_event(layout, "on_touch_down", filter=touch_filter) if consume_touch else nullcontext():
         if track_multiple_touches:
@@ -223,9 +224,9 @@ async def enable_drag_for_children(
                     await watch_for_drag_start(child, touch)
 
 
-def get_active_drags() -> list[tuple[Widget, MotionEvent, DragCls]]:
+def get_active_drags() -> list[tuple[Widget, MotionEvent, DragTags]]:
     '''
-    Returns a list of ``(dragged_widget, touch, drag_cls)`` tuples for all ongoing drags.
+    Returns a list of ``(dragged_widget, touch, drag_tags)`` tuples for all ongoing drags.
     '''
     result = []
     for t in EventLoop.touches:
@@ -236,12 +237,12 @@ def get_active_drags() -> list[tuple[Widget, MotionEvent, DragCls]]:
         if (not ex_access.has_been_claimed) or t.ud["kivyx_abandon"].is_fired:
             continue
         match ex_access.params:
-            case dragged_widget, "drag_n_drop", drag_cls, _:
-                result.append((dragged_widget, t, drag_cls))
+            case dragged_widget, "drag_n_drop", drag_tags, _:
+                result.append((dragged_widget, t, drag_tags))
     return result
 
 
-def on_start(widget, touch, drag_cls):
+def on_start(widget, touch, drag_tags: DragTags):
     '''
     :param widget:
         The widget to be dragged.
@@ -252,7 +253,7 @@ def on_start(widget, touch, drag_cls):
     '''
 
 
-def on_end(widget, touch, drag_cls, result: DragResult):
+def on_end(widget, touch, drag_tags: DragTags, result: DragResult):
     '''
     :param widget:
         The widget that was being dragged.

@@ -6,12 +6,12 @@ from kivy.uix.widget import Widget
 import asynckivy as ak
 
 from kivyx.utils import copy_layout_state, visibility_aware_touch_movements, find_child_with_index_at
-from ._common import ACCEPT_ANY, DragClasses
+from ._common import DropTags, DEFAULT_DROP_TAGS
 
 
 async def enable_drop_target_with_insertion_indicator(
     layout, *,
-    drag_classes: DragClasses=ACCEPT_ANY,
+    drop_tags: DropTags=DEFAULT_DROP_TAGS,
     spacer_widgets: list[Widget] | int=1,
 ):
     '''
@@ -19,9 +19,6 @@ async def enable_drop_target_with_insertion_indicator(
 
     While a widget is dragged over the layout, a spacer widget is temporarily inserted to indicate
     where the widget would be inserted if it were dropped at that moment.
-
-    :param drag_classes:
-        Drag classes accepted by this drop target.
 
     :param spacer_widgets:
         Widgets used as spacers during dragging. The number of spacer widgets determines the maximum number of
@@ -36,7 +33,7 @@ async def enable_drop_target_with_insertion_indicator(
             layout, touch,
             seen="kivyx.enable_drop_target_with_insertion_indicator." + str(layout.uid),
             start=nursery.start,
-            watch_for_drop=partial(_watch_for_drop, spacer_widgets, drag_classes),
+            watch_for_drop=partial(_watch_for_drop, spacer_widgets, drop_tags),
         ):
             if seen in touch.ud:
                 return
@@ -61,7 +58,7 @@ def _create_default_spacer() -> Widget:
     return w
 
 
-async def _watch_for_drop(spacer_widgets, drag_classes, layout, touch):
+async def _watch_for_drop(spacer_widgets, drop_tags, layout, touch):
     ud = touch.ud
     async with ak.move_on_when(ud["kivyx_abandon"].wait()):
         tasks = await ak.wait_any(
@@ -71,7 +68,7 @@ async def _watch_for_drop(spacer_widgets, drag_classes, layout, touch):
         if tasks[0].finished:
             return
         match tasks[1].result:
-            case (dragged_widget, "drag_n_drop", drag_cls, drop_handlers) if drag_cls in drag_classes:
+            case (dragged_widget, "drag_n_drop", drag_tags, drop_handlers) if not drop_tags.isdisjoint(drag_tags):
                 pass
             case _:
                 return
