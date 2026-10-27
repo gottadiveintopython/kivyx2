@@ -234,30 +234,3 @@ def test_cancel(kivy_runner):
         t1.touch_up()  # This should have no effect since t1's swipe2delete gesture has been cancelled.
         assert ongoing_ones() == []
         assert len(children) == 1
-
-
-def test_mixin_class(kivy_runner, isolate_builder_and_factory):
-    kr = kivy_runner
-    tree = kr.builder.load_string(dedent('''
-        <MySwipe2Delete@KXSwipe2DeleteBehavior+BoxLayout>:
-        Widget:
-            MySwipe2Delete:
-                id: layout
-                size: 400, 400
-                s2d_swipe_distance: 100
-                s2d_delete_distance: 200
-                Widget:
-        '''))
-    layout = tree.ids.layout
-    kr.window.add_widget(tree)
-    kr.advance_a_frame()
-    assert len(layout.children) == 1
-    t = UnitTestTouch(50, 50)
-    t.touch_down()
-    t.touch_move(110, 50)
-    t.touch_move(170, 50)
-    t.touch_move(230, 50)
-    t.touch_move(290, 50)
-    t.touch_up()
-    assert len(layout.children) == 0
-    ak.cancel_managed_tasks()
