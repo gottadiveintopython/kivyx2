@@ -1,7 +1,5 @@
 from functools import partial
 
-from kivy.clock import Clock
-from kivy.properties import BooleanProperty, ObjectProperty
 import asynckivy as ak
 
 from kivyx.utils import visibility_aware_touch_movements
@@ -22,16 +20,19 @@ async def enable_drop_target(widget, *, drag_classes: DragClasses=ACCEPT_ANY,
         Drag classes accepted by this drop target.
 
     :param on_enter:
-        Called when a dragged widget enters the drop target.
-        See :meth:`KXDropTargetBehavior.on_drag_enter` for details.
+        Called each time a dragged widget enters the drop target.
+        See :func:`on_enter` for its parameters.
 
     :param on_leave:
-        Called when a dragged widget leaves the drop target.
-        See :meth:`KXDropTargetBehavior.on_drag_leave` for details.
+        Called each time a dragged widget leaves the drop target.
+        See :func:`on_leave` for its parameters.
+
+        For every ``on_enter`` call, a corresponding ``on_leave`` call is guaranteed,
+        even if the drag is cancelled.
 
     :param on_drop:
-        Called when a dragged widget is dropped on the drop target.
-        See :meth:`KXDropTargetBehavior.on_drop` for details.
+        Called each time a dragged widget is dropped on the drop target.
+        See :func:`on_drop` for its parameters.
     '''
     widget = widget.__self__
 
@@ -93,82 +94,45 @@ async def _watch_for_drop(drag_classes, on_enter, on_leave, on_drop, drop_target
                 on_leave(drop_target, touch, drag_cls, dragged_widget)
 
 
-class KXDropTargetBehavior:
+def on_enter(drop_target, touch, drag_cls, dragged_widget):
     '''
-    Mixin class that adds drop target behavior to widgets.
+    :param drop_target:
+        The widget that the ``dragged_widget`` entered.
+
+    :param touch:
+        The :class:`~kivy.input.motionevent.MotionEvent` that is being used to perform the drag.
+        It is represented in window coordinates.
+
+    :param dragged_widget:
+        The widget being dragged.
     '''
 
-    drop_target_disabled = BooleanProperty(False)
-    '''If either :attr:`~kivy.uix.widget.Widget.disabled` or :attr:`drop_target_disabled` is True,
-    drop target behavior is disabled.
+def on_leave(drop_target, touch, drag_cls, dragged_widget):
+    '''
+    :param drop_target:
+        The widget that the ``dragged_widget`` left.
+
+    :param touch:
+        The :class:`~kivy.input.motionevent.MotionEvent` that is being used to perform the drag.
+        It is represented in window coordinates.
+
+    :param dragged_widget:
+        The widget being dragged.
     '''
 
-    drag_classes = ObjectProperty(ACCEPT_ANY)
-    '''Drag classes accepted by this drop target. Must support the :class:`collections.abc.Collection` interface.'''
+def on_drop(drop_target, touch, drag_cls, dragged_widget) -> bool:
+    '''
+    :return:
+        Return True to indicate that the drop was accepted. If False, the caller
+        will continue searching for other drop targets.
 
-    def __init__(self, **kwargs):
-        self.__main_task = ak.dummy_task
-        self.register_event_type("on_drag_enter")
-        self.register_event_type("on_drag_leave")
-        self.register_event_type("on_drop")
-        super().__init__(**kwargs)
-        t = Clock.schedule_once(self.__reset, -1)
-        self.bind(
-            disabled=t,
-            drop_target_disabled=t,
-            drag_classes=t,
-        )
+    :param drop_target:
+        The widget that the ``dragged_widget`` was dropped onto.
 
-    def on_drag_enter(self, touch, drag_cls, dragged_widget):
-        '''
-        Fired when a dragged widget enters the drop target.
+    :param touch:
+        The :class:`~kivy.input.motionevent.MotionEvent` that was used to perform the drag.
+        It is represented in window coordinates.
 
-        :param touch: in window coordinates.
-        '''
-
-    def on_drag_leave(self, touch, drag_cls, dragged_widget):
-        '''
-        Fired when a dragged widget leaves the drop target.
-
-        For every ``on_drag_enter`` event, a corresponding ``on_drag_leave`` event is guaranteed,
-        even if the drag is cancelled.
-
-        :param touch: in window coordinates.
-        '''
-
-    def on_drop(self, touch, drag_cls, dragged_widget) -> bool:
-        '''
-        Fired when ``dragged_widget`` is dropped on this widget.
-
-        :return:
-            Return True to indicate that the drop was accepted. If False, the caller
-            will continue searching for other drop targets.
-        :param touch: in window coordinates.
-        '''
-        self.add_widget(dragged_widget)
-        return True
-
-    # Python's name mangling is weird. This method cannot be named '__reset'.
-    def _KXDropTargetBehavior__reset(self, __):
-        self.__main_task.cancel()
-        if self.disabled or self.drop_target_disabled:
-            return
-        self.__main_task = ak.managed_start(enable_drop_target(
-            self,
-            drag_classes=self.drag_classes,
-            on_enter=self.__dispatch_on_drag_enter_event,
-            on_leave=self.__dispatch_on_drag_leave_event,
-            on_drop=self.__dispatch_on_drop_event,
-        ))
-
-    @staticmethod
-    def __dispatch_on_drag_enter_event(self, touch, drag_cls, dragged_widget):
-        self.dispatch("on_drag_enter", touch, drag_cls, dragged_widget)
-
-    @staticmethod
-    def __dispatch_on_drag_leave_event(self, touch, drag_cls, dragged_widget):
-        self.dispatch("on_drag_leave", touch, drag_cls, dragged_widget)
-
-    @staticmethod
-    def __dispatch_on_drop_event(self, touch, drag_cls, dragged_widget):
-        return self.dispatch("on_drop", touch, drag_cls, dragged_widget)
+    :param dragged_widget:
+        The widget that was dropped.
+    '''
