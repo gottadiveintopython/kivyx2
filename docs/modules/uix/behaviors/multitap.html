@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Multi-Tap Gesture Recognition &#8212; kivyx 0.1.0.dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=47202671" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/haiku.css?v=fce32b03" />
+    <script src="../../../_static/documentation_options.js?v=965fac30"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Swipe to Delete" href="swipe2delete.html" />
+    <link rel="prev" title="Drag &amp; Drop" href="drag_n_drop.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>kivyx 0.1.0.dev0 documentation</span></a></h1>
+        <h2 class="heading"><span>Multi-Tap Gesture Recognition</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="Top">
+      
+        <p>
+        «&#160;&#160;<a href="drag_n_drop.html">Drag &amp; Drop</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="swipe2delete.html">Swipe to Delete</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <section id="module-kivyx.uix.behaviors.multitap">
+<span id="multi-tap-gesture-recognition"></span><h1>Multi-Tap Gesture Recognition<a class="headerlink" href="#module-kivyx.uix.behaviors.multitap" title="Link to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.multitap.enable_multi_tap_gesture_recognition">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">enable_multi_tap_gesture_recognition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">is_colliding_and_not_wheel&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consume_touch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_time_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on_multi_tap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">print&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.multitap.enable_multi_tap_gesture_recognition" title="Link to this definition">¶</a></dt>
+<dd><p>Enables multi-tap gesture recognition for a widget until the returned coroutine is cancelled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>touch_filter</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>]</em>) – Any touch whose <code class="docutils literal notranslate"><span class="pre">on_touch_down</span></code> event does not pass this filter is ignored.
+Defaults to <a class="reference internal" href="../../touch_filters.html#kivyx.touch_filters.is_colliding_and_not_wheel" title="kivyx.touch_filters.is_colliding_and_not_wheel"><code class="xref py py-func docutils literal notranslate"><span class="pre">is_colliding_and_not_wheel()</span></code></a>.</p></li>
+<li><p><strong>consume_touch</strong> – Whether to consume <code class="docutils literal notranslate"><span class="pre">on_touch_down</span></code> events that pass the <code class="docutils literal notranslate"><span class="pre">touch_filter</span></code>.</p></li>
+<li><p><strong>max_time_interval</strong> – The maximum time interval allowed between taps to be considered part of the same multi-tap gesture.</p></li>
+<li><p><strong>max_count</strong> – The maximum number of taps allowed in a multi-tap gesture.</p></li>
+<li><p><strong>on_multi_tap</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>) – Called on each successful multi-tap gesture recognition.
+See <a class="reference internal" href="#kivyx.uix.behaviors.multitap.on_multi_tap" title="kivyx.uix.behaviors.multitap.on_multi_tap"><code class="xref py py-func docutils literal notranslate"><span class="pre">on_multi_tap()</span></code></a> for the callback parameters.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.multitap.on_multi_tap">
+<span class="sig-name descname"><span class="pre">on_multi_tap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_taps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touches</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.multitap.on_multi_tap" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>widget</strong> – The widget instance that was multi-tapped.</p></li>
+<li><p><strong>n_taps</strong> – Equals to <code class="docutils literal notranslate"><span class="pre">len(touches)</span></code>.</p></li>
+<li><p><strong>touches</strong> – The <a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MotionEvent</span></code></a> instances that triggered the multi-tap,
+represented in window coordinates, listed in the order in which they <em>ended</em> (not started).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="Bottom">
+      
+        <p>
+        «&#160;&#160;<a href="drag_n_drop.html">Drag &amp; Drop</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="swipe2delete.html">Swipe to Delete</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2025, Mitō Nattōsai.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

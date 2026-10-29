@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Drag &amp; Drop &#8212; kivyx 0.1.0.dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=47202671" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/haiku.css?v=fce32b03" />
+    <script src="../../../_static/documentation_options.js?v=965fac30"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Multi-Tap Gesture Recognition" href="multitap.html" />
+    <link rel="prev" title="API Reference" href="../../../reference.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>kivyx 0.1.0.dev0 documentation</span></a></h1>
+        <h2 class="heading"><span>Drag &amp; Drop</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="Top">
+      
+        <p>
+        «&#160;&#160;<a href="../../../reference.html">API Reference</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="multitap.html">Multi-Tap Gesture Recognition</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <section id="drag-drop">
+<h1>Drag &amp; Drop<a class="headerlink" href="#drag-drop" title="Link to this heading">¶</a></h1>
+<section id="drop-tags-drag-tags">
+<h2>drop_tags &amp; drag_tags<a class="headerlink" href="#drop-tags-drag-tags" title="Link to this heading">¶</a></h2>
+<p>These two parameters work together as a filter.</p>
+<p>For a dragged widget to be accepted by a drop target, their tags must have at least one element in common.
+For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asynckivy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ak</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">kivyx.uix.behaviors.drag_n_drop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dnd</span>
+
+<span class="n">ak</span><span class="o">.</span><span class="n">managed_start</span><span class="p">(</span><span class="n">dnd</span><span class="o">.</span><span class="n">enable_drag</span><span class="p">(</span><span class="n">widget1</span><span class="p">,</span> <span class="n">drag_tags</span><span class="o">=</span><span class="p">{</span><span class="s2">"A"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">}))</span>
+<span class="n">ak</span><span class="o">.</span><span class="n">managed_start</span><span class="p">(</span><span class="n">dnd</span><span class="o">.</span><span class="n">enable_drop_target</span><span class="p">(</span><span class="n">widget2</span><span class="p">,</span> <span class="n">drop_tags</span><span class="o">=</span><span class="p">{</span><span class="s2">"B"</span><span class="p">,</span> <span class="s2">"C"</span><span class="p">}))</span>
+</pre></div>
+</div>
+<p>In this example, <code class="docutils literal notranslate"><span class="pre">widget1</span></code> can be dropped onto <code class="docutils literal notranslate"><span class="pre">widget2</span></code> because they share the tag <code class="docutils literal notranslate"><span class="pre">&quot;B&quot;</span></code>.</p>
+<ul class="simple">
+<li><p>A tag doesn’t have to be a string; it can be any hashable object.</p></li>
+<li><p>“drop_tags” must be a <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Set</span></code></a>, whereas “drag_tags” can be any <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Collection</span></code></a>
+(<code class="docutils literal notranslate"><span class="pre">drop_tags.isdisjoint(drag_tags)</span></code> must be a valid expression).</p></li>
+</ul>
+</section>
+<section id="module-kivyx.uix.behaviors.drag_n_drop">
+<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-kivyx.uix.behaviors.drag_n_drop" title="Link to this heading">¶</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.DragTags">
+<span class="sig-name descname"><span class="pre">DragTags</span></span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.DragTags" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Collection</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.DropTags">
+<span class="sig-name descname"><span class="pre">DropTags</span></span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.DropTags" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Set</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.enable_drag">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">enable_drag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drag_tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">frozenset({None})</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">is_colliding_and_not_wheel&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consume_touch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(&lt;function</span> <span class="pre">long_press&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">noop&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">noop&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.enable_drag" title="Link to this definition">¶</a></dt>
+<dd><p>Makes <code class="docutils literal notranslate"><span class="pre">widget</span></code> draggable until the returned coroutine is cancelled.</p>
+<p>See <a class="reference internal" href="#kivyx.uix.behaviors.drag_n_drop.enable_drag_for_children" title="kivyx.uix.behaviors.drag_n_drop.enable_drag_for_children"><code class="xref py py-func docutils literal notranslate"><span class="pre">enable_drag_for_children()</span></code></a> for the parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>drag_tags</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.15)"><em>Collection</em></a>)</p></li>
+<li><p><strong>touch_filter</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>]</em>)</p></li>
+<li><p><strong>consume_touch</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
+<li><p><strong>triggers</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.15)"><em>Awaitable</em></a><em>]</em><em>]</em>)</p></li>
+<li><p><strong>on_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.15)"><em>Collection</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>on_end</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.15)"><em>Collection</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><em>Literal</em></a><em>[</em><em>'succeeded'</em><em>, </em><em>'failed'</em><em>, </em><em>'cancelled'</em><em>]</em><em>]</em><em>, </em><em>~typing.Any</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.enable_drag_for_children">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">enable_drag_for_children</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drag_tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">frozenset({None})</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">is_colliding_and_not_wheel&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consume_touch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(&lt;function</span> <span class="pre">long_press&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">track_multiple_touches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">noop&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">noop&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.enable_drag_for_children" title="Link to this definition">¶</a></dt>
+<dd><p>Makes <code class="docutils literal notranslate"><span class="pre">layout</span></code>’s children draggable until the returned coroutine is cancelled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>touch_filter</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>]</em>) – Any touch whose <code class="docutils literal notranslate"><span class="pre">on_touch_down</span></code> event does not pass this filter is ignored.
+Defaults to <a class="reference internal" href="../../touch_filters.html#kivyx.touch_filters.is_colliding_and_not_wheel" title="kivyx.touch_filters.is_colliding_and_not_wheel"><code class="xref py py-func docutils literal notranslate"><span class="pre">is_colliding_and_not_wheel()</span></code></a>.</p></li>
+<li><p><strong>consume_touch</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Whether to consume <code class="docutils literal notranslate"><span class="pre">on_touch_down</span></code> events that pass <code class="docutils literal notranslate"><span class="pre">touch_filter</span></code>.</p></li>
+<li><p><strong>triggers</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.15)"><em>Awaitable</em></a><em>]</em><em>]</em>) – Drag starts when any of these gestures is detected.</p></li>
+<li><p><strong>track_multiple_touches</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Whether to track multiple touches simultaneously (multi-touch). If False (the default),
+once a touch starts being tracked, subsequent touches are ignored until the tracked touch
+ends or exclusive access to it is claimed by someone else.</p></li>
+<li><p><strong>on_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.15)"><em>Collection</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>) – Called each time a drag starts.
+See <a class="reference internal" href="#kivyx.uix.behaviors.drag_n_drop.on_start" title="kivyx.uix.behaviors.drag_n_drop.on_start"><code class="xref py py-func docutils literal notranslate"><span class="pre">on_start()</span></code></a> for the callback parameters.</p></li>
+<li><p><strong>on_end</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.15)"><em>Collection</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><em>Literal</em></a><em>[</em><em>'succeeded'</em><em>, </em><em>'failed'</em><em>, </em><em>'cancelled'</em><em>]</em><em>]</em><em>, </em><em>~typing.Any</em><em>]</em>) – Called each time a drag ends.
+See <a class="reference internal" href="#kivyx.uix.behaviors.drag_n_drop.on_end" title="kivyx.uix.behaviors.drag_n_drop.on_end"><code class="xref py py-func docutils literal notranslate"><span class="pre">on_end()</span></code></a> for the callback parameters.</p></li>
+<li><p><strong>drag_tags</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.15)"><em>Collection</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.enable_drop_target">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">enable_drop_target</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">frozenset({None})</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on_enter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">noop&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on_leave</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">noop&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on_drop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">_add_widget_and_return_true&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.enable_drop_target" title="Link to this definition">¶</a></dt>
+<dd><p>Enables <code class="docutils literal notranslate"><span class="pre">widget</span></code> to act as a drop target until the returned coroutine is cancelled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>drop_tags</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set" title="(in Python v3.15)"><em>Set</em></a>) – Drag classes accepted by this drop target.</p></li>
+<li><p><strong>on_enter</strong> – Called each time a dragged widget enters the drop target.
+See <a class="reference internal" href="#kivyx.uix.behaviors.drag_n_drop.on_enter" title="kivyx.uix.behaviors.drag_n_drop.on_enter"><code class="xref py py-func docutils literal notranslate"><span class="pre">on_enter()</span></code></a> for its parameters.</p></li>
+<li><p><strong>on_leave</strong> – <p>Called each time a dragged widget leaves the drop target.
+See <a class="reference internal" href="#kivyx.uix.behaviors.drag_n_drop.on_leave" title="kivyx.uix.behaviors.drag_n_drop.on_leave"><code class="xref py py-func docutils literal notranslate"><span class="pre">on_leave()</span></code></a> for its parameters.</p>
+<p>For every <code class="docutils literal notranslate"><span class="pre">on_enter</span></code> call, a corresponding <code class="docutils literal notranslate"><span class="pre">on_leave</span></code> call is guaranteed,
+even if the drag is cancelled.</p>
+</p></li>
+<li><p><strong>on_drop</strong> – Called each time a dragged widget is dropped on the drop target.
+See <a class="reference internal" href="#kivyx.uix.behaviors.drag_n_drop.on_drop" title="kivyx.uix.behaviors.drag_n_drop.on_drop"><code class="xref py py-func docutils literal notranslate"><span class="pre">on_drop()</span></code></a> for its parameters.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.enable_drop_target_with_insertion_indicator">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">enable_drop_target_with_insertion_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">frozenset({None})</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacer_widgets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.enable_drop_target_with_insertion_indicator" title="Link to this definition">¶</a></dt>
+<dd><p>Enables <code class="docutils literal notranslate"><span class="pre">layout</span></code> to act as a drop target with an insertion indicator until the returned coroutine is cancelled.</p>
+<p>While a widget is dragged over the layout, a spacer widget is temporarily inserted to indicate
+where the widget would be inserted if it were dropped at that moment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spacer_widgets</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>] </em><em>| </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – Widgets used as spacers during dragging. The number of spacer widgets determines the maximum number of
+simultaneous drags that can be handled. If an integer is provided, that many spacer widgets are created
+internally.</p></li>
+<li><p><strong>drop_tags</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Set" title="(in Python v3.15)"><em>Set</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.get_active_drags">
+<span class="sig-name descname"><span class="pre">get_active_drags</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.get_active_drags" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a list of <code class="docutils literal notranslate"><span class="pre">(dragged_widget,</span> <span class="pre">touch,</span> <span class="pre">drag_tags)</span></code> tuples for all ongoing drags.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)">tuple</a>[<a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)">kivy.uix.widget.Widget</a>, <a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)">kivy.input.motionevent.MotionEvent</a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.15)"><em>Collection</em></a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.on_drop">
+<span class="sig-name descname"><span class="pre">on_drop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">drop_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drag_tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dragged_widget</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.on_drop" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return True to indicate that the drop was accepted. If False, the caller
+will continue searching for other drop targets.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>drop_target</strong> – The widget that the <code class="docutils literal notranslate"><span class="pre">dragged_widget</span></code> was dropped onto.</p></li>
+<li><p><strong>touch</strong> – The <a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MotionEvent</span></code></a> that was used to perform the drag.
+It is represented in window coordinates.</p></li>
+<li><p><strong>dragged_widget</strong> – The widget that was dropped.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.on_end">
+<span class="sig-name descname"><span class="pre">on_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drag_tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.on_end" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>widget</strong> – The widget that was being dragged.</p></li>
+<li><p><strong>touch</strong> – The <a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MotionEvent</span></code></a> that triggered the drag,
+represented in window coordinates.</p></li>
+<li><p><strong>drag_tags</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.15)"><em>Collection</em></a>)</p></li>
+<li><p><strong>result</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><em>Literal</em></a><em>[</em><em>'succeeded'</em><em>, </em><em>'failed'</em><em>, </em><em>'cancelled'</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.on_enter">
+<span class="sig-name descname"><span class="pre">on_enter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">drop_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drag_tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dragged_widget</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.on_enter" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>drop_target</strong> – The widget that the <code class="docutils literal notranslate"><span class="pre">dragged_widget</span></code> entered.</p></li>
+<li><p><strong>touch</strong> – The <a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MotionEvent</span></code></a> that is being used to perform the drag.
+It is represented in window coordinates.</p></li>
+<li><p><strong>dragged_widget</strong> – The widget being dragged.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.on_leave">
+<span class="sig-name descname"><span class="pre">on_leave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">drop_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drag_tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dragged_widget</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.on_leave" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>drop_target</strong> – The widget that the <code class="docutils literal notranslate"><span class="pre">dragged_widget</span></code> left.</p></li>
+<li><p><strong>touch</strong> – The <a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MotionEvent</span></code></a> that is being used to perform the drag.
+It is represented in window coordinates.</p></li>
+<li><p><strong>dragged_widget</strong> – The widget being dragged.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.on_start">
+<span class="sig-name descname"><span class="pre">on_start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drag_tags</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.on_start" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>widget</strong> – The widget to be dragged.</p></li>
+<li><p><strong>touch</strong> – The <a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MotionEvent</span></code></a> that triggered the drag.
+It is usually represented in window coordinates, but that depends on <code class="xref py py-attr docutils literal notranslate"><span class="pre">drag_triggers</span></code>.</p></li>
+<li><p><strong>drag_tags</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.15)"><em>Collection</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.drag_n_drop.perform_drag">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">perform_drag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">drag_tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">frozenset({None})</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_pre_drag_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.drag_n_drop.perform_drag" title="Link to this definition">¶</a></dt>
+<dd><p>Drags the widget with the given touch until it is released.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">success</span> <span class="o">=</span> <span class="k">await</span> <span class="n">perform_drag</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">touch</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether the dragged widget was accepted by a drop target.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>widget</strong> – The widget to be dragged.</p></li>
+<li><p><strong>touch</strong> – The touch to drag with. Exclusive access to this touch must not have been claimed.</p></li>
+<li><p><strong>include_pre_drag_distance</strong> – Whether to apply the distance already traveled by the touch since its
+<code class="docutils literal notranslate"><span class="pre">on_touch_down</span></code> event to the initial offset of the drag.</p></li>
+<li><p><strong>drag_tags</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" title="(in Python v3.15)"><em>Collection</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="Bottom">
+      
+        <p>
+        «&#160;&#160;<a href="../../../reference.html">API Reference</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="multitap.html">Multi-Tap Gesture Recognition</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2025, Mitō Nattōsai.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

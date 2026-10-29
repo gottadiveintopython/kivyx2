@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Utilities &#8212; kivyx 0.1.0.dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=47202671" />
+    <link rel="stylesheet" type="text/css" href="../_static/haiku.css?v=fce32b03" />
+    <script src="../_static/documentation_options.js?v=965fac30"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Notes" href="../notes.html" />
+    <link rel="prev" title="Touch Filters" href="touch_filters.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
+          <span>kivyx 0.1.0.dev0 documentation</span></a></h1>
+        <h2 class="heading"><span>Utilities</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="Top">
+      
+        <p>
+        «&#160;&#160;<a href="touch_filters.html">Touch Filters</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="../notes.html">Notes</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <section id="module-kivyx.utils">
+<span id="utilities"></span><h1>Utilities<a class="headerlink" href="#module-kivyx.utils" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="kivyx.utils.CancellableTimer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">CancellableTimer</span></span><a class="headerlink" href="#kivyx.utils.CancellableTimer" title="Link to this definition">¶</a></dt>
+<dd><p>Full async wrapper for <a class="reference external" href="https://kivy.org/doc/master/api-kivy.clock.html#kivy.clock.ClockEvent" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClockEvent</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.utils.CancellableTimer.cancel">
+<span class="sig-name descname"><span class="pre">cancel</span></span><a class="headerlink" href="#kivyx.utils.CancellableTimer.cancel" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.utils.CancellableTimer.start">
+<span class="sig-name descname"><span class="pre">start</span></span><a class="headerlink" href="#kivyx.utils.CancellableTimer.start" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="kivyx.utils.CancellableTimer.wait_expiration">
+<span class="sig-name descname"><span class="pre">wait_expiration</span></span><a class="headerlink" href="#kivyx.utils.CancellableTimer.wait_expiration" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.utils.copy_layout_state">
+<span class="sig-name descname"><span class="pre">copy_layout_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.utils.copy_layout_state" title="Link to this definition">¶</a></dt>
+<dd><p>Copies the layout-related properties from one to another.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">to_</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">from_</span><span class="o">.</span><span class="n">x</span>
+<span class="n">to_</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">from_</span><span class="o">.</span><span class="n">y</span>
+<span class="n">to_</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">from_</span><span class="o">.</span><span class="n">width</span>
+<span class="o">...</span>
+<span class="n">to_</span><span class="o">.</span><span class="n">pos_hint</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">from_</span><span class="o">.</span><span class="n">pos_hint</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.utils.drop_active_touches">
+<span class="sig-name descname"><span class="pre">drop_active_touches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.utils.drop_active_touches" title="Link to this definition">¶</a></dt>
+<dd><p>Instructs <code class="docutils literal notranslate"><span class="pre">kivyx</span></code> to drop all currently active touches. Any ongoing gestures will be cancelled,
+and the library will ignore any further motion of those touches.</p>
+<p>This can be useful when the app switches scenes.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.utils.drop_touch">
+<span class="sig-name descname"><span class="pre">drop_touch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">touch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.utils.drop_touch" title="Link to this definition">¶</a></dt>
+<dd><p>Instructs <code class="docutils literal notranslate"><span class="pre">kivyx</span></code> to drop a specific touch. Any ongoing gestures associated with that touch
+will be cancelled, and the library will ignore any further motion of that touch.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.utils.find_child_at">
+<span class="sig-name descname"><span class="pre">find_child_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">children</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.utils.find_child_at" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the child widget at the given position, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if no child is found.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)">kivy.uix.widget.Widget</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.utils.find_child_with_index_at">
+<span class="sig-name descname"><span class="pre">find_child_with_index_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">children</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.utils.find_child_with_index_at" title="Link to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Returns a tuple <code class="docutils literal notranslate"><span class="pre">(widget,</span> <span class="pre">index)</span></code> for the child widget at the given position,</dt><dd><p>or <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> if no child is found.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)">tuple</a>[<a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)">kivy.uix.widget.Widget</a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)">int</a>] | <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)">tuple</a>[None, None]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.utils.noop">
+<span class="sig-name descname"><span class="pre">noop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.utils.noop" title="Link to this definition">¶</a></dt>
+<dd><p>A function that does nothing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.utils.visibility_aware_touch_movements">
+<span class="sig-name descname"><span class="pre">visibility_aware_touch_movements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.utils.visibility_aware_touch_movements" title="Link to this definition">¶</a></dt>
+<dd><p>Allows you to detect whether touch movement occurs within the visible area of a widget.
+You might want to use this when the widget is partially clipped by other widgets, such as <code class="docutils literal notranslate"><span class="pre">KXScrollView</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asynckivy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ak</span>
+
+<span class="k">async</span> <span class="k">with</span><span class="p">(</span>
+    <span class="n">ak</span><span class="o">.</span><span class="n">move_on_when</span><span class="p">(</span><span class="n">touch</span><span class="o">.</span><span class="n">ud</span><span class="p">[</span><span class="s2">"kivyx_end"</span><span class="p">]</span><span class="o">.</span><span class="n">wait</span><span class="p">()),</span>
+    <span class="n">visibility_aware_touch_movements</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">touch</span><span class="p">)</span> <span class="k">as</span> <span class="n">on_touch_move</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">was_inside</span> <span class="o">=</span> <span class="o">...</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">is_inside</span> <span class="o">=</span> <span class="k">await</span> <span class="n">on_touch_move</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">is_inside</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">was_inside</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"Touch moved while staying within the visible area"</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"Touch moved from outside to inside the visible area"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">was_inside</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"Touch moved from inside to outside the visible area"</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"Touch moved while staying outside the visible area"</span><span class="p">)</span>
+        <span class="n">was_inside</span> <span class="o">=</span> <span class="n">is_inside</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The touch is always in window coordinates when the <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">on_touch_move()</span></code> returns.</p>
+</div>
+</dd></dl>
+
+</section>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="Bottom">
+      
+        <p>
+        «&#160;&#160;<a href="touch_filters.html">Touch Filters</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="../notes.html">Notes</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2025, Mitō Nattōsai.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

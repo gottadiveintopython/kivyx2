@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Swipe to Delete &#8212; kivyx 0.1.0.dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=47202671" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/haiku.css?v=fce32b03" />
+    <script src="../../../_static/documentation_options.js?v=965fac30"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Tap Gesture Recognition" href="tap.html" />
+    <link rel="prev" title="Multi-Tap Gesture Recognition" href="multitap.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>kivyx 0.1.0.dev0 documentation</span></a></h1>
+        <h2 class="heading"><span>Swipe to Delete</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="Top">
+      
+        <p>
+        «&#160;&#160;<a href="multitap.html">Multi-Tap Gesture Recognition</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="tap.html">Tap Gesture Recognition</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <section id="swipe-to-delete">
+<h1>Swipe to Delete<a class="headerlink" href="#swipe-to-delete" title="Link to this heading">¶</a></h1>
+<p><a class="reference external" href="https://youtu.be/4AHhps6GPbU">Video Footage</a></p>
+<dl class="py function" id="module-kivyx.uix.behaviors.swipe2delete">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.swipe2delete.disable_and_remove">
+<span class="sig-name descname"><span class="pre">disable_and_remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.swipe2delete.disable_and_remove" title="Link to this definition">¶</a></dt>
+<dd><p>Default action performed when a swipe-to-delete gesture requests deletion.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">disable_and_remove</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">touch</span><span class="p">):</span>
+    <span class="n">target</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">target</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">remove_widget</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.swipe2delete.enable_swipe2delete">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">enable_swipe2delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">is_colliding_and_not_wheel&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">swipe_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">kivy.metrics.dp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">kivy.metrics.dp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on_delete_requested</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">disable_and_remove&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.swipe2delete.enable_swipe2delete" title="Link to this definition">¶</a></dt>
+<dd><p>Enables swipe-to-delete functionality for a widget until the returned coroutine is cancelled.</p>
+<p>See <a class="reference internal" href="#kivyx.uix.behaviors.swipe2delete.enable_swipe2delete_for_children" title="kivyx.uix.behaviors.swipe2delete.enable_swipe2delete_for_children"><code class="xref py py-func docutils literal notranslate"><span class="pre">enable_swipe2delete_for_children()</span></code></a> for the parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>touch_filter</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>]</em>)</p></li>
+<li><p><strong>direction</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><em>Literal</em></a><em>[</em><em>'horizontal'</em><em>, </em><em>'vertical'</em><em>]</em>)</p></li>
+<li><p><strong>on_delete_requested</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>]</em><em>, </em><em>None</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.swipe2delete.enable_swipe2delete_for_children">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">enable_swipe2delete_for_children</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">is_colliding_and_not_wheel&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">swipe_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">kivy.metrics.dp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">kivy.metrics.dp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on_delete_requested</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">disable_and_remove&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">track_multiple_touches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.swipe2delete.enable_swipe2delete_for_children" title="Link to this definition">¶</a></dt>
+<dd><p>Enables swipe-to-delete functionality for a layout’s children until the returned coroutine is cancelled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>touch_filter</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>]</em>) – Any touch whose <code class="docutils literal notranslate"><span class="pre">on_touch_down</span></code> event does not pass this filter is ignored.
+Defaults to <a class="reference internal" href="../../touch_filters.html#kivyx.touch_filters.is_colliding_and_not_wheel" title="kivyx.touch_filters.is_colliding_and_not_wheel"><code class="xref py py-func docutils literal notranslate"><span class="pre">is_colliding_and_not_wheel()</span></code></a>.</p></li>
+<li><p><strong>direction</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><em>Literal</em></a><em>[</em><em>'horizontal'</em><em>, </em><em>'vertical'</em><em>]</em>) – The swipe direction to detect.</p></li>
+<li><p><strong>swipe_distance</strong> – The minimum distance a touch must travel to be recognized as a swipe gesture.
+Defaults to <code class="docutils literal notranslate"><span class="pre">dp(20)</span></code>.</p></li>
+<li><p><strong>delete_distance</strong> – The minimum distance a recognized swipe gesture must travel to trigger <code class="docutils literal notranslate"><span class="pre">on_delete_requested</span></code>
+when the touch is released. Defaults to <code class="docutils literal notranslate"><span class="pre">dp(300)</span></code>.</p></li>
+<li><p><strong>on_delete_requested</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>]</em><em>, </em><em>None</em><em>]</em>) – A callable invoked when a delete request is triggered. Defaults to <a class="reference internal" href="#kivyx.uix.behaviors.swipe2delete.disable_and_remove" title="kivyx.uix.behaviors.swipe2delete.disable_and_remove"><code class="xref py py-func docutils literal notranslate"><span class="pre">disable_and_remove()</span></code></a>.</p></li>
+<li><p><strong>track_multiple_touches</strong> – Whether to track multiple touches simultaneously (multi-touch). If False (the default),
+once a touch starts being tracked, subsequent touches are ignored until the tracked touch
+ends or exclusive access to it is claimed by someone else.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.swipe2delete.get_active_swipe2deletes">
+<span class="sig-name descname"><span class="pre">get_active_swipe2deletes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.swipe2delete.get_active_swipe2deletes" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a list of (widget, touch) pairs for all ongoing swipe-to-delete gestures,
+where the <code class="docutils literal notranslate"><span class="pre">widget</span></code> is the widget being swiped and the <code class="docutils literal notranslate"><span class="pre">touch</span></code> is the
+<a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MotionEvent</span></code></a> associated with the swipe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)">tuple</a>[<a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)">kivy.uix.widget.Widget</a>, <a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)">kivy.input.motionevent.MotionEvent</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="Bottom">
+      
+        <p>
+        «&#160;&#160;<a href="multitap.html">Multi-Tap Gesture Recognition</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="tap.html">Tap Gesture Recognition</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2025, Mitō Nattōsai.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

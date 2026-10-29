@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Touch Ripple &#8212; kivyx 0.1.0.dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=47202671" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/haiku.css?v=fce32b03" />
+    <script src="../../../_static/documentation_options.js?v=965fac30"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Drawer" href="../drawer.html" />
+    <link rel="prev" title="Tap Gesture Recognition" href="tap.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>kivyx 0.1.0.dev0 documentation</span></a></h1>
+        <h2 class="heading"><span>Touch Ripple</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="Top">
+      
+        <p>
+        «&#160;&#160;<a href="tap.html">Tap Gesture Recognition</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="../drawer.html">Drawer</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <section id="module-kivyx.uix.behaviors.touchripple">
+<span id="touch-ripple"></span><h1>Touch Ripple<a class="headerlink" href="#module-kivyx.uix.behaviors.touchripple" title="Link to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="kivyx.uix.behaviors.touchripple.enable_touch_ripple_effect">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">enable_touch_ripple_effect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_coordinates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_to_bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">touch_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">is_colliding_and_not_wheel&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_multiple</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">kivy.metrics.dp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">growth_duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fadeout_duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">growth_curve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fadeout_curve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#FFFFFF44'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fadeout_on_exclusive_access</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kivyx.uix.behaviors.touchripple.enable_touch_ripple_effect" title="Link to this definition">¶</a></dt>
+<dd><p>Enables the touch ripple effect for a widget until the returned coroutine is cancelled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>relative_coordinates</strong> – Must be set to True if the widget uses relative coordinates
+(e.g. <a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.relativelayout.html#kivy.uix.relativelayout.RelativeLayout" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RelativeLayout</span></code></a>, <a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.scatter.html#kivy.uix.scatter.Scatter" title="(in Kivy v3.0.0.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Scatter</span></code></a>).</p></li>
+<li><p><strong>clip_to_bounds</strong> – Whether ripples are clipped to the widget’s bounding box. You may want to set this to False
+if the widget already clips its contents on its own.</p></li>
+<li><p><strong>touch_filter</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.uix.widget.html#kivy.uix.widget.Widget" title="(in Kivy v3.0.0.dev0)"><em>kivy.uix.widget.Widget</em></a><em>, </em><a class="reference external" href="https://kivy.org/doc/master/api-kivy.input.motionevent.html#kivy.input.motionevent.MotionEvent" title="(in Kivy v3.0.0.dev0)"><em>kivy.input.motionevent.MotionEvent</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>]</em>) – Any touch whose <code class="docutils literal notranslate"><span class="pre">on_touch_down</span></code> event does not pass this filter is ignored.
+Defaults to <a class="reference internal" href="../../touch_filters.html#kivyx.touch_filters.is_colliding_and_not_wheel" title="kivyx.touch_filters.is_colliding_and_not_wheel"><code class="xref py py-func docutils literal notranslate"><span class="pre">is_colliding_and_not_wheel()</span></code></a>.</p></li>
+<li><p><strong>allow_multiple</strong> – Whether multiple ripples can be shown simultaneously via multi-touch.</p></li>
+<li><p><strong>initial_size</strong> – The initial diameter from which ripples grow. Defaults to <code class="docutils literal notranslate"><span class="pre">dp(20)</span></code>.</p></li>
+<li><p><strong>final_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em>) – The final diameter at which ripples stop growing. If set to None (the default),
+it is computed as the minimum size required to cover the widget.</p></li>
+<li><p><strong>growth_duration</strong> – The animation duration taken to grow ripples.</p></li>
+<li><p><strong>fadeout_duration</strong> – The animation duration taken to fade out ripples.</p></li>
+<li><p><strong>growth_curve</strong> – The animation curve used to grow ripples.</p></li>
+<li><p><strong>fadeout_curve</strong> – The animation curve used to fade out ripples.</p></li>
+<li><p><strong>color</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em>) – The color of the ripples. Can be a hex string or an RGBA sequence.</p></li>
+<li><p><strong>fadeout_on_exclusive_access</strong> – If set to True (the default), ripples begin fading out when exclusive access to their corresponding
+touches is claimed. If set to False, ripples begin fading out only when their corresponding touches end.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="Bottom">
+      
+        <p>
+        «&#160;&#160;<a href="tap.html">Tap Gesture Recognition</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="../drawer.html">Drawer</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2025, Mitō Nattōsai.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
