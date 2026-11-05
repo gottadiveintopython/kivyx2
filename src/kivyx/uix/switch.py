@@ -139,9 +139,9 @@ class KXSwitch(Widget):
             self,
             track_multiple_touches=False,
             consume_touch=True,
-            on_tap=self._toggle_onoff,
+            on_tap=_toggle_onoff,
         )).cancel
 
-    @staticmethod
-    def _toggle_onoff(switch, touch):
-        switch.active = not switch.active
+
+def _toggle_onoff(switch, touch):
+    switch.active = not switch.active
