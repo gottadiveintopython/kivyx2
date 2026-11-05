@@ -547,7 +547,7 @@ class KXScrollView(Widget):
         e_access = touch.ud["kivyx_exclusive_access"]
         if e_access.has_been_claimed:
             return
-        e_access.claim(self)
+        e_access.claim("scroll", self)
 
         # STEP3: Apply the mouse wheel scroll.
         d = self.scroll_wheel_distance
@@ -609,7 +609,7 @@ class KXScrollView(Widget):
 
             if e_access.has_been_claimed:
                 return
-            e_access.claim(self)
+            e_access.claim("scroll", self)
 
             self.stop_scroll_momentum()
 
@@ -656,7 +656,7 @@ class KXScrollView(Widget):
         e_access = touch.ud["kivyx_exclusive_access"]
         if e_access.has_been_claimed:
             return
-        e_access.claim(self)
+        e_access.claim("scroll", self)
 
         self.stop_scroll_momentum()
         hbar2content_ratio = 1. / self._content2hbar_ratio
@@ -685,7 +685,7 @@ class KXScrollView(Widget):
         e_access = touch.ud["kivyx_exclusive_access"]
         if e_access.has_been_claimed:
             return
-        e_access.claim(self)
+        e_access.claim("scroll", self)
 
         self.stop_scroll_momentum()
         vbar2content_ratio = 1. / self._content2vbar_ratio

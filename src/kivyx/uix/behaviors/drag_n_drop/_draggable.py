@@ -52,7 +52,7 @@ async def perform_drag(widget, touch, *, drag_tags: DragTags=DEFAULT_DRAG_TAGS, 
         restore_original_placement = partial(parent.add_widget, widget, index=parent.children.index(widget))
 
     drop_handlers = []
-    touch.ud["kivyx_exclusive_access"].claim(widget, "drag_n_drop", drag_tags, drop_handlers)
+    touch.ud["kivyx_exclusive_access"].claim("drag_n_drop", widget, drag_tags, drop_handlers)
     if parent is not None:
         parent.remove_widget(widget)
 
@@ -237,7 +237,7 @@ def get_active_drags() -> list[tuple[Widget, MotionEvent, DragTags]]:
         if (not ex_access.has_been_claimed) or t.ud["kivyx_abandon"].is_fired:
             continue
         match ex_access.params:
-            case dragged_widget, "drag_n_drop", drag_tags, _:
+            case "drag_n_drop", dragged_widget, drag_tags, _:
                 result.append((dragged_widget, t, drag_tags))
     return result
 

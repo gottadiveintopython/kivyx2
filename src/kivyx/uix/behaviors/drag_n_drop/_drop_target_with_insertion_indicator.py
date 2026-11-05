@@ -68,7 +68,7 @@ async def _watch_for_drop(spacer_widgets, drop_tags, layout, touch):
         if tasks[0].finished:
             return
         match tasks[1].result:
-            case (dragged_widget, "drag_n_drop", drag_tags, drop_handlers) if not drop_tags.isdisjoint(drag_tags):
+            case ("drag_n_drop", dragged_widget, drag_tags, drop_handlers) if not drop_tags.isdisjoint(drag_tags):
                 pass
             case _:
                 return

@@ -41,7 +41,7 @@ def setup_events():
                 ex_access = touch.ud["kivyx_exclusive_access"]
                 if ex_access.has_been_claimed:
                     return
-                ex_access.claim(claimant, ...)
+                ex_access.claim(...)
 
             :raises Exception: If exclusive access has already been claimed.
             '''
@@ -58,7 +58,7 @@ def setup_events():
             .. code-block::
 
                 ex_access = touch.ud["kivyx_exclusive_access"]
-                claimant, *__ = await ex_access.wait_for_one_to_claim()
+                await ex_access.wait_for_one_to_claim()
             '''
             if self.has_been_claimed:
                 return self._params

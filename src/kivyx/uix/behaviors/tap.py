@@ -63,7 +63,7 @@ async def _watch_for_release(on_tap, widget, touch):
     if ex_access.has_been_claimed or tasks[1].finished:
         return
     if widget.collide_point(*widget.parent.to_widget(*touch.pos)):
-        ex_access.claim(widget, "tap")
+        ex_access.claim("tap", widget)
         on_tap(widget, touch)
 
 

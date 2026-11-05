@@ -176,7 +176,7 @@ async def _handle_potential_swipe2delete(
         )
         if tasks[2].cancelled or target in _active_targets:
             return
-        ex_access.claim(target, "swipe2delete")
+        ex_access.claim("swipe2delete", target)
 
         _active_targets.append(target)
         defer(_active_targets.remove, target)
@@ -223,6 +223,6 @@ def get_active_swipe2deletes() -> list[tuple[Widget, MotionEvent]]:
         if (not ex_access.has_been_claimed) or t.ud["kivyx_abandon"].is_fired:
             continue
         match ex_access.params:
-            case claimant, "swipe2delete":
+            case "swipe2delete", claimant:
                 result.append((claimant, t))
     return result
