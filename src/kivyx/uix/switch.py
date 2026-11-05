@@ -7,6 +7,8 @@ from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 import asynckivy as ak
+
+from kivyx.utils import noop
 from kivyx.uix.behaviors.tap import enable_tap_gesture_recognition
 
 Builder.load_string("""
@@ -110,6 +112,8 @@ class KXSwitch(Widget):
     _thumb_y = NumericProperty()
     _thumb_pos = ReferenceListProperty(_thumb_x, _thumb_y)
 
+    _deactivate = noop
+
     def collide_point(self, x, y) -> bool:
         hw = self._track_half_width
         hh = self._track_half_height
@@ -118,7 +122,6 @@ class KXSwitch(Widget):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._main_task = ak.dummy_task
         self.fbind("disabled", Clock.schedule_once(self._reset, -1))
         Clock.schedule_once(self._setup_smoothing, -1)
 
@@ -129,15 +132,15 @@ class KXSwitch(Widget):
         ak.smooth_attr((self, "_thumb_pos"), (thumb_ellipse, "pos")).__enter__()
 
     def _reset(self, __):
-        self._main_task.cancel()
+        self._deactivate()
         if self.disabled:
             return
-        self._main_task = ak.managed_start(enable_tap_gesture_recognition(
+        self._deactivate = ak.start(enable_tap_gesture_recognition(
             self,
             track_multiple_touches=False,
             consume_touch=True,
             on_tap=self._toggle_onoff,
-        ))
+        )).cancel
 
     @staticmethod
     def _toggle_onoff(switch, touch):

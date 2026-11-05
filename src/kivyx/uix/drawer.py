@@ -13,6 +13,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.widget import Widget
 import asynckivy as ak
 
+from kivyx.utils import noop
 from kivyx.uix.behaviors.tap import enable_tap_gesture_recognition
 
 
@@ -78,6 +79,7 @@ class KXDrawer(RelativeLayout):
     A drawer widget that can be opened and closed by tapping on its tab or programmatically.
     '''
     __events__ = ("on_pre_open", "on_open", "on_pre_close", "on_close", )
+    _deactivate = noop
 
     anim_duration = NumericProperty(.2)
     '''
@@ -97,16 +99,15 @@ class KXDrawer(RelativeLayout):
     def __init__(self, **kwargs):
         self._open_request = ak.StatefulEvent()
         self._close_request = ak.StatefulEvent()
-        self._main_task = ak.dummy_task
         super().__init__(**kwargs)
         t = Clock.schedule_once(self._reset, -1)
         self.bind(parent=t, anchor=t, disabled=t, fg_color=t, bg_color=t)
 
     def _reset(self, dt):
-        self._main_task.cancel()
+        self._deactivate()
         if self.parent is None or self.disabled:
             return
-        self._main_task = ak.start(self._main())
+        self._deactivate = ak.start(self._main()).cancel
 
     async def _main(self):
         import asynckivy as ak

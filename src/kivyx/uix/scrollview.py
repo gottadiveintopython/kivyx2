@@ -12,6 +12,7 @@ from kivy.uix.scrollview import ScrollView as SV
 from kivy.properties import NumericProperty, BooleanProperty, ObjectProperty, ReferenceListProperty, ColorProperty
 import asynckivy as ak
 
+from kivyx.utils import noop
 from kivyx.touch_filters import is_opos_colliding
 from kivyx.effects.scroll import KXScrollEffect
 from kivyx.effects.dampedscroll import KXDampedScrollEffect
@@ -235,8 +236,9 @@ class KXScrollView(Widget):
     movement of the ScrollView content.
     '''
 
+    _deactivate = noop
+
     def __init__(self, **kwargs):
-        self._main_task = ak.dummy_task
         self._effect_x = self._effect_y = None
         self._prev_content = None
         super().__init__(**kwargs)
@@ -257,10 +259,10 @@ class KXScrollView(Widget):
         f("vbar_enabled", t)
 
     def _reset(self, dt):
-        self._main_task.cancel()
+        self._deactivate()
         if self.disabled:
             return
-        self._main_task = ak.managed_start(self._main())
+        self._deactivate = ak.start(self._main()).cancel
 
     def to_local(self, x, y, **k):
         cx, cy = self.content_pos
