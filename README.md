@@ -1,5 +1,20 @@
 # Kivyx2
 
+There is a long-standing issue in Kivy related to touch handling,
+referred to as "The MotionEvent Dispatching Problem" in `Future_of_Kivy_rev1_draft.pdf`.
+Kivyx2 is a proof of concept demonstrating a solution to this problem.
+
+## For those who want to read the PDF
+
+I found it on the Kivy Discord server long time ago, but I can no longer find it.
+Since it contains no licensing information, I cannot freely redistribute it.
+Reach out to the author to request a copy.
+
+- Author: Terje Skjaeveland (terje@fastmail.com)
+- Reviewer: Mathieu Virbel (https://github.com/tito)
+- Reviewer: Elliot Garbus (https://github.com/ElliotGarbus)
+
+<!--
 Kivyx2 is an experiment to explore whether Kivy widgets can be designed according to the following rules:
 
 - Do not use `touch.grab()`.
@@ -8,7 +23,6 @@ Kivyx2 is an experiment to explore whether Kivy widgets can be designed accordin
 - Do not emulate touch events.
   - Widgets like `KXScrollView` immediately dispatch touch events to their children, minimizing input latency.
 
-<!--
 - A widget that is interested in a touch must listen for its `touch.ud["kivyx_abandon"]` event.
   If the event is fired, the widget must cancel any operations associated with the touch.
 - A widget that wants exclusive access to a touch must call its `touch.ud["kivyx_exclusive_access"].claim()` method to notify other widgets.
@@ -50,7 +64,8 @@ Widgets that handle touches in the standard Kivy way **might not behave as expec
 
 ## Notes
 
-- When using Kivy 2.3.1 or earlier, use `kivyx.utils.touchring` instead of `kivy.modules.touchring`.
+- When using Kivy 2.3.1 or earlier, use `kivyx.utils.touchring` instead of `kivy.modules.touchring` because of [this issue](https://github.com/kivy/kivy/issues/9078).
+
   ```python
   import asynckivy as ak
   from kivyx.utils.touchring import enable_touch_ring
