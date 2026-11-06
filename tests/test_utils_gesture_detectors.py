@@ -5,13 +5,8 @@ import asynckivy as ak
 
 
 names_of_all_detectors = (
-    "direction_free_swipe",
-    "downward_swipe",
     "horizontal_swipe",
-    "leftward_swipe",
     "long_press",
-    "rightward_swipe",
-    "upward_swipe",
     "vertical_swipe",
 )
 
@@ -31,13 +26,13 @@ def test_move_right(kivy_runner, name):
     kivy_runner.advance_a_frame()
     t = UnitTestTouch(0, 0)
     t.touch_down()
-    task = ak.start(get_detector(name)(t))
+    task = ak.start(get_detector(name)(kivy_runner.window, t))
     t.touch_move(1, 0)
     assert not task.cancelled
     assert not task.finished
     t.touch_move(1000, 0)
     assert not task.cancelled
-    assert task.finished is (name in ("rightward_swipe", "horizontal_swipe", "direction_free_swipe"))
+    assert task.finished is (name == "horizontal_swipe")
     task.cancel()
 
 
@@ -46,13 +41,13 @@ def test_move_left(kivy_runner, name):
     kivy_runner.advance_a_frame()
     t = UnitTestTouch(0, 0)
     t.touch_down()
-    task = ak.start(get_detector(name)(t))
+    task = ak.start(get_detector(name)(kivy_runner.window, t))
     t.touch_move(-1, 0)
     assert not task.cancelled
     assert not task.finished
     t.touch_move(-1000, 0)
     assert not task.cancelled
-    assert task.finished is (name in ("leftward_swipe", "horizontal_swipe", "direction_free_swipe"))
+    assert task.finished is (name == "horizontal_swipe")
     task.cancel()
 
 
@@ -61,13 +56,13 @@ def test_move_up(kivy_runner, name):
     kivy_runner.advance_a_frame()
     t = UnitTestTouch(0, 0)
     t.touch_down()
-    task = ak.start(get_detector(name)(t))
+    task = ak.start(get_detector(name)(kivy_runner.window, t))
     t.touch_move(0, 1)
     assert not task.cancelled
     assert not task.finished
     t.touch_move(0, 1000)
     assert not task.cancelled
-    assert task.finished is (name in ("upward_swipe", "vertical_swipe", "direction_free_swipe"))
+    assert task.finished is (name in ("vertical_swipe", ))
     task.cancel()
 
 
@@ -76,13 +71,13 @@ def test_move_down(kivy_runner, name):
     kivy_runner.advance_a_frame()
     t = UnitTestTouch(0, 0)
     t.touch_down()
-    task = ak.start(get_detector(name)(t))
+    task = ak.start(get_detector(name)(kivy_runner.window, t))
     t.touch_move(0, -1)
     assert not task.cancelled
     assert not task.finished
     t.touch_move(0, -1000)
     assert not task.cancelled
-    assert task.finished is (name in ("downward_swipe", "vertical_swipe", "direction_free_swipe"))
+    assert task.finished is (name in ("vertical_swipe", ))
     task.cancel()
 
 
@@ -91,13 +86,13 @@ def test_move_up_then_move_right(kivy_runner, name):
     kivy_runner.advance_a_frame()
     t = UnitTestTouch(0, 0)
     t.touch_down()
-    task = ak.start(get_detector(name)(t))
+    task = ak.start(get_detector(name)(kivy_runner.window, t))
     t.touch_move(0, 1000)
     assert not task.cancelled
-    assert task.finished is (name in ("upward_swipe", "vertical_swipe", "direction_free_swipe"))
+    assert task.finished is (name in ("vertical_swipe", ))
     t.touch_move(1000, 1000)
     assert not task.cancelled
-    assert task.finished is (name in ("upward_swipe", "vertical_swipe", "rightward_swipe", "horizontal_swipe", "direction_free_swipe"))
+    assert task.finished is (name in ("vertical_swipe", "horizontal_swipe", ))
     task.cancel()
 
 
@@ -106,7 +101,7 @@ def test_stay(kivy_runner, name):
     kivy_runner.advance_a_frame()
     t = UnitTestTouch(0, 0)
     t.touch_down()
-    task = ak.start(get_detector(name)(t))
+    task = ak.start(get_detector(name)(kivy_runner.window, t))
     kivy_runner.advance_a_frame(dt=0.01)
     assert not task.cancelled
     assert not task.finished
@@ -118,19 +113,20 @@ def test_stay(kivy_runner, name):
 
 def test_race(kivy_runner):
     from asynckivy import TaskState as TS
-    from kivyx.gesture_detectors import long_press, rightward_swipe
-    kivy_runner.advance_a_frame()
+    from kivyx.gesture_detectors import long_press, horizontal_swipe
+    kr = kivy_runner
+    kr.advance_a_frame()
     t = UnitTestTouch(0, 0)
     t.touch_down()
     task = ak.start(ak.wait_any(
-        long_press(t, min_duration=1.0),
-        rightward_swipe(t, min_movement=20),
+        long_press(kr.window, t, min_duration=1.0),
+        horizontal_swipe(kr.window,t, min_distance=20),
     ))
-    kivy_runner.advance_a_frame(dt=0.1)
+    kr.advance_a_frame(dt=0.1)
     assert task.state is TS.STARTED
     t.touch_move(10, 0)
     assert task.state is TS.STARTED
-    kivy_runner.advance_a_frame(dt=0.1)
+    kr.advance_a_frame(dt=0.1)
     assert task.state is TS.STARTED
     t.touch_move(30, 0)
     assert task.finished

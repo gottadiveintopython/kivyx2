@@ -121,7 +121,7 @@ async def _watch_for_drag_start(
         tasks = await ak.wait_any(
             ud["kivyx_end"].wait(),
             ud["kivyx_exclusive_access"].wait_for_one_to_claim(),
-            *[trigger(touch) for trigger in triggers],
+            *[trigger(Window, touch) for trigger in triggers],
         )
         if any([t.finished for t in tasks[:2]]) or all([t.cancelled for t in tasks]) or target in _active_targets:
             return

@@ -11,7 +11,6 @@ from contextlib import AsyncExitStack
 
 from kivy.metrics import dp
 from kivy.base import EventLoop
-from kivy.core.window import Window
 from kivy.input.motionevent import MotionEvent
 from kivy.uix.widget import Widget
 from kivy.graphics import Translate
@@ -77,7 +76,7 @@ async def enable_swipe2delete_for_children(
             touch_handler = partial(
                 _handle_potential_swipe2delete,
                 True,
-                partial(horizontal_swipe, min_movement=swipe_distance),
+                partial(horizontal_swipe, min_distance=swipe_distance),
                 delete_distance,
                 on_delete_requested,
             )
@@ -85,7 +84,7 @@ async def enable_swipe2delete_for_children(
             touch_handler = partial(
                 _handle_potential_swipe2delete,
                 False,
-                partial(vertical_swipe, min_movement=swipe_distance),
+                partial(vertical_swipe, min_distance=swipe_distance),
                 delete_distance,
                 on_delete_requested,
             )
@@ -130,7 +129,7 @@ async def enable_swipe2delete(
             touch_handler = partial(
                 _handle_potential_swipe2delete,
                 True,
-                partial(horizontal_swipe, min_movement=swipe_distance),
+                partial(horizontal_swipe, min_distance=swipe_distance),
                 delete_distance,
                 on_delete_requested,
             )
@@ -138,7 +137,7 @@ async def enable_swipe2delete(
             touch_handler = partial(
                 _handle_potential_swipe2delete,
                 False,
-                partial(vertical_swipe, min_movement=swipe_distance),
+                partial(vertical_swipe, min_distance=swipe_distance),
                 delete_distance,
                 on_delete_requested,
             )
@@ -164,6 +163,7 @@ async def _handle_potential_swipe2delete(
     '''
     Monitors the ``touch`` motion and performs swipe-to-delete on the ``target`` if a swipe gesture is detected.
     '''
+    window = target.get_parent_window()
     ex_access = touch.ud["kivyx_exclusive_access"]
 
     async with AsyncExitStack() as stack:
@@ -172,7 +172,7 @@ async def _handle_potential_swipe2delete(
         tasks = await ak.wait_any(
             touch.ud["kivyx_end"].wait(),
             ex_access.wait_for_one_to_claim(),
-            swipe_detector(touch),
+            swipe_detector(window, touch),
         )
         if tasks[2].cancelled or target in _active_targets:
             return
@@ -186,11 +186,11 @@ async def _handle_potential_swipe2delete(
         # Moves and fades the target widget during swipe.
         offset = (touch.x - touch.ox) if is_horizontal else (touch.y - touch.oy)
         abs_ = abs
-        async with (
-            ak.move_on_when(touch.ud["kivyx_end"].wait()),
-            ak.event_freq(Window, "on_touch_move", filter=lambda w, t, touch=touch: t is touch) as on_touch_move,
-        ):
-            with ak.transform(target, canvas_layer="outer") as ig:
+        async with ak.move_on_when(touch.ud["kivyx_end"].wait()):
+            with (
+                ak.event_freq(window, "on_touch_move", filter=lambda w, t, touch=touch: t is touch) as on_touch_move,
+                ak.transform(target, canvas_layer="outer") as ig,
+            ):
                 ig.add(translate := Translate())
                 if is_horizontal:
                     while True:

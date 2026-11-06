@@ -31,7 +31,7 @@ class SampleApp(App):
 
     def on_start(self):
         import kivyx.uix.behaviors.drag_n_drop as dnd
-        from kivyx.gesture_detectors import direction_free_swipe
+        from kivyx.gesture_detectors import horizontal_swipe, vertical_swipe
 
         outer_drop_target = self.root
         inner_drop_target = self.root.ids.inner_drop_target
@@ -39,7 +39,7 @@ class SampleApp(App):
         ak.managed_start(ak.wait_all(
             dnd.enable_drop_target(outer_drop_target),
             dnd.enable_drop_target(inner_drop_target),
-            dnd.enable_drag(btn, triggers=(direction_free_swipe, )),
+            dnd.enable_drag(btn, triggers=(horizontal_swipe, vertical_swipe)),
         ))
 
 
