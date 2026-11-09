@@ -586,7 +586,7 @@ class KXScrollView(Widget):
             ak.move_on_when(touch.ud["kivyx_touch_up"].wait()),
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
         ):
-            async with ak.move_on_when(e_access.wait_for_one_to_claim()):
+            async with ak.move_on_when(e_access.wait_for_someone_to_claim()):
                 while True:
                     await on_touch_move()
                     dx = touch.dx

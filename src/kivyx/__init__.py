@@ -53,12 +53,12 @@ def setup_events():
                     t._step(*params)
 
         @types.coroutine
-        def wait_for_one_to_claim(self, _len=len):
+        def wait_for_someone_to_claim(self, _len=len):
             '''
             .. code-block::
 
                 ex_access = touch.ud["kivyx_exclusive_access"]
-                await ex_access.wait_for_one_to_claim()
+                await ex_access.wait_for_someone_to_claim()
             '''
             if self.has_been_claimed:
                 return self._params

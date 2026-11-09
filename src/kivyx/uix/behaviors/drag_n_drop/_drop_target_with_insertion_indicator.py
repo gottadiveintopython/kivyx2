@@ -63,7 +63,7 @@ async def _watch_for_drop(spacer_widgets, drop_tags, layout, touch):
     async with ak.move_on_when(ud["kivyx_abandon"].wait()):
         tasks = await ak.wait_any(
             ud["kivyx_touch_up"].wait(),
-            ud["kivyx_exclusive_access"].wait_for_one_to_claim(),
+            ud["kivyx_exclusive_access"].wait_for_someone_to_claim(),
         )
         if tasks[0].finished:
             return

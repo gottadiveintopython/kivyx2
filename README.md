@@ -37,7 +37,7 @@ import asynckivy as ak
 async def touch_handler(self, touch):
     async with ak.move_on_when(touch.ud["kivyx_abandon"].wait()):
         ex_access = touch.ud["kivyx_exclusive_access"]
-        async with ak.move_on_when(ex_access.wait_for_one_to_claim()):
+        async with ak.move_on_when(ex_access.wait_for_someone_to_claim()):
             # Monitor touch movements to detect gestures while listening for exclusive access claims
             ...
         if ex_access.has_been_claimed:

@@ -171,7 +171,7 @@ async def _handle_potential_swipe2delete(
         await stack.enter_async_context(ak.move_on_when(touch.ud["kivyx_abandon"].wait()))
         tasks = await ak.wait_any(
             touch.ud["kivyx_touch_up"].wait(),
-            ex_access.wait_for_one_to_claim(),
+            ex_access.wait_for_someone_to_claim(),
             swipe_detector(window, touch),
         )
         if tasks[2].cancelled or target in _active_targets:
