@@ -2,7 +2,8 @@
 
 - Align its behavior with the official (Kivy 3.0.0) implementation.
 - ScrollViewの領域外にスクロールバーを置けるようにする。
-- `effects` モジュールを `Carousel` を見据えた設計にする。
+- ~~`effects` モジュールを `Carousel` を見据えた設計にする。~~
+- sticky scroll
 - Needs significant refactoring.
 - Needs a lot of unit tests
 
@@ -16,7 +17,9 @@ class EventDispatcher:
         ...
 ```
 
-- Add a Kivy 3.0.0 `ButtonBehavior` equivalent.
+- ~~Add a Kivy 3.0.0 `ButtonBehavior` equivalent.~~
+- Add `enable_touch_highlight_effect`
+- Rename `KXButton` to `KXRippleButton`, and add no-ripple `KXButton`
 - Look into `kivy.eventmanager` and use it if appropriate.
 - Add `Carousel`.
 - ~~Add `Drawer`.~~
