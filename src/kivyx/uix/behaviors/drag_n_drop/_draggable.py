@@ -74,7 +74,7 @@ async def perform_drag(widget, touch, *, drag_tags: DragTags=DEFAULT_DRAG_TAGS, 
                 defer(Window.canvas.remove, overlay)
 
                 async with (
-                    ak.move_on_when(touch.ud["kivyx_end"].wait()),
+                    ak.move_on_when(touch.ud["kivyx_touch_up"].wait()),
                     ak.event_freq(Window, "on_touch_move", filter=lambda w, t, touch=touch: t is touch) as on_touch_move,
                 ):
                     offset_x, offset_y = initial_offset
@@ -119,7 +119,7 @@ async def _watch_for_drag_start(
     ud = touch.ud
     async with ak.move_on_when(ud["kivyx_abandon"].wait()):
         tasks = await ak.wait_any(
-            ud["kivyx_end"].wait(),
+            ud["kivyx_touch_up"].wait(),
             ud["kivyx_exclusive_access"].wait_for_one_to_claim(),
             *[trigger(Window, touch) for trigger in triggers],
         )

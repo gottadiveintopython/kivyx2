@@ -1,6 +1,6 @@
 '''
 This module provides detectors for commonly used low-level single-touch gestures.
-Detectors are intended to be raced against ``touch.ud["kivyx_end"].wait()``, for example:
+Detectors are intended to be raced against ``touch.ud["kivyx_touch_up"].wait()``, for example:
 
 .. code-block::
 
@@ -8,7 +8,7 @@ Detectors are intended to be raced against ``touch.ud["kivyx_end"].wait()``, for
     import asynckivy as ak
 
     tasks = await ak.wait_any(
-        touch.ud["kivyx_end"].wait(),
+        touch.ud["kivyx_touch_up"].wait(),
         long_press(Window, touch),
         horizontal_swipe(Window, touch),
     )

@@ -118,12 +118,12 @@ def setup_events():
     def put_stuff(w, t, EAccess=ExclusiveAccess, LifoEvent=LifoEvent):
         ud = t.ud
         ud["kivyx_exclusive_access"] = EAccess()
-        ud["kivyx_end"] = LifoEvent()
+        ud["kivyx_touch_up"] = LifoEvent()
         ud["kivyx_abandon"] = LifoEvent()
 
     def fire_end_event(w, t):
-        # This should be the only place to fire the 'kivyx_end'.
-        t.ud["kivyx_end"].fire()
+        # This should be the only place to fire the 'kivyx_touch_up'.
+        t.ud["kivyx_touch_up"].fire()
 
     Window.fbind("on_touch_down", put_stuff)
     Window.fbind("on_touch_up", fire_end_event)

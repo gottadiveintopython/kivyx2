@@ -18,7 +18,7 @@ Reach out to the author to request a copy.
 Kivyx2 is an experiment to explore whether Kivy widgets can be designed according to the following rules:
 
 - Do not use `touch.grab()`.
-  - To avoid missing `on_touch_up` events, listen for `touch.ud["kivyx_end"]`.
+  - To avoid missing `on_touch_up` events, listen for `touch.ud["kivyx_touch_up"]`.
   - To avoid missing `on_touch_move` events, directly receive them from the `kivy.core.window.Window`.
 - Do not emulate touch events.
   - Widgets like `KXScrollView` immediately dispatch touch events to their children, minimizing input latency.
