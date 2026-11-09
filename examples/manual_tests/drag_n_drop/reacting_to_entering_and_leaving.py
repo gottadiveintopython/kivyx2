@@ -89,14 +89,13 @@ class SampleApp(App):
         ak.managed_start(self.main())
 
     async def main(self):
-        from kivyx.gesture_detectors import immediate
         add_widget = self.root.ids.initial_container.add_widget
         async with ak.open_nursery() as nursery:
             for drag_tags in "AB":
                 for i in range(1, 5):
                     label = Label(text=f"{drag_tags}{i}", font_size=40)
                     add_widget(label)
-                    nursery.start(dnd.enable_drag(label, drag_tags=drag_tags, triggers=(immediate, )))
+                    nursery.start(dnd.enable_drag(label, drag_tags=drag_tags, triggers=("immediate", )))
 
 
 if __name__ == "__main__":

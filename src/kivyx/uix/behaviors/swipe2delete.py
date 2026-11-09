@@ -17,7 +17,6 @@ from kivy.graphics import Translate
 import asynckivy as ak
 
 from kivyx.touch_filters import is_colliding_and_not_wheel
-from kivyx.gesture_detectors import horizontal_swipe, vertical_swipe
 
 
 def disable_and_remove(target, touch):
@@ -38,7 +37,6 @@ async def enable_swipe2delete_for_children(
     layout, /, *,
     touch_filter: Callable[[Widget, MotionEvent], bool]=is_colliding_and_not_wheel,
     direction: Literal["horizontal", "vertical"]="horizontal",
-    swipe_distance=dp(20),
     delete_distance=dp(300),
     on_delete_requested: Callable[[Widget, MotionEvent], None]=disable_and_remove,
     track_multiple_touches=False,
@@ -52,10 +50,6 @@ async def enable_swipe2delete_for_children(
 
     :param direction:
         The swipe direction to detect.
-
-    :param swipe_distance:
-        The minimum distance a touch must travel to be recognized as a swipe gesture.
-        Defaults to ``dp(20)``.
 
     :param delete_distance:
         The minimum distance a recognized swipe gesture must travel to trigger ``on_delete_requested``
@@ -76,7 +70,7 @@ async def enable_swipe2delete_for_children(
             touch_handler = partial(
                 _handle_potential_swipe2delete,
                 True,
-                partial(horizontal_swipe, min_distance=swipe_distance),
+                "horizontal_swipe",
                 delete_distance,
                 on_delete_requested,
             )
@@ -84,7 +78,7 @@ async def enable_swipe2delete_for_children(
             touch_handler = partial(
                 _handle_potential_swipe2delete,
                 False,
-                partial(vertical_swipe, min_distance=swipe_distance),
+                "vertical_swipe",
                 delete_distance,
                 on_delete_requested,
             )
@@ -115,7 +109,6 @@ async def enable_swipe2delete(
     widget, /, *,
     touch_filter: Callable[[Widget, MotionEvent], bool]=is_colliding_and_not_wheel,
     direction: Literal["horizontal", "vertical"]="horizontal",
-    swipe_distance=dp(20),
     delete_distance=dp(300),
     on_delete_requested: Callable[[Widget, MotionEvent], None]=disable_and_remove,
 ):
@@ -129,7 +122,7 @@ async def enable_swipe2delete(
             touch_handler = partial(
                 _handle_potential_swipe2delete,
                 True,
-                partial(horizontal_swipe, min_distance=swipe_distance),
+                "horizontal_swipe",
                 delete_distance,
                 on_delete_requested,
             )
@@ -137,7 +130,7 @@ async def enable_swipe2delete(
             touch_handler = partial(
                 _handle_potential_swipe2delete,
                 False,
-                partial(vertical_swipe, min_distance=swipe_distance),
+                "vertical_swipe",
                 delete_distance,
                 on_delete_requested,
             )
@@ -153,7 +146,7 @@ async def enable_swipe2delete(
 
 async def _handle_potential_swipe2delete(
     is_horizontal,
-    swipe_detector,
+    trigger_name,
     delete_distance,
     on_delete_requested,
     target: Widget,
@@ -172,7 +165,7 @@ async def _handle_potential_swipe2delete(
         tasks = await ak.wait_any(
             touch.ud["kivyx_touch_up"].wait(),
             ex_access.wait_for_someone_to_claim(),
-            swipe_detector(window, touch),
+            touch.ud["kivyx_gestures"][trigger_name].wait(),
         )
         if tasks[2].cancelled or target in _active_targets:
             return

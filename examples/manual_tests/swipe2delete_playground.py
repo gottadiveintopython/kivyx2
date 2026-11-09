@@ -33,15 +33,6 @@ BoxLayout:
             id: track_multiple_touches
         HSep:
         Label:
-            text: f"swipe_distance: {int(swipe_distance.value)}"
-            color: 0, 1, 0, 1
-        Slider:
-            id: swipe_distance
-            min: 0
-            max: dp(100)
-            step: 1
-        HSep:
-        Label:
             text: f"delete_distance: {int(delete_distance.value)}"
             color: 0, 1, 0, 1
         Slider:
@@ -86,7 +77,7 @@ class SampleApp(App):
         reset_event = ak.Event()
         params = inspect.signature(enable_swipe2delete_for_children).parameters
         ids = self.root.ids
-        for name in ["swipe_distance", "delete_distance", ]:
+        for name in ["delete_distance", ]:
             ids[name].value = params[name].default
             ids[name].bind(value=reset_event.fire)
         for name in ["track_multiple_touches", ]:
@@ -102,7 +93,6 @@ class SampleApp(App):
                 s(reset_event.wait(), close_on_finish=True)
                 s(enable_swipe2delete_for_children(
                     ids.container,
-                    swipe_distance=ids["swipe_distance"].value,
                     delete_distance=ids["delete_distance"].value,
                     track_multiple_touches=ids["track_multiple_touches"].active,
                     direction="horizontal" if ids["direction"].active else "vertical",

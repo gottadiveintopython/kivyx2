@@ -1,5 +1,5 @@
 test:
-	env KCFG_GRAPHICS_MAXFPS=0 python -m pytest ./tests
+	env KCFG_GRAPHICS_MAXFPS=0 KIVYX_SWIPE_DISTANCE=100 python -m pytest ./tests
 
 html:
 	sphinx-build -b html ./sphinx ./docs

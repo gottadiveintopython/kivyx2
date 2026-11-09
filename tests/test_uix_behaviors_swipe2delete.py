@@ -54,12 +54,13 @@ def test_a_touch_travels_less_than_swipe_distance(kivy_runner, for_children):
     kr.advance_a_frame()
     layout = tree.ids.layout
     if for_children:
-        coro = enable_swipe2delete_for_children(layout, swipe_distance=100)
+        coro = enable_swipe2delete_for_children(layout)
     else:
-        coro = enable_swipe2delete(tree.ids.target, swipe_distance=100)
+        coro = enable_swipe2delete(tree.ids.target)
     with closing(ak.start(coro)):
         t = UnitTestTouch(50, 50)
         t.touch_down()
+        kr.advance_frame()
         t.touch_move(70, 50)
         t.touch_move(90, 50)
         t.touch_up()
@@ -74,12 +75,13 @@ def test_a_touch_travels_more_than_swipe_distance_and_less_than_delete_distance(
     kr.advance_a_frame()
     layout = tree.ids.layout
     if for_children:
-        coro = enable_swipe2delete_for_children(layout, swipe_distance=100, delete_distance=200)
+        coro = enable_swipe2delete_for_children(layout, delete_distance=200)
     else:
-        coro = enable_swipe2delete(tree.ids.target, swipe_distance=100, delete_distance=200)
+        coro = enable_swipe2delete(tree.ids.target, delete_distance=200)
     with closing(ak.start(coro)):
         t = UnitTestTouch(50, 50)
         t.touch_down()
+        kr.advance_frame()
         t.touch_move(110, 50)
         t.touch_move(170, 50)
         t.touch_up()
@@ -94,12 +96,13 @@ def test_a_touch_travels_more_than_delete_distance(kivy_runner, for_children):
     kr.advance_a_frame()
     layout = tree.ids.layout
     if for_children:
-        coro = enable_swipe2delete_for_children(layout, swipe_distance=100, delete_distance=200)
+        coro = enable_swipe2delete_for_children(layout, delete_distance=200)
     else:
-        coro = enable_swipe2delete(tree.ids.target, swipe_distance=100, delete_distance=200)
+        coro = enable_swipe2delete(tree.ids.target, delete_distance=200)
     with closing(ak.start(coro)):
         t = UnitTestTouch(50, 50)
         t.touch_down()
+        kr.advance_frame()
         t.touch_move(110, 50)
         t.touch_move(170, 50)
         t.touch_move(230, 50)
@@ -116,12 +119,13 @@ def test_a_touch_travels_more_than_delete_distance_perpendicular_to_swipe_direct
     kr.advance_a_frame()
     layout = tree.ids.layout
     if for_children:
-        coro = enable_swipe2delete_for_children(layout, swipe_distance=100, delete_distance=200)
+        coro = enable_swipe2delete_for_children(layout, delete_distance=200)
     else:
-        coro = enable_swipe2delete(tree.ids.target, swipe_distance=100, delete_distance=200)
+        coro = enable_swipe2delete(tree.ids.target, delete_distance=200)
     with closing(ak.start(coro)):
         t = UnitTestTouch(50, 50)
         t.touch_down()
+        kr.advance_frame()
         t.touch_move(50, 110)
         t.touch_move(50, 170)
         t.touch_move(50, 230)
@@ -138,14 +142,15 @@ def test_multiple_touches_try_to_swipe_the_same_widget(kivy_runner, for_children
     kr.advance_a_frame()
     layout = tree.ids.layout
     if for_children:
-        coro = enable_swipe2delete_for_children(layout, swipe_distance=100, delete_distance=200, track_multiple_touches=True)
+        coro = enable_swipe2delete_for_children(layout, delete_distance=200, track_multiple_touches=True)
     else:
-        coro = enable_swipe2delete(tree.ids.target, swipe_distance=100, delete_distance=200)
+        coro = enable_swipe2delete(tree.ids.target, delete_distance=200)
     with closing(ak.start(coro)):
         t1 = UnitTestTouch(50, 50)
         t2 = UnitTestTouch(50, 50)
         t1.touch_down()
         t2.touch_down()
+        kr.advance_frame()
         t1.touch_move(110, 50)
         t2.touch_move(110, 50)
         t1.touch_move(170, 50)
@@ -171,11 +176,12 @@ def test_simultaneous_swipe2delete(kivy_runner):
     layout = tree.ids.layout
     children = layout.children
     ongoing_ones = get_active_swipe2deletes
-    with closing(ak.start(enable_swipe2delete_for_children(layout, swipe_distance=100, delete_distance=200, track_multiple_touches=True))):
+    with closing(ak.start(enable_swipe2delete_for_children(layout, delete_distance=200, track_multiple_touches=True))):
         t1 = UnitTestTouch(50, 50)
         t2 = UnitTestTouch(50, 250)
         t1.touch_down()
         t2.touch_down()
+        kr.advance_frame()
         assert ongoing_ones() == []
         t1.touch_move(110, 50)
         assert ongoing_ones() == []
@@ -210,11 +216,12 @@ def test_cancel(kivy_runner):
     layout = tree.ids.layout
     children = layout.children
     ongoing_ones = get_active_swipe2deletes
-    with closing(ak.start(enable_swipe2delete_for_children(layout, swipe_distance=100, delete_distance=200, track_multiple_touches=True))):
+    with closing(ak.start(enable_swipe2delete_for_children(layout, delete_distance=200, track_multiple_touches=True))):
         t1 = UnitTestTouch(50, 50)
         t2 = UnitTestTouch(50, 250)
         t1.touch_down()
         t2.touch_down()
+        kr.advance_frame()
         t1.touch_move(110, 50)
         t2.touch_move(110, 250)
         t1.touch_move(170, 50)

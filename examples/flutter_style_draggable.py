@@ -8,7 +8,6 @@ from kivy.lang import Builder
 from kivy.uix.relativelayout import RelativeLayout
 import asynckivy as ak
 
-from kivyx import gesture_detectors
 import kivyx.uix.behaviors.drag_n_drop as dnd
 
 KV_CODE = '''
@@ -54,7 +53,7 @@ class FlutterStyleDraggable(RelativeLayout):
         self.remove_widget(ws["feedback"])
         ak.managed_start(dnd.enable_drag(
             self,
-            triggers=(gesture_detectors.immediate, ),
+            triggers=("immediate", ),
             on_start=self.on_drag_start,
             on_end=self.on_drag_end,
         ))
