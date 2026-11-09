@@ -175,7 +175,7 @@ async def _spawn_ripple(
             await wait_any(
                 ud["kivyx_touch_up"].wait(),
                 ud["kivyx_abandon"].wait(),
-                ud["kivyx_exclusive_access"].wait_for_one_to_claim() if \
+                ud["kivyx_exclusive_access"].wait_for_someone_to_claim() if \
                     fadeout_on_exclusive_access else ak.sleep_forever(),
             )
         await anim_attrs(color, a=0, duration=fadeout_duration, transition=fadeout_curve)
