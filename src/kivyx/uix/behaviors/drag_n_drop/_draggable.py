@@ -1,4 +1,4 @@
-from typing import TypeAlias, Literal, Any
+from typing import Literal, Any
 from collections.abc import Sequence, Callable
 from functools import partial
 from contextlib import ExitStack, nullcontext
@@ -12,12 +12,11 @@ import asynckivy as ak
 
 from kivyx.utils import noop
 from kivyx.touch_filters import is_colliding_and_not_wheel
-from kivyx.gesture_detectors import GestureDetector, long_press
 from ._common import DragTags, DEFAULT_DRAG_TAGS
 
-DragResult: TypeAlias = Literal["succeeded", "failed", "cancelled"]
-OnDragStart: TypeAlias = Callable[[Widget, MotionEvent, DragTags], Any]
-OnDragEnd: TypeAlias = Callable[[Widget, MotionEvent, DragTags, DragResult], Any]
+type DragResult = Literal["succeeded", "failed", "cancelled"]
+type OnDragStart = Callable[[Widget, MotionEvent, DragTags], Any]
+type OnDragEnd = Callable[[Widget, MotionEvent, DragTags, DragResult], Any]
 
 
 async def perform_drag(widget, touch, *, drag_tags: DragTags=DEFAULT_DRAG_TAGS, include_pre_drag_distance=True):
@@ -108,20 +107,20 @@ async def perform_drag(widget, touch, *, drag_tags: DragTags=DEFAULT_DRAG_TAGS, 
 async def _watch_for_drag_start(
     target: Widget, touch, *,
     drag_tags: DragTags,
-    triggers: Sequence[GestureDetector],
+    trigger_names: Sequence[str],
     on_start: OnDragStart,
     on_end: OnDragEnd,
     _active_targets=[],
 ):
     '''
-    Monitors ``touch`` and starts dragging ``target`` when any of the ``triggers`` fires.
+    Monitors ``touch`` and starts dragging ``target`` when any of the gestures specified by ``trigger_names`` is detected.
     '''
     ud = touch.ud
     async with ak.move_on_when(ud["kivyx_abandon"].wait()):
         tasks = await ak.wait_any(
             ud["kivyx_touch_up"].wait(),
             ud["kivyx_exclusive_access"].wait_for_someone_to_claim(),
-            *[trigger(Window, touch) for trigger in triggers],
+            *[ud["kivyx_gestures"][name].wait() for name in trigger_names],
         )
         if any([t.finished for t in tasks[:2]]) or all([t.cancelled for t in tasks]) or target in _active_targets:
             return
@@ -143,7 +142,7 @@ async def enable_drag(
     drag_tags: DragTags=DEFAULT_DRAG_TAGS,
     touch_filter: Callable[[Widget, MotionEvent], bool]=is_colliding_and_not_wheel,
     consume_touch: bool=False,
-    triggers: Sequence[GestureDetector]=(long_press, ),
+    triggers: Sequence[str]=("long_press", ),
     on_start: OnDragStart=noop,
     on_end: OnDragEnd=noop,
 ):
@@ -155,7 +154,7 @@ async def enable_drag(
     widget = widget.__self__
     on_touch_down = partial(ak.event, widget, "on_touch_down", filter=touch_filter, stop_dispatching=consume_touch)
     watch_for_drag_start = partial(
-        _watch_for_drag_start, drag_tags=drag_tags, triggers=triggers, on_start=on_start, on_end=on_end)
+        _watch_for_drag_start, drag_tags=drag_tags, trigger_names=triggers, on_start=on_start, on_end=on_end)
 
     with ak.suppress_event(widget, "on_touch_down", filter=touch_filter) if consume_touch else nullcontext():
         while True:
@@ -168,7 +167,7 @@ async def enable_drag_for_children(
     drag_tags: DragTags=DEFAULT_DRAG_TAGS,
     touch_filter: Callable[[Widget, MotionEvent], bool]=is_colliding_and_not_wheel,
     consume_touch: bool=False,
-    triggers: Sequence[GestureDetector]=(long_press, ),
+    triggers: Sequence[str]=("long_press", ),
     track_multiple_touches: bool=False,
     on_start: OnDragStart=noop,
     on_end: OnDragEnd=noop,
@@ -206,7 +205,7 @@ async def enable_drag_for_children(
     to_local = layout.to_local
     on_touch_down = partial(ak.event, layout, "on_touch_down", filter=touch_filter, stop_dispatching=consume_touch)
     watch_for_drag_start = partial(
-        _watch_for_drag_start, drag_tags=drag_tags, triggers=triggers, on_start=on_start, on_end=on_end)
+        _watch_for_drag_start, drag_tags=drag_tags, trigger_names=triggers, on_start=on_start, on_end=on_end)
 
     with ak.suppress_event(layout, "on_touch_down", filter=touch_filter) if consume_touch else nullcontext():
         if track_multiple_touches:

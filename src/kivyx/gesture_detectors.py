@@ -21,13 +21,12 @@ Detectors are intended to be raced against ``touch.ud["kivyx_touch_up"].wait()``
 '''
 
 __all__ = (
-    "GestureDetector",
+    "detectors",
     "horizontal_swipe",
     "immediate",
     "long_press",
     "vertical_swipe",
 )
-from typing import Any
 from collections.abc import Callable, Awaitable
 from os import environ
 
@@ -40,7 +39,7 @@ from asynckivy import sleep, event_freq
 LONGPRESS_DURATION = float(environ.get("KIVYX_LONGPRESS_DURATION", 0.2))
 SWIPE_DISTANCE = float(environ.get("KIVYX_SWIPE_DISTANCE", dp(20)))
 type Wow = WindowBase | Widget
-type GestureDetector = Callable[[Wow, MotionEvent], Awaitable[Any]]
+type GestureDetector = Callable[[Wow, MotionEvent], Awaitable[None]]
 
 
 async def immediate(receiver: Wow, touch):
@@ -79,3 +78,11 @@ async def vertical_swipe(receiver: Wow, touch, *, min_distance=SWIPE_DISTANCE):
         while neg_min < net_distance < min_distance:
             await on_touch_move()
             net_distance += touch.dy
+
+
+detectors: dict[str, GestureDetector] = {
+    "immediate": immediate,
+    "long_press": long_press,
+    "horizontal_swipe": horizontal_swipe,
+    "vertical_swipe": vertical_swipe,
+}

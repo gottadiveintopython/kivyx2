@@ -218,7 +218,6 @@ class ShoppingApp(App):
         import os.path
         from random import randint
 
-        from kivyx.gesture_detectors import long_press, horizontal_swipe
         from kivyx.uix.behaviors import drag_n_drop as dnd
 
         db_path = __file__ + r".sqlite3"
@@ -242,8 +241,8 @@ class ShoppingApp(App):
             enable_touch_ring(pulse=True),
             dnd.enable_drop_target_with_insertion_indicator(shelf),
             dnd.enable_drop_target_with_insertion_indicator(cart),
-            dnd.enable_drag_for_children(shelf, triggers=(long_press, horizontal_swipe)),
-            dnd.enable_drag_for_children(cart, triggers=(long_press, horizontal_swipe)),
+            dnd.enable_drag_for_children(shelf, triggers=("long_press", "horizontal_swipe")),
+            dnd.enable_drag_for_children(cart, triggers=("long_press", "horizontal_swipe")),
             show_total_price_on_tap(ids.total_price_btn, cart),
         ))
 
