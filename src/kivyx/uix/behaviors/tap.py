@@ -56,7 +56,7 @@ async def _watch_for_release(on_tap, widget, touch):
     ud = touch.ud
     ex_access = ud["kivyx_exclusive_access"]
     tasks = await ak.wait_any(
-        ud["kivyx_end"].wait(),
+        ud["kivyx_touch_up"].wait(),
         ud["kivyx_abandon"].wait(),
         ex_access.wait_for_one_to_claim(),
     )

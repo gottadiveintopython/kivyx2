@@ -64,7 +64,7 @@ async def _watch_for_drop(drop_tags, on_enter, on_leave, on_drop, drop_target, t
     ud = touch.ud
     async with ak.move_on_when(ud["kivyx_abandon"].wait()):
         tasks = await ak.wait_any(
-            ud["kivyx_end"].wait(),
+            ud["kivyx_touch_up"].wait(),
             ud["kivyx_exclusive_access"].wait_for_one_to_claim(),
         )
         if tasks[0].finished:
@@ -78,7 +78,7 @@ async def _watch_for_drop(drop_tags, on_enter, on_leave, on_drop, drop_target, t
         is_inside = was_inside = False
         try:
             async with (
-                ak.move_on_when(touch.ud["kivyx_end"].wait()),
+                ak.move_on_when(touch.ud["kivyx_touch_up"].wait()),
                 visibility_aware_touch_movements(drop_target, touch) as on_touch_move,
             ):
                 while True:

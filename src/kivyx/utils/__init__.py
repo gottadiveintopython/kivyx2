@@ -73,7 +73,7 @@ async def visibility_aware_touch_movements(widget, touch):
         import asynckivy as ak
 
         async with(
-            ak.move_on_when(touch.ud["kivyx_end"].wait()),
+            ak.move_on_when(touch.ud["kivyx_touch_up"].wait()),
             visibility_aware_touch_movements(widget, touch) as on_touch_move,
         ):
             was_inside = ...

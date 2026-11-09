@@ -173,7 +173,7 @@ async def _spawn_ripple(
             transition=growth_curve,
         ))):
             await wait_any(
-                ud["kivyx_end"].wait(),
+                ud["kivyx_touch_up"].wait(),
                 ud["kivyx_abandon"].wait(),
                 ud["kivyx_exclusive_access"].wait_for_one_to_claim() if \
                     fadeout_on_exclusive_access else ak.sleep_forever(),

@@ -170,7 +170,7 @@ async def _handle_potential_swipe2delete(
         defer = stack.callback
         await stack.enter_async_context(ak.move_on_when(touch.ud["kivyx_abandon"].wait()))
         tasks = await ak.wait_any(
-            touch.ud["kivyx_end"].wait(),
+            touch.ud["kivyx_touch_up"].wait(),
             ex_access.wait_for_one_to_claim(),
             swipe_detector(window, touch),
         )
@@ -186,7 +186,7 @@ async def _handle_potential_swipe2delete(
         # Moves and fades the target widget during swipe.
         offset = (touch.x - touch.ox) if is_horizontal else (touch.y - touch.oy)
         abs_ = abs
-        async with ak.move_on_when(touch.ud["kivyx_end"].wait()):
+        async with ak.move_on_when(touch.ud["kivyx_touch_up"].wait()):
             with (
                 ak.event_freq(window, "on_touch_move", filter=lambda w, t, touch=touch: t is touch) as on_touch_move,
                 ak.transform(target, canvas_layer="outer") as ig,

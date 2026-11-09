@@ -545,7 +545,7 @@ class KXScrollView(Widget):
             return
 
         # STEP2: Check if the scrollview should handle this touch.
-        await touch.ud["kivyx_end"].wait()
+        await touch.ud["kivyx_touch_up"].wait()
         e_access = touch.ud["kivyx_exclusive_access"]
         if e_access.has_been_claimed:
             return
@@ -583,7 +583,7 @@ class KXScrollView(Widget):
             return t is touch
 
         async with (
-            ak.move_on_when(touch.ud["kivyx_end"].wait()),
+            ak.move_on_when(touch.ud["kivyx_touch_up"].wait()),
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
         ):
             async with ak.move_on_when(e_access.wait_for_one_to_claim()):
@@ -667,7 +667,7 @@ class KXScrollView(Widget):
         try:
             # Move the content along with the touch.
             async with (
-                ak.move_on_when(touch.ud["kivyx_end"].wait()),
+                ak.move_on_when(touch.ud["kivyx_touch_up"].wait()),
                 ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
             ):
                 while True:
@@ -696,7 +696,7 @@ class KXScrollView(Widget):
         try:
             # Move the content along with the touch.
             async with (
-                ak.move_on_when(touch.ud["kivyx_end"].wait()),
+                ak.move_on_when(touch.ud["kivyx_touch_up"].wait()),
                 ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
             ):
                 while True:

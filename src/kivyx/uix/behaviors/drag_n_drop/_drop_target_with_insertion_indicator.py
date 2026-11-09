@@ -62,7 +62,7 @@ async def _watch_for_drop(spacer_widgets, drop_tags, layout, touch):
     ud = touch.ud
     async with ak.move_on_when(ud["kivyx_abandon"].wait()):
         tasks = await ak.wait_any(
-            ud["kivyx_end"].wait(),
+            ud["kivyx_touch_up"].wait(),
             ud["kivyx_exclusive_access"].wait_for_one_to_claim(),
         )
         if tasks[0].finished:
@@ -106,7 +106,7 @@ async def _show_insertion_indicator(spacer_widgets, layout, touch, dragged_widge
 
     try:
         async with (
-            ak.move_on_when(touch.ud["kivyx_end"].wait()),
+            ak.move_on_when(touch.ud["kivyx_touch_up"].wait()),
             visibility_aware_touch_movements(layout, touch) as on_touch_move,
         ):
             was_inside = False
