@@ -7,6 +7,10 @@
 - Needs significant refactoring.
 - Needs a lot of unit tests
 
+# Drag & Drop
+
+- Needs unit tests
+
 # etc
 
 - ~~`drag_timeout` や `scroll_distance` の初期値を格納するmoduleを作る。~~
