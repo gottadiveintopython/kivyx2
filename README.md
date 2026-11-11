@@ -62,6 +62,13 @@ the `KXScrollView` will recognize the touch as a scrolling gesture, claim exclus
 This library introduces a new way of handling touch events.
 Widgets that handle touches in the standard Kivy way **might not behave as expected**.
 
+## Tested on
+
+- CPython 3.12 + Kivy 2.3
+- CPython 3.13 + Kivy 2.3
+- CPython 3.14 + Kivy 2.3
+- CPython 3.14 + Kivy [`c8e1f5f`](https://github.com/kivy/kivy/tree/c8e1f5f25802924e92f4f7f41851c9669778359e)
+
 ## Notes
 
 - When using Kivy 2.3.1 or earlier, use `kivyx.utils.touchring` instead of `kivy.modules.touchring` because of [this issue](https://github.com/kivy/kivy/issues/9078).
