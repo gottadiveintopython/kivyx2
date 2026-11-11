@@ -64,7 +64,7 @@ Widgets that handle touches in the standard Kivy way **might not behave as expec
 
 ## Notes
 
-- When using Kivy 2.3.1 or earlier, use `kivyx.utils.touchring` instead of `kivy.modules.touchring` because of [this issue](https://github.com/kivy/kivy/issues/9078).
+- When using Kivy 2.3.2 or earlier, use `kivyx.utils.touchring` instead of `kivy.modules.touchring` because of [this issue](https://github.com/kivy/kivy/issues/9078).
 
   ```python
   import asynckivy as ak
