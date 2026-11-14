@@ -754,6 +754,9 @@ class KXScrollView(Widget):
             self.unbind(height=f)
 
     def _clamp_content_x(self, dt, clamp=clamp):
+        # Kv言語のbindingにて _content_x: self.content_x としているのに self._content_x
+        # が更新されないので self._content_x へわざわざ代入している。
+        # https://github.com/kivy/kivy/pull/9377 適用後はその必要は無くなるかもしれない。
         self.content_x = self._content_x = clamp(self._content_x, self.content_min_x, self.content_max_x)
         return False
 
@@ -772,6 +775,9 @@ class KXScrollView(Widget):
                 self.unbind(_content_x=t, content_min_x=t, content_max_x=t)
 
     def _clamp_content_y(self, dt, clamp=clamp):
+        # Kv言語のbindingにて _content_y: self.content_y としているのに self._content_y
+        # が更新されないので self._content_y へわざわざ代入している。
+        # https://github.com/kivy/kivy/pull/9377 適用後はその必要は無くなるかもしれない。
         self.content_y = self._content_y = clamp(self._content_y, self.content_min_y, self.content_max_y)
         return False
 
