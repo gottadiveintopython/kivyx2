@@ -85,7 +85,7 @@ def _put_stuff_into_touch_ud(window, touch, defaultdict=defaultdict, LifoEvent=L
     ud = touch.ud
     ud["kivyx_exclusive_access"] = LifoEvent()
     ud["kivyx_touch_up"] = LifoEvent()
-    ud["kivyx_abandon"] = LifoEvent()
+    ud["kivyx_abandon"] = ak.StatefulEvent()  # Lifoではなく何度もfireできない点が不都合なのでStatefulEventを使用
     ud["kivyx_gestures"] = defaultdict(LifoEvent)
     ud["_kivyx_gesture_notifier"] = ak.start(_detect_gestures_and_notify_listeners(window, touch))
 
