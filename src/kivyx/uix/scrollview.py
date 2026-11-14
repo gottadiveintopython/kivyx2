@@ -546,10 +546,10 @@ class KXScrollView(Widget):
 
         # STEP2: Check if the scrollview should handle this touch.
         await touch.ud["kivyx_touch_up"].wait()
-        e_access = touch.ud["kivyx_exclusive_access"]
-        if e_access.has_been_claimed:
+        ex_access = touch.ud["kivyx_exclusive_access"]
+        if ex_access.has_been_claimed:
             return
-        e_access.claim("scroll", self)
+        ex_access.claim("scroll", self)
 
         # STEP3: Apply the mouse wheel scroll.
         d = self.scroll_wheel_distance
@@ -568,7 +568,7 @@ class KXScrollView(Widget):
             e.activate()
 
     async def _handle_potential_scrolling_gesture(self, touch, abs=abs, ak=ak):
-        e_access = touch.ud["kivyx_exclusive_access"]
+        ex_access = touch.ud["kivyx_exclusive_access"]
         dx_sum = dy_sum = 0.
         scroll_distance = self.scroll_distance
         do_scroll_x = self.do_scroll_x
@@ -586,7 +586,7 @@ class KXScrollView(Widget):
             ak.move_on_when(touch.ud["kivyx_touch_up"].wait()),
             ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
         ):
-            async with ak.move_on_when(e_access.wait_for_someone_to_claim()):
+            async with ak.move_on_when(ex_access.wait_for_someone_to_claim()):
                 while True:
                     await on_touch_move()
                     dx = touch.dx
@@ -609,9 +609,9 @@ class KXScrollView(Widget):
                         if dx_sum < 0 and self.content_x > self.content_min_x:
                             break
 
-            if e_access.has_been_claimed:
+            if ex_access.has_been_claimed:
                 return
-            e_access.claim("scroll", self)
+            ex_access.claim("scroll", self)
 
             self.stop_scroll_momentum()
 
@@ -655,10 +655,10 @@ class KXScrollView(Widget):
         # 内側にあるScrollViewを優先させたいので一旦待つ
         await ak.event(Window, "on_touch_move", filter=is_the_same_touch)
 
-        e_access = touch.ud["kivyx_exclusive_access"]
-        if e_access.has_been_claimed:
+        ex_access = touch.ud["kivyx_exclusive_access"]
+        if ex_access.has_been_claimed:
             return
-        e_access.claim("scroll", self)
+        ex_access.claim("scroll", self)
 
         self.stop_scroll_momentum()
         hbar2content_ratio = 1. / self._content2hbar_ratio
@@ -684,10 +684,10 @@ class KXScrollView(Widget):
         # 内側にあるScrollViewを優先させたいので一旦待つ
         await ak.event(Window, "on_touch_move", filter=is_the_same_touch)
 
-        e_access = touch.ud["kivyx_exclusive_access"]
-        if e_access.has_been_claimed:
+        ex_access = touch.ud["kivyx_exclusive_access"]
+        if ex_access.has_been_claimed:
             return
-        e_access.claim("scroll", self)
+        ex_access.claim("scroll", self)
 
         self.stop_scroll_momentum()
         vbar2content_ratio = 1. / self._content2vbar_ratio
