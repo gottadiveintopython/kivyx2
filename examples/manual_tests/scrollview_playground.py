@@ -69,16 +69,10 @@ KV_CODE = '''
         id: do_overscroll_y
     HSep:
     Label:
-        text: 'hbar_enabled'
+        text: 'bar_enabled'
         color: 0, 1, 0, 1
     Switch:
-        id: hbar_enabled
-    HSep:
-    Label:
-        text: 'vbar_enabled'
-        color: 0, 1, 0, 1
-    Switch:
-        id: vbar_enabled
+        id: bar_enabled
 
 BoxLayout:
     padding: 10
@@ -130,7 +124,7 @@ class ScrollViewConfigurator(BoxLayout):
     name = StringProperty()
     TARGET_PROPERTIES = (
         "disabled", "do_scroll_x", "do_scroll_y", "do_overscroll_x", "do_overscroll_y",
-        "hbar_enabled", "vbar_enabled",
+        "bar_enabled",
     )
 
     def on_kv_post(self, *args):

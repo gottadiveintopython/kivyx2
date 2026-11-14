@@ -159,7 +159,7 @@ BoxLayout:
                     size_hint_y: 1000.
                     do_scroll_x: False
                     vbar_enabled: True
-                    vbar_x: self.width - self.vbar_thickness
+                    vbar_x: self.width - self.bar_thickness
                     SHShelf:
                         id: cart
     BoxLayout:
