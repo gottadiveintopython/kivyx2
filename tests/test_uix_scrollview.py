@@ -4,6 +4,13 @@ from kivy.lang import Builder
 from kivyx.uix.scrollview import KXScrollView
 
 
+def test_Window_to_parent(kivy_runner):
+    # 'KXScrollView.scroll_by_distance()' method relies on 'Window.to_parent' raising an AttributeError
+    w = kivy_runner.window
+    with pytest.raises(AttributeError):
+        w.to_parent
+
+
 def test_zero_sized_content(kivy_runner):
     sv: KXScrollView = Builder.load_string(dedent("""
     KXScrollView:

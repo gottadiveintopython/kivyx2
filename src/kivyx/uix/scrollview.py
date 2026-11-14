@@ -1,27 +1,34 @@
-__all__ = ('KXScrollView', )
+__all__ = ("KXScrollView", )
 
+from typing import TypedDict
 from functools import partial
-from collections import deque
 from contextlib import contextmanager, ExitStack
 
 from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
-from kivy.uix.scrollview import ScrollView as SV
-from kivy.properties import NumericProperty, BooleanProperty, ObjectProperty, ReferenceListProperty, ColorProperty
+from kivy.properties import (
+    NumericProperty, BooleanProperty, ObjectProperty, ReferenceListProperty, ColorProperty, DictProperty,
+)
 import asynckivy as ak
 
-from kivyx.utils import noop
+from kivyx.utils import noop, record_touch_movement, compute_velocity
 from kivyx.touch_filters import is_opos_colliding
-from kivyx.effects.scroll import KXScrollEffect
-from kivyx.effects.dampedscroll import KXDampedScrollEffect
 
+VERTICAL_DIRECTIONS = ("up", "down")
+POSITIVE_DIRECTIONS = ("up", "right")
+
+class KineticParams(TypedDict):
+    friction: float
+    std_dt: float
+    min_velocity: float
+    min_overscroll: float
+    edge_damping: float
+    spring_constant: float
 
 Builder.load_string('''
 <KXScrollView>:
-    _content_x: self.content_x
-    _content_y: self.content_y
     canvas.before:
         PushMatrix:
         Translate:
@@ -42,12 +49,12 @@ Builder.load_string('''
         Color:
             rgba: self.hbar_color
         Rectangle:
-            size: self._hbar_length, self.hbar_thickness
+            size: self.hbar_length, self.hbar_thickness
             pos: self.hbar_x, self.hbar_y
         Color:
             rgba: self.vbar_color
         Rectangle:
-            size: self.vbar_thickness, self._vbar_length
+            size: self.vbar_thickness, self.vbar_length
             pos: self.vbar_x, self.vbar_y
         StencilUnUse
         Rectangle:
@@ -62,28 +69,6 @@ def clamp(value, min, max):
     return max if value >= max else (min if value <= min else value)
 
 
-def compute_velocity(touch_history, timeout=1 / 6):
-    '''
-    .. code-block::
-
-        velocity_x, velocity_y = compute_velocity(touch_history)
-    '''
-    touch_history = reversed(touch_history)
-    time_end, dx_sum, dy_sum = next(touch_history)
-    time_start = time_end
-    deadline = time_end - timeout
-    for t, dx, dy in touch_history:
-        if t < deadline:
-            break
-        dx_sum += dx
-        dy_sum += dy
-        time_start = t
-    if time_start is time_end:
-        return 0, 0
-    duration = time_end - time_start
-    return dx_sum / duration, dy_sum / duration
-
-
 class KXScrollView(Widget):
     '''
     Main differences from the official :class:`~kivy.uix.scrollview.ScrollView`:
@@ -94,22 +79,22 @@ class KXScrollView(Widget):
     * The content can be scrolled even when it's smaller than the KXScrollView.
     '''
 
-    scroll_distance = NumericProperty(SV.scroll_distance.defaultvalue)
-    ''' :attr:`kivy.uix.scrollview.ScrollView.scroll_distance` '''
+    wheel2velocity_ratio = NumericProperty("800dp")
+    ''' :attr:`kivy.uix.scrollview.ScrollView.smooth_scroll_end` '''
 
-    scroll_wheel_distance = NumericProperty(SV.scroll_wheel_distance.defaultvalue)
-    ''' :attr:`kivy.uix.scrollview.ScrollView.scroll_wheel_distance` '''
+    kinetic_params: KineticParams = DictProperty({
+        "friction": 0.05,
+        "std_dt": 0.017,
+        "min_velocity": 16.0,
+        "min_overscroll": 1.0,
+        "edge_damping": 0.25,
+        "spring_constant": 1.6,
+    })
 
-    smooth_scroll_end = NumericProperty("100dp", allownone=True)
-    '''
-    :attr:`kivy.uix.scrollview.ScrollView.smooth_scroll_end`,
-    with the only difference being a default value of "100dp".
-    '''
-
-    do_scroll_x = BooleanProperty(SV.do_scroll_x.defaultvalue)
+    do_scroll_x = BooleanProperty(True)
     ''' :attr:`kivy.uix.scrollview.ScrollView.do_scroll_x` '''
 
-    do_scroll_y = BooleanProperty(SV.do_scroll_y.defaultvalue)
+    do_scroll_y = BooleanProperty(True)
     ''' :attr:`kivy.uix.scrollview.ScrollView.do_scroll_y` '''
 
     do_overscroll_x = BooleanProperty(True)
@@ -144,36 +129,14 @@ class KXScrollView(Widget):
     content_max_y = NumericProperty()
     '''(read-only) The higher bound of the content's Y position relative to the KXScrollView.'''
 
-    # These can be unfinalized values that may exceed the bounds even if
-    # `do_overscroll_x` and `do_overscroll_y`` are False.
+    # These can be unfinalized values that may exceed the bounds.
     _content_x = NumericProperty()
     _content_y = NumericProperty()
 
-    effect_x = ObjectProperty(None, allownone=True)
-    '''
-    Effect to apply for the X axis. If None is set, KXScrollView internally
-    creates an appropriate instance with the following rules:
-
-    * If :attr:`do_overscroll_x` is True, it creates a :class:`~kivyx.effects.dampedscroll.KXDampedScrollEffect`.
-    * If :attr:`do_overscroll_x` is False, it creates a :class:`~kivyx.effects.scroll.KXScrollEffect`.
-
-    You may want to set this to non-None when:
-
-    * You want to use a custom effect.
-    * You want to use an existing effect but with a different configuration.
-    '''
-
-    effect_y = ObjectProperty(None, allownone=True)
-    '''...'''
-
-    hbar_enabled = BooleanProperty(False)
-    '''...'''
-
-    hbar_length_min = NumericProperty("10dp")
-    '''...'''
-
-    hbar_thickness = NumericProperty("10dp")
-    '''...'''
+    hbar_enabled = BooleanProperty(False)  #: ...
+    hbar_length_min = NumericProperty("10dp")  #: ...
+    hbar_thickness = NumericProperty("10dp")  #: ...
+    hbar_color = ColorProperty("#CCCCCC77")  #: ...
 
     hbar_x = NumericProperty()
     '''(read-only) The X position of the horizontal scrollbar relative to the KXScrollView.'''
@@ -191,24 +154,19 @@ class KXScrollView(Widget):
             hbar_y: self.height - self.hbar_thickness
     '''
 
-    hbar_color = ColorProperty("#CCCCCC77")
-    '''...'''
+    hbar_length = NumericProperty()
+    '''(read-only)'''
 
-    _hbar_length = NumericProperty()
     _content2hbar_ratio = NumericProperty(1.)
     '''
     Represents how many pixels the horizontal scroll bar moves in response to a 1-pixel horizontal
     movement of the ScrollView content.
     '''
 
-    vbar_enabled = BooleanProperty(False)
-    '''...'''
-
-    vbar_length_min = NumericProperty("10dp")
-    '''...'''
-
-    vbar_thickness = NumericProperty("10dp")
-    '''...'''
+    vbar_enabled = BooleanProperty(False)  #: ...
+    vbar_length_min = NumericProperty("10dp")  #: ...
+    vbar_thickness = NumericProperty("10dp")  #: ...
+    vbar_color = ColorProperty("#CCCCCC77")  #: ...
 
     vbar_x = NumericProperty()
     '''
@@ -226,31 +184,33 @@ class KXScrollView(Widget):
     vbar_y = NumericProperty()
     '''(read-only) The Y position of the vertical scrollbar relative to the KXScrollView.'''
 
-    vbar_color = ColorProperty("#CCCCCC77")
-    '''...'''
+    vbar_length = NumericProperty()
+    '''(read-only)'''
 
-    _vbar_length = NumericProperty()
     _content2vbar_ratio = NumericProperty(1.)
     '''
     Represents how many pixels the vertical scroll bar moves in response to a 1-pixel vertical
     movement of the ScrollView content.
     '''
 
+    is_user_scrolling = BooleanProperty(False)
+    '''
+    (read-only)
+    Whether the KXScrollView is currently being scrolled through direct touch input.
+    '''
+
+    # Default values of instance attributes
     _deactivate = noop
+    _trigger_kinetic_scroll_x = _trigger_kinetic_scroll_y = noop
+    _cancel_kinetic_scroll_x = _cancel_kinetic_scroll_y = noop
 
     def __init__(self, **kwargs):
-        self._effect_x = self._effect_y = None
-        self._prev_content = None
         super().__init__(**kwargs)
-        self._is_in_the_middle_of_user_scroll = False
-
         f = self.fbind
-
         t = Clock.schedule_once(self._reset, -1)
         f("disabled", t)
+        f("kinetic_params", t)
         f("children", t)
-        f("effect_x", t)
-        f("effect_y", t)
         f("do_scroll_x", t)
         f("do_scroll_y", t)
         f("do_overscroll_x", t)
@@ -260,9 +220,64 @@ class KXScrollView(Widget):
 
     def _reset(self, dt):
         self._deactivate()
+        match len(self.children):
+            case 0:
+                self.content = None
+                return
+            case 1:
+                pass
+            case _:
+                raise Exception("KXScrollView can only have one child")
         if self.disabled:
             return
-        self._deactivate = ak.start(self._main()).cancel
+
+        with ExitStack() as stack:
+            defer = stack.callback
+            ec = stack.enter_context
+
+            self._trigger_kinetic_scroll_x = self._trigger_kinetic_scroll_y = noop
+            self._velocity_x = self._velocity_y = 0.
+            self._content2hbar_ratio = self._content2vbar_ratio = 1.
+            self.hbar_length = self.vbar_length = 0.
+            prev_content = self.content
+            self.content = c = self.children[0]
+            if prev_content is not c:
+                self._content_x = self._content_y = c.x = c.y = 0.
+
+            ec(self._keep_updating_content_size_from_hint(c))
+            if self.do_scroll_x:
+                ec(self._keep_updating_bounds_x(c))
+                if self.do_overscroll_x:
+                    ec(ak.sync_attr((self, "_content_x"), (self, "content_x")))
+                else:
+                    ec(self._keep_clamping_content_x())
+                effect_x = _create_effect(self, horizontal=True, overscroll=self.do_overscroll_x)
+                defer(effect_x.cancel)
+                self._cancel_kinetic_scroll_x = effect_x.cancel
+                self._trigger_kinetic_scroll_x = effect_x
+                if self.hbar_enabled:
+                    ec(self._keep_updating_hbar_length_and_ratio(c))
+                    ec(self._keep_updating_hbar_x())
+            else:
+                ec(self._keep_updating_content_x_from_hint(c))
+            if self.do_scroll_y:
+                ec(self._keep_updating_bounds_y(c))
+                if self.do_overscroll_y:
+                    ec(ak.sync_attr((self, "_content_y"), (self, "content_y")))
+                else:
+                    ec(self._keep_clamping_content_y())
+                effect_y = _create_effect(self, horizontal=False, overscroll=self.do_overscroll_y)
+                defer(effect_y.cancel)
+                self._cancel_kinetic_scroll_y = effect_y.cancel
+                self._trigger_kinetic_scroll_y = effect_y
+                if self.vbar_enabled:
+                    ec(self._keep_updating_vbar_length_and_ratio(c))
+                    ec(self._keep_updating_vbar_y())
+            else:
+                ec(self._keep_updating_content_y_from_hint(c))
+
+            defer(ak.start(self._root_touch_handler()).cancel)
+            self._deactivate = stack.pop_all().close
 
     def to_local(self, x, y, **k):
         cx, cy = self.content_pos
@@ -313,215 +328,128 @@ class KXScrollView(Widget):
             touch.pop()
             return True
 
-    def stop_scroll_momentum(self):
-        if (e := self._effect_x) is not None:
-            e.deactivate()
-            e.velocity = 0
-        if (e := self._effect_y) is not None:
-            e.deactivate()
-            e.velocity = 0
+    def cancel_kinetic_scroll(self):
+        ''' Cancels any ongoing kinetic scrolling. '''
+        self._cancel_kinetic_scroll_x()
+        self._cancel_kinetic_scroll_y()
 
     def cancel_user_scroll(self):
-        '''Cancel ongoing user scroll.'''
-
-    def scroll_by_distance(self, x=None, y=None, *, prioritize_user_scroll=True):
         '''
-        Adjusts the momentum to achieve a specified scroll distance.
+        Cancels any ongoing touch-driven scrolling.
 
-        By default, this method does nothing if the KXScrollView is currently being scrolled by the user.
-        However, if ``prioritize_user_scroll`` is set to False, the method will cancel the ongoing user scroll
-        and perform the adjustment.
+        .. warning::
+            Do not cache this method, as its actual implementation is stored in ``__dict__``
+            and changes at runtime.
         '''
-        if self._is_in_the_middle_of_user_scroll:
-            if prioritize_user_scroll:
-                return
-            else:
-                self.cancel_user_scroll()
-        if x is not None and (e := self._effect_x) is not None:
-            e.scroll_by(x)
-            e.activate()
-        if y is not None and (e := self._effect_y) is not None:
-            e.scroll_by(y)
-            e.activate()
 
-    def scroll_to_pos(self, x=None, y=None, *, prioritize_user_scroll=True):
+    def scroll_by_distance(self, x=None, y=None):
         '''
-        Adjusts the momentum to reach a specified scroll position.
+        Adjusts the kinetic scroll momentum to achieve the specified scroll distances.
 
-        By default, this method does nothing if the KXScrollView is currently being scrolled by the user.
-        However, if ``prioritize_user_scroll`` is set to False, the method will cancel the ongoing user scroll
-        and perform the adjustment.
+        :param x: The distance to achieve along the X axis.
+        :param y: The distance to achieve along the Y axis.
+
+        This method cancels any ongoing touch-driven scrolling.
+        To avoid this, check :attr:`is_user_scrolling` before calling it:
+
+        .. code::
+
+            if not sv.is_user_scrolling:
+                sv.scroll_by_distance(...)
         '''
-        if self._is_in_the_middle_of_user_scroll:
-            if prioritize_user_scroll:
-                return
-            else:
-                self.cancel_user_scroll()
-        if x is not None and (e := self._effect_x) is not None:
-            e.scroll_to(x)
-            e.activate()
-        if y is not None and (e := self._effect_y) is not None:
-            e.scroll_to(y)
-            e.activate()
+        self.cancel_user_scroll()
+        p = self.kinetic_params
+        if x is not None and self.do_scroll_x:
+            self._velocity_x = _calc_velocity_needed_to_cover_distance(x, p["friction"], p["std_dt"])
+            self._trigger_kinetic_scroll_x()
+        if y is not None and self.do_scroll_y:
+            self._velocity_y = _calc_velocity_needed_to_cover_distance(y, p["friction"], p["std_dt"])
+            self._trigger_kinetic_scroll_y()
 
-    def scroll_to_widget(self, widget, *, prioritize_user_scroll=True):
+    def scroll_to_pos(self, x=None, y=None):
         '''
-        Adjusts the momentum to scroll until a specified widget is visible.
+        Adjusts the kinetic scroll momentum to reach the specified scroll position.
 
-        By default, this method does nothing if the KXScrollView is currently being scrolled by the user.
-        However, if ``prioritize_user_scroll`` is set to False, the method will cancel the ongoing user scroll
-        and perform the adjustment.
+        :param x: The x coordinate to scroll to.
+        :param y: The y coordinate to scroll to.
 
-        :param widget: This must be a child or descendant of the :attr:`content`.
+        This method cancels any ongoing touch-driven scrolling.
+        To avoid this, check :attr:`is_user_scrolling` before calling it:
+
+        .. code::
+
+            if not sv.is_user_scrolling:
+                sv.scroll_to_pos(...)
         '''
-        if self._is_in_the_middle_of_user_scroll:
-            if prioritize_user_scroll:
-                return
-            else:
-                self.cancel_user_scroll()
+        self.scroll_by_distance(
+            None if x is None else (x - self.content_x),
+            None if y is None else (y - self.content_y),
+        )
+
+    def scroll_to_widget(self, target: Widget):
+        '''
+        Adjusts the kinetic scroll momentum to bring ``target`` into view.
+
+        :param target: A child or descendant of the :attr:`content`.
+
+        This method cancels any ongoing touch-driven scrolling.
+        To avoid this, check :attr:`is_user_scrolling` before calling it:
+
+        .. code::
+
+            if not scrollview.is_user_scrolling:
+                scrollview.scroll_to_widget(...)
+        '''
         content = self.content
-        parent = widget.parent
-        cx, cy = widget.center
+        parent = target.parent
+        cx, cy = target.center
         try:
+            # NOTE: Might be better to use '!=' instead of 'is not' in case weak references are involved.
             while parent is not content:
                 parent = parent.parent
                 cx, cy = parent.to_parent(cx, cy)
         except AttributeError:  # The Window obejct doesn't have a 'to_parent' method.
-            raise ValueError(f"{widget} is not a child or descendant of the KXScrollView content.")
+            raise ValueError(f"{target} is not a child or descendant of the KXScrollView content.")
         w, h = self.size
         self.scroll_to_pos(w * 0.5 - cx, h * 0.5 - cy)
 
-    @contextmanager
-    def _sync_with_effect_x(self, sync_attr=ak.sync_attr):
-        e = self.effect_x
-        if e is None:
-            if self.do_overscroll_x:
-                e = KXDampedScrollEffect()
-            else:
-                e = KXScrollEffect()
-        e.activate()
-        e.velocity = 0
-        self._effect_x = e
-        try:
-            with (
-                sync_attr((self, "content_x"), (e, "value"), eager=True),
-                sync_attr((e, "value"), (self, "content_x"), eager=True),
-                sync_attr((self, "content_min_x"), (e, "min"), eager=True),
-                sync_attr((self, "content_max_x"), (e, "max"), eager=True),
-            ):
-                yield
-        finally:
-            e.deactivate()
-            self._effect_x = None
-
-    @contextmanager
-    def _sync_with_effect_y(self, sync_attr=ak.sync_attr):
-        e = self.effect_y
-        if e is None:
-            if self.do_overscroll_y:
-                e = KXDampedScrollEffect()
-            else:
-                e = KXScrollEffect()
-        e.activate()
-        e.velocity = 0
-        self._effect_y = e
-        try:
-            with (
-                sync_attr((self, "content_y"), (e, "value"), eager=True),
-                sync_attr((e, "value"), (self, "content_y"), eager=True),
-                sync_attr((self, "content_min_y"), (e, "min"), eager=True),
-                sync_attr((self, "content_max_y"), (e, "max"), eager=True),
-            ):
-                yield
-        finally:
-            e.deactivate()
-            self._effect_y = None
-
-    async def _main(self):
-        children = self.children
-        if not children:
-            return
-        if len(children) != 1:
-            raise Exception("KXScrollView can only have one child")
-        try:
-            self._content2hbar_ratio = 1.
-            self._content2vbar_ratio = 1.
-            self._hbar_length = 0
-            self._vbar_length = 0
-            self.content = c = children[0]
-            if self._prev_content is not c:
-                c.pos = self.content_pos = (0, 0)
-            with ExitStack() as stack:
-                ec = stack.enter_context
-                ec(self._keep_updating_content_size_from_hint(c))
-                if self.do_scroll_x:
-                    ec(self._sync_with_effect_x())
-                    ec(self._keep_updating_bounds_x(c))
-                    ec(self._keep_updating_content_x())
-                    if self.hbar_enabled:
-                        ec(self._keep_updating_hbar_length_and_ratio(c))
-                        ec(self._keep_updating_hbar_x())
-                else:
-                    ec(self._keep_updating_content_x_from_hint(c))
-                if self.do_scroll_y:
-                    ec(self._sync_with_effect_y())
-                    ec(self._keep_updating_bounds_y(c))
-                    ec(self._keep_updating_content_y())
-                    if self.vbar_enabled:
-                        ec(self._keep_updating_vbar_length_and_ratio(c))
-                        ec(self._keep_updating_vbar_y())
-                else:
-                    ec(self._keep_updating_content_y_from_hint(c))
-
-                while True:
-                     await self._root_touch_handler()
-        finally:
-            self._prev_content = c
-            self.content = None
-
     def _is_colliding_with_hbar(self, x, y):
-        return (self.hbar_x <= x < (self.hbar_x + self._hbar_length)) and \
+        return (self.hbar_x <= x < (self.hbar_x + self.hbar_length)) and \
             (self.hbar_y <= y < (self.hbar_y + self.hbar_thickness))
 
     def _is_colliding_with_vbar(self, x, y):
         return (self.vbar_x <= x < (self.vbar_x + self.vbar_thickness)) and \
-            (self.vbar_y <= y < (self.vbar_y + self._vbar_length))
+            (self.vbar_y <= y < (self.vbar_y + self.vbar_length))
 
     async def _root_touch_handler(self):
         hbar_enabled = self.hbar_enabled and self.do_scroll_x
         vbar_enabled = self.vbar_enabled and self.do_scroll_y
         bar_enabled = hbar_enabled or vbar_enabled
         on_touch_down = partial(ak.event, self, "on_touch_down", filter=is_opos_colliding)
-        handle_mouse_wheel = self._handle_mouse_wheel
-        handle_potential_scrolling_gesture = self._handle_potential_scrolling_gesture
-        handle_hbar_drag = self._handle_hbar_drag
-        handle_vbar_drag = self._handle_vbar_drag
-        is_colliding_with_hbar = self._is_colliding_with_hbar
-        is_colliding_with_vbar = self._is_colliding_with_vbar
+        open_nursery = ak.open_nursery
 
         while True:
             __, touch = await on_touch_down()
-            abandon = touch.ud["kivyx_abandon"]
-            self.cancel_user_scroll = abandon.fire
-            async with ak.move_on_when(abandon.wait()):
-                if touch.is_mouse_scrolling:
-                    await handle_mouse_wheel(touch)
-                    continue
+            if touch.is_mouse_scrolling:
+                await self._handle_mouse_wheel(touch)
+                continue
+            async with open_nursery() as nursery:
+                nursery.start(touch.ud["kivyx_abandon"].wait(), daemon=True, close_on_finish=True)
                 if bar_enabled:
+                    nursery.start(touch.ud["kivyx_touch_up"].wait(), daemon=True, close_on_finish=True)
                     x, y = touch.opos
                     x -= self.x
                     y -= self.y
-                    if vbar_enabled and is_colliding_with_vbar(x, y):
-                        await handle_vbar_drag(touch)
+                    if vbar_enabled and self._is_colliding_with_vbar(x, y):
+                        await self._handle_potential_vbar_drag(touch)
                         continue
-                    if hbar_enabled and is_colliding_with_hbar(x, y):
-                        await handle_hbar_drag(touch)
+                    if hbar_enabled and self._is_colliding_with_hbar(x, y):
+                        await self._handle_potential_hbar_drag(touch)
                         continue
-                await handle_potential_scrolling_gesture(touch)
+                await self._handle_potential_scrolling_gesture(touch)
 
-    async def _handle_mouse_wheel(self, touch, VERTICAL_DIRECTIONS=("up", "down"),
-                                  POSITIVE_DIRECTIONS=("up", "right")):
-        # STEP1: Check if scrolling is necessary or allowed in a given direction.
+    async def _handle_mouse_wheel(self, touch):
+        # STEP1: Check if scrolling is necessary or allowed in the specified direction.
         direction = touch.button[6:]  # len("scroll") == 6
         is_vertical = direction in VERTICAL_DIRECTIONS
         if is_vertical:
@@ -544,168 +472,142 @@ class KXScrollView(Widget):
         else:
             return
 
-        # STEP2: Check if the scrollview should handle this touch.
+        # STEP2: Claim the touch.
         await touch.ud["kivyx_touch_up"].wait()
-        e_access = touch.ud["kivyx_exclusive_access"]
-        if e_access.has_been_claimed:
+        ex_access = touch.ud["kivyx_exclusive_access"]
+        if ex_access.has_been_claimed:
             return
-        e_access.claim("scroll", self)
+        ex_access.claim("scroll", self)
 
         # STEP3: Apply the mouse wheel scroll.
-        d = self.scroll_wheel_distance
-        d = d if is_positive else -d
-        smooth = self.smooth_scroll_end
-        if smooth is None:
-            self.stop_scroll_momentum()
-            pos += d
-            if is_vertical:
-                self._content_y = pos
-            else:
-                self._content_x = pos
+        r = self.wheel2velocity_ratio
+        if not is_positive:
+            r = -r
+        if is_vertical:
+            self._velocity_y += r
+            self._trigger_kinetic_scroll_y()
         else:
-            e = self._effect_y if is_vertical else self._effect_x
-            e.velocity += d * smooth
-            e.activate()
+            self._velocity_x += r
+            self._trigger_kinetic_scroll_x()
 
-    async def _handle_potential_scrolling_gesture(self, touch, abs=abs, ak=ak):
-        e_access = touch.ud["kivyx_exclusive_access"]
-        dx_sum = dy_sum = 0.
-        scroll_distance = self.scroll_distance
+    async def _handle_potential_scrolling_gesture(self, touch, ak=ak):
+        ud = touch.ud
+        ex_access = ud["kivyx_exclusive_access"]
+        touch_up = ud["kivyx_touch_up"]
         do_scroll_x = self.do_scroll_x
         do_scroll_y = self.do_scroll_y
-        do_overscroll_x = self.do_overscroll_x
-        do_overscroll_y = self.do_overscroll_y
-        touch_history = deque(maxlen=5)
-        history_append = touch_history.append
-        history_append((touch.time_start, 0, 0))
 
-        def is_the_same_touch(w, t, touch=touch):
-            return t is touch
-
-        async with (
-            ak.move_on_when(touch.ud["kivyx_touch_up"].wait()),
-            ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-        ):
-            async with ak.move_on_when(e_access.wait_for_someone_to_claim()):
-                while True:
-                    await on_touch_move()
-                    dx = touch.dx
-                    dy = touch.dy
-                    dx_sum += dx
-                    dy_sum += dy
-                    history_append((touch.time_update, dx, dy))
-                    if do_scroll_y and abs(dy_sum) > scroll_distance:
-                        if do_overscroll_y:
-                            break
-                        if dy_sum > 0 and self.content_y < self.content_max_y:
-                            break
-                        if dy_sum < 0 and self.content_y > self.content_min_y:
-                            break
-                    elif do_scroll_x and abs(dx_sum) > scroll_distance:
-                        if do_overscroll_x:
-                            break
-                        if dx_sum > 0 and self.content_x < self.content_max_x:
-                            break
-                        if dx_sum < 0 and self.content_x > self.content_min_x:
-                            break
-
-            if e_access.has_been_claimed:
+        with record_touch_movement(Window, touch, limit=10, include_initial=True) as movement_records:
+            async with ak.open_nursery() as nursery:
+                s = nursery.start
+                s(touch_up.wait(), close_on_finish=True)
+                s(ex_access.wait_for_someone_to_claim(), close_on_finish=True)
+                if do_scroll_x:
+                    h_swipe_tracker = s(ud["kivyx_gestures"]["horizontal_swipe"].wait(), close_on_finish=True)
+                if do_scroll_y:
+                    v_swipe_tracker = s(ud["kivyx_gestures"]["vertical_swipe"].wait(), close_on_finish=True)
+            if ex_access.has_been_claimed or touch_up.is_fired:
                 return
-            e_access.claim("scroll", self)
 
-            self.stop_scroll_momentum()
+            # Check whether the swipe gesture would scroll beyond the content boundaries.
+            total_dy = touch.y - touch.oy
+            total_dx = touch.x - touch.ox
+            if do_scroll_y and v_swipe_tracker.finished:
+                if self.do_overscroll_y:
+                    pass
+                elif total_dy > 0. and self.content_y < self.content_max_y:
+                    pass
+                elif total_dy < 0. and self.content_y > self.content_min_y:
+                    pass
+                else:
+                    return
+            elif do_scroll_x and h_swipe_tracker.finished:
+                if self.do_overscroll_x:
+                    pass
+                elif total_dx > 0. and self.content_x < self.content_max_x:
+                    pass
+                elif total_dx < 0. and self.content_x > self.content_min_x:
+                    pass
+                else:
+                    return
+            else:
+                return
+
+            ex_access.claim("scroll", self)
+            self.cancel_user_scroll = ud["kivyx_abandon"].fire
+            self.cancel_kinetic_scroll()
 
             # Apply the distance already traveled.
             if do_scroll_y:
-                self._content_y += dy_sum
+                self._content_y += total_dy
             if do_scroll_x:
-                self._content_x += dx_sum
+                self._content_x += total_dx
 
-            self._is_in_the_middle_of_user_scroll = True
-            try:
-                # Move the content along with the touch.
-                while True:
-                    await on_touch_move()
-                    dx = touch.dx
-                    dy = touch.dy
-                    history_append((touch.time_update, dx, dy))
-                    if do_scroll_y:
-                        self._content_y += dy
-                    if do_scroll_x:
-                        self._content_x += dx
-            finally:
-                self._is_in_the_middle_of_user_scroll = False
+            # Scroll the content along with the touch
+            async with ak.move_on_when(touch_up.wait()):
+                self.is_user_scrolling = True
+                try:
+                    with ak.event_freq(Window, "on_touch_move", filter=lambda w, t, touch=touch: t is touch) as on_touch_move:
+                        while True:
+                            await on_touch_move()
+                            if do_scroll_y:
+                                self._content_y += touch.dy
+                            if do_scroll_x:
+                                self._content_x += touch.dx
+                finally:
+                    self.is_user_scrolling = False
 
-        history_append((touch.time_end, 0, 0))
-
-        # The touch ended. Activate the effect.
-        vel_x, vel_y = compute_velocity(touch_history)
-        if do_scroll_y:
-            e = self._effect_y
-            e.velocity = vel_y
-            e.activate()
+        vel_x, vel_y = compute_velocity(movement_records)
         if do_scroll_x:
-            e = self._effect_x
-            e.velocity = vel_x
-            e.activate()
+            self._velocity_x = vel_x
+            self._trigger_kinetic_scroll_x()
+        if do_scroll_y:
+            self._velocity_y = vel_y
+            self._trigger_kinetic_scroll_y()
 
-    async def _handle_hbar_drag(self, touch):
-        def is_the_same_touch(w, t, touch=touch):
-            return t is touch
+    async def _handle_potential_hbar_drag(self, touch):
         # 内側にあるScrollViewを優先させたいので一旦待つ
-        await ak.event(Window, "on_touch_move", filter=is_the_same_touch)
+        await touch.ud["kivyx_gestures"]["immediate"].wait()
 
-        e_access = touch.ud["kivyx_exclusive_access"]
-        if e_access.has_been_claimed:
+        ex_access = touch.ud["kivyx_exclusive_access"]
+        if ex_access.has_been_claimed:
             return
-        e_access.claim("scroll", self)
+        ex_access.claim("scroll", self)
+        self.cancel_user_scroll = touch.ud["kivyx_abandon"].fire
+        self.cancel_kinetic_scroll()
 
-        self.stop_scroll_momentum()
-        hbar2content_ratio = 1. / self._content2hbar_ratio
-
-        self._is_in_the_middle_of_user_scroll = True
+        self.is_user_scrolling = True
         try:
-            # Move the content along with the touch.
-            async with (
-                ak.move_on_when(touch.ud["kivyx_touch_up"].wait()),
-                ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-            ):
+            hbar2content_ratio = 1. / self._content2hbar_ratio
+            with ak.event_freq(Window, "on_touch_move", filter=lambda w, t, touch=touch: t is touch) as on_touch_move:
                 while True:
                     await on_touch_move()
                     self._content_x += touch.dx * hbar2content_ratio
         finally:
-            self._is_in_the_middle_of_user_scroll = False
+            self.is_user_scrolling = False
+            self._trigger_kinetic_scroll_x()
 
-        self._effect_x.activate()
-
-    async def _handle_vbar_drag(self, touch):
-        def is_the_same_touch(w, t, touch=touch):
-            return t is touch
+    async def _handle_potential_vbar_drag(self, touch):
         # 内側にあるScrollViewを優先させたいので一旦待つ
-        await ak.event(Window, "on_touch_move", filter=is_the_same_touch)
+        await touch.ud["kivyx_gestures"]["immediate"].wait()
 
-        e_access = touch.ud["kivyx_exclusive_access"]
-        if e_access.has_been_claimed:
+        ex_access = touch.ud["kivyx_exclusive_access"]
+        if ex_access.has_been_claimed:
             return
-        e_access.claim("scroll", self)
+        ex_access.claim("scroll", self)
+        self.cancel_user_scroll = touch.ud["kivyx_abandon"].fire
+        self.cancel_kinetic_scroll()
 
-        self.stop_scroll_momentum()
-        vbar2content_ratio = 1. / self._content2vbar_ratio
-
-        self._is_in_the_middle_of_user_scroll = True
+        self.is_user_scrolling = True
         try:
-            # Move the content along with the touch.
-            async with (
-                ak.move_on_when(touch.ud["kivyx_touch_up"].wait()),
-                ak.event_freq(Window, "on_touch_move", filter=is_the_same_touch) as on_touch_move,
-            ):
+            vbar2content_ratio = 1. / self._content2vbar_ratio
+            with ak.event_freq(Window, "on_touch_move", filter=lambda w, t, touch=touch: t is touch) as on_touch_move:
                 while True:
                     await on_touch_move()
                     self._content_y += touch.dy * vbar2content_ratio
         finally:
-            self._is_in_the_middle_of_user_scroll = False
-
-        self._effect_y.activate()
+            self.is_user_scrolling = False
+            self._trigger_kinetic_scroll_y()
 
     def _update_bounds_x(self, *__):
         diff = self.width - self.content.width
@@ -715,8 +617,8 @@ class KXScrollView(Widget):
         else:
             self.content_min_x = 0
             self.content_max_x = diff
-        if not self._is_in_the_middle_of_user_scroll:
-            self._effect_x.activate()
+        if not self.is_user_scrolling:
+            self._trigger_kinetic_scroll_x()
 
     @contextmanager
     def _keep_updating_bounds_x(self, content):
@@ -738,8 +640,8 @@ class KXScrollView(Widget):
         else:
             self.content_min_y = 0
             self.content_max_y = diff
-        if not self._is_in_the_middle_of_user_scroll:
-            self._effect_y.activate()
+        if not self.is_user_scrolling:
+            self._trigger_kinetic_scroll_y()
 
     @contextmanager
     def _keep_updating_bounds_y(self, content):
@@ -758,36 +660,28 @@ class KXScrollView(Widget):
         return False
 
     @contextmanager
-    def _keep_updating_content_x(self):
-        if self.do_overscroll_x:
-            with ak.sync_attr((self, "_content_x"), (self, "content_x"), eager=True):
-                yield
-        else:
-            t = Clock.create_trigger(self._clamp_content_x, -1, interval=True)
-            try:
-                self.bind(_content_x=t, content_min_x=t, content_max_x=t)
-                yield
-            finally:
-                t.cancel()
-                self.unbind(_content_x=t, content_min_x=t, content_max_x=t)
+    def _keep_clamping_content_x(self):
+        t = Clock.create_trigger(self._clamp_content_x, -1, interval=True)
+        try:
+            self.bind(_content_x=t, content_min_x=t, content_max_x=t)
+            yield
+        finally:
+            t.cancel()
+            self.unbind(_content_x=t, content_min_x=t, content_max_x=t)
 
     def _clamp_content_y(self, dt, clamp=clamp):
         self.content_y = self._content_y = clamp(self._content_y, self.content_min_y, self.content_max_y)
         return False
 
     @contextmanager
-    def _keep_updating_content_y(self):
-        if self.do_overscroll_y:
-            with ak.sync_attr((self, "_content_y"), (self, "content_y"), eager=True):
-                yield
-        else:
-            t = Clock.create_trigger(self._clamp_content_y, -1, interval=True)
-            try:
-                self.bind(_content_y=t, content_min_y=t, content_max_y=t)
-                yield
-            finally:
-                t.cancel()
-                self.unbind(_content_y=t, content_min_y=t, content_max_y=t)
+    def _keep_clamping_content_y(self):
+        t = Clock.create_trigger(self._clamp_content_y, -1, interval=True)
+        try:
+            self.bind(_content_y=t, content_min_y=t, content_max_y=t)
+            yield
+        finally:
+            t.cancel()
+            self.unbind(_content_y=t, content_min_y=t, content_max_y=t)
 
     def _update_content_size_from_hint(self, dt, max=max, min=min):
         c = self.content
@@ -882,7 +776,7 @@ class KXScrollView(Widget):
 
         scrollable_width = self_width - w
         if not scrollable_width:
-            self._hbar_length = 0
+            self.hbar_length = 0
             self._content2hbar_ratio = 1.
             return
         if scrollable_width < 0:
@@ -890,7 +784,7 @@ class KXScrollView(Widget):
         else:
             hbar_length = w
         hbar_length = max(hbar_length, self.hbar_length_min)
-        self._hbar_length = hbar_length
+        self.hbar_length = hbar_length
         self._content2hbar_ratio = (self_width - hbar_length) / scrollable_width
 
     @contextmanager
@@ -911,7 +805,7 @@ class KXScrollView(Widget):
 
         scrollable_height = self_height - h
         if not scrollable_height:
-            self._vbar_length = 0
+            self.vbar_length = 0
             self._content2vbar_ratio = 1.
             return
         if scrollable_height < 0:
@@ -919,7 +813,7 @@ class KXScrollView(Widget):
         else:
             vbar_length = h
         vbar_length = max(vbar_length, self.vbar_length_min)
-        self._vbar_length = vbar_length
+        self.vbar_length = vbar_length
         self._content2vbar_ratio = (self_height - vbar_length) / scrollable_height
 
     @contextmanager
@@ -957,3 +851,143 @@ class KXScrollView(Widget):
             yield
         finally:
             self.unbind(content_y=f, _content2vbar_ratio=f)
+
+
+def _calc_velocity_needed_to_cover_distance(distance, friction, std_dt):
+    return distance * friction / std_dt
+
+
+def _update_kinetic_scroll_state(
+        abs, MAX, MIN, is_horizontal,
+        min_velocity, edge_damping, spring_constant, min_overscroll, friction_divided_by_std_dt,
+        sv: KXScrollView, dt,
+):
+    if is_horizontal:
+        value = sv.content_x
+        min = sv.content_min_x
+        max = sv.content_max_x
+        velocity = sv._velocity_x
+    else:
+        value = sv.content_y
+        min = sv.content_min_y
+        max = sv.content_max_y
+        velocity = sv._velocity_y
+
+    try:
+        if value < min:
+            overscroll = value - min
+        elif value > max:
+            overscroll = value - max
+        else:
+            overscroll = 0.
+            if abs(velocity) <= min_velocity:
+                velocity = 0.
+                return False
+
+        total_force = velocity * friction_divided_by_std_dt * dt
+        stop_too_much_bounce = None
+        if abs(overscroll) > min_overscroll:
+            total_force += velocity * edge_damping
+            total_force += overscroll * spring_constant
+        if overscroll > 0. and velocity < 0.:
+            stop_too_much_bounce = MAX
+        elif overscroll < 0. and velocity > 0.:
+            stop_too_much_bounce = MIN
+        velocity -= total_force
+        value += velocity * dt
+
+        # 戻り過ぎへの対策
+        if stop_too_much_bounce is MIN and value > min:
+            velocity = 0.
+            value = min
+            return False
+        if stop_too_much_bounce is MAX and value < max:
+            velocity = 0.
+            value = max
+            return False
+
+        if abs(velocity) <= min_velocity:
+            if value < min:
+                overscroll = value - min
+            elif value > max:
+                overscroll = value - max
+            else:
+                overscroll = 0.
+            if abs(overscroll) <= min_overscroll:
+                velocity = 0.
+                if overscroll > 0.:
+                    value = max
+                elif overscroll < 0.:
+                    value = min
+                return False
+    finally:
+        if is_horizontal:
+            sv._content_x = value
+            sv._velocity_x = velocity
+        else:
+            sv._content_y = value
+            sv._velocity_y = velocity
+_update_kinetic_scroll_state = partial(_update_kinetic_scroll_state, abs, "MAX", "MIN")
+
+
+def _update_kinetic_scroll_state_no_overscroll(
+    abs, is_horizontal, min_velocity, friction_divided_by_std_dt,
+    sv: KXScrollView, dt,
+):
+    if is_horizontal:
+        value = sv.content_x
+        min = sv.content_min_x
+        max = sv.content_max_x
+        velocity = sv._velocity_x
+    else:
+        value = sv.content_y
+        min = sv.content_min_y
+        max = sv.content_max_y
+        velocity = sv._velocity_y
+
+    try:
+        total_force = velocity * friction_divided_by_std_dt * dt
+        velocity -= total_force
+        value += velocity * dt
+
+        if value < min:
+            value = min
+        elif value > max:
+            value = max
+        elif abs(velocity) <= min_velocity:
+            pass
+        else:
+            return True
+        velocity = 0.
+        return False
+    finally:
+        if is_horizontal:
+            sv._content_x = value
+            sv._velocity_x = velocity
+        else:
+            sv._content_y = value
+            sv._velocity_y = velocity
+_update_kinetic_scroll_state_no_overscroll = partial(_update_kinetic_scroll_state_no_overscroll, abs)
+
+
+def _create_effect(sv: KXScrollView, *, horizontal, overscroll=False):
+    p = sv.kinetic_params
+    if overscroll:
+        return Clock.create_trigger(partial(
+            _update_kinetic_scroll_state,
+            horizontal,
+            p["min_velocity"],
+            p["edge_damping"],
+            p["spring_constant"],
+            p["min_overscroll"],
+            p["friction"] / p["std_dt"],
+            sv,
+        ), 0, interval=True)
+    else:
+        return Clock.create_trigger(partial(
+            _update_kinetic_scroll_state_no_overscroll,
+            horizontal,
+            p["min_velocity"],
+            p["friction"] / p["std_dt"],
+            sv,
+        ), 0, interval=True)
