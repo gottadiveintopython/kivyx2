@@ -1,12 +1,14 @@
+from kivy.config import Config
 Config.set('graphics', 'width', '1280')
 Config.set('graphics', 'height', '720')
-# Config.set('graphics', 'fullscreen', 1)
 from kivy.app import App
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.lang import Builder
 from kivy.factory import Factory as F
 from kivy.uix.boxlayout import BoxLayout
+
 import kivyx
+from kivyx.uix.scrollview_no_physics import KXSimpleScrollView
 
 
 KV_CODE = '''
@@ -51,22 +53,10 @@ KV_CODE = '''
         id: do_scroll_x
     HSep:
     Label:
-        text: 'do_overscroll_x'
-        color: 0, 1, 0, 1
-    Switch:
-        id: do_overscroll_x
-    HSep:
-    Label:
         text: 'do_scroll_y'
         color: 0, 1, 0, 1
     Switch:
         id: do_scroll_y
-    HSep:
-    Label:
-        text: 'do_overscroll_y'
-        color: 0, 1, 0, 1
-    Switch:
-        id: do_overscroll_y
     HSep:
     Label:
         text: 'hbar_enabled'
@@ -95,8 +85,9 @@ BoxLayout:
         size_hint_x: .2
         size_hint_min_x: 200
     VSep:
-    KXScrollView:
+    KXSimpleScrollView:
         id: outer_sv
+        vbar_x: self.width - self.vbar_thickness
         BoxLayout:
             orientation: 'vertical'
             spacing: 10
@@ -108,8 +99,9 @@ BoxLayout:
                 text: "B"
             MyButton:
                 text: "C"
-            KXScrollView:
+            KXSimpleScrollView:
                 id: inner_sv
+                vbar_x: self.width - self.vbar_thickness
                 size_hint_y: None
                 height: 300
                 GridLayout:
@@ -129,7 +121,7 @@ class ScrollViewConfigurator(BoxLayout):
     sv = ObjectProperty()
     name = StringProperty()
     TARGET_PROPERTIES = (
-        "disabled", "do_scroll_x", "do_scroll_y", "do_overscroll_x", "do_overscroll_y",
+        "disabled", "do_scroll_x", "do_scroll_y",
         "hbar_enabled", "vbar_enabled",
     )
 
@@ -153,4 +145,4 @@ class SampleApp(App):
 
 
 if __name__ == '__main__':
-    SampleApp(title="ScrollView Playground").run()
+    SampleApp(title="SimpleScrollView Playground").run()
