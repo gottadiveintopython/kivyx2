@@ -1,9 +1,10 @@
 # Kivyx2
 
 There is a long-standing issue in Kivy related to touch handling,
-referred to as "The MotionEvent Dispatching Problem" in `Future_of_Kivy_rev1_draft.pdf`.
+referred to as "The MotionEvent Dispatching Problem" in [Future_of_Kivy_rev1_draft.pdf](./Future_of_Kivy_rev1_draft.pdf).
 Kivyx2 is a proof of concept demonstrating a solution to this problem.
 
+<!--
 ## For those who want to read the PDF
 
 I found it on the Kivy Discord server long time ago, but I can no longer find it.
@@ -13,6 +14,8 @@ Reach out to the author to request a copy.
 - Author: Terje Skjaeveland (terje@fastmail.com)
 - Reviewer: Mathieu Virbel (https://github.com/tito)
 - Reviewer: Elliot Garbus (https://github.com/ElliotGarbus)
+
+-->
 
 <!--
 Kivyx2 is an experiment to explore whether Kivy widgets can be designed according to the following rules:
@@ -59,8 +62,8 @@ the `KXScrollView` will recognize the touch as a scrolling gesture, claim exclus
 
 ## A major drawback
 
-This library introduces a new way of handling touch events.
-Widgets that handle touches in the standard Kivy way **might not behave as expected**.
+This library introduces a new convention for handling touch events.
+You should expect that widgets following Kivy's standard convention for handling touch events may not work well with this library.
 
 ## Tested on
 
@@ -71,7 +74,7 @@ Widgets that handle touches in the standard Kivy way **might not behave as expec
 
 ## Notes
 
-- When using Kivy 2.3.1 or earlier, use `kivyx.utils.touchring` instead of `kivy.modules.touchring` because of [this issue](https://github.com/kivy/kivy/issues/9078).
+- When using Kivy 2.3.2 or earlier, use `kivyx.utils.touchring` instead of `kivy.modules.touchring` because of [this issue](https://github.com/kivy/kivy/issues/9078).
 
   ```python
   import asynckivy as ak
