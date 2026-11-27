@@ -2,6 +2,7 @@ __all__ = ("KXScrollView", )
 
 from typing import TypedDict
 from functools import partial
+import math
 from contextlib import contextmanager, ExitStack
 
 from kivy.lang import Builder
@@ -24,8 +25,8 @@ class KineticParams(TypedDict):
     std_dt: float
     min_velocity: float
     min_overscroll: float
-    edge_damping: float
-    spring_constant: float
+    spring_mass: float
+    spring_stiffness: float
 
 Builder.load_string('''
 <KXScrollView>:
@@ -85,10 +86,10 @@ class KXScrollView(Widget):
     kinetic_params: KineticParams = DictProperty({
         "friction": 0.05,
         "std_dt": 0.017,
-        "min_velocity": 16.0,
-        "min_overscroll": 1.0,
-        "edge_damping": 0.25,
-        "spring_constant": 1.6,
+        "min_velocity": 0.5,
+        "min_overscroll": 0.5,
+        "spring_mass": 1.0,
+        "spring_stiffness": 100.0,
     })
 
     do_scroll_x = BooleanProperty(True)
@@ -858,10 +859,14 @@ def _calc_velocity_needed_to_cover_distance(distance, friction, std_dt):
 
 
 def _update_kinetic_scroll_state(
-        abs, MAX, MIN, is_horizontal,
-        min_velocity, edge_damping, spring_constant, min_overscroll, friction_divided_by_std_dt,
+        abs, sqrt, is_horizontal,
+        min_velocity, min_overscroll, friction_divided_by_std_dt,
+        spring_mass, spring_stiffness,
         sv: KXScrollView, dt,
 ):
+    '''
+    A :class:`kivy.effects.dampedscroll.DampedScrollEffect` equivalent.
+    '''
     if is_horizontal:
         value = sv.content_x
         min = sv.content_min_x
@@ -876,50 +881,43 @@ def _update_kinetic_scroll_state(
     try:
         if value < min:
             overscroll = value - min
+            abs_overscroll = -overscroll
+            overscroll_sign = False
         elif value > max:
-            overscroll = value - max
+            overscroll = abs_overscroll = value - max
+            overscroll_sign = True
         else:
-            overscroll = 0.
-            if abs(velocity) <= min_velocity:
-                velocity = 0.
-                return False
+            overscroll = abs_overscroll = 0.
+            overscroll_sign = None
+        if abs_overscroll < min_overscroll and abs(velocity) < min_velocity:
+            velocity = 0.
+            return False
 
-        total_force = velocity * friction_divided_by_std_dt * dt
-        stop_too_much_bounce = None
-        if abs(overscroll) > min_overscroll:
-            total_force += velocity * edge_damping
-            total_force += overscroll * spring_constant
-        if overscroll > 0. and velocity < 0.:
-            stop_too_much_bounce = MAX
-        elif overscroll < 0. and velocity > 0.:
-            stop_too_much_bounce = MIN
-        velocity -= total_force
+        if abs_overscroll > min_overscroll:
+            critical_damping = 2.0 * sqrt(spring_stiffness * spring_mass)
+
+            # Spring force (Hooke's law: F = -kx)
+            spring_force = -spring_stiffness * overscroll
+
+            # Damping force (F = -cv)
+            damping_force = -critical_damping * velocity
+
+            # Total acceleration (F = ma, so a = F/m)
+            acceleration = (spring_force + damping_force) / spring_mass
+
+            velocity += acceleration * dt
+        else:
+            friction_force = velocity * friction_divided_by_std_dt * dt
+            velocity -= friction_force
         value += velocity * dt
 
         # 戻り過ぎへの対策
-        if stop_too_much_bounce is MIN and value > min:
-            velocity = 0.
-            value = min
-            return False
-        if stop_too_much_bounce is MAX and value < max:
+        if overscroll_sign is True and value < max:
             velocity = 0.
             value = max
-            return False
-
-        if abs(velocity) <= min_velocity:
-            if value < min:
-                overscroll = value - min
-            elif value > max:
-                overscroll = value - max
-            else:
-                overscroll = 0.
-            if abs(overscroll) <= min_overscroll:
-                velocity = 0.
-                if overscroll > 0.:
-                    value = max
-                elif overscroll < 0.:
-                    value = min
-                return False
+        elif overscroll_sign is False and value > min:
+            velocity = 0.
+            value = min
     finally:
         if is_horizontal:
             sv._content_x = value
@@ -927,13 +925,16 @@ def _update_kinetic_scroll_state(
         else:
             sv._content_y = value
             sv._velocity_y = velocity
-_update_kinetic_scroll_state = partial(_update_kinetic_scroll_state, abs, "MAX", "MIN")
+_update_kinetic_scroll_state = partial(_update_kinetic_scroll_state, abs, math.sqrt)
 
 
 def _update_kinetic_scroll_state_no_overscroll(
     abs, is_horizontal, min_velocity, friction_divided_by_std_dt,
     sv: KXScrollView, dt,
 ):
+    '''
+    A :class:`kivy.effects.scroll.ScrollEffect` equivalent.
+    '''
     if is_horizontal:
         value = sv.content_x
         min = sv.content_min_x
@@ -977,10 +978,10 @@ def _create_effect(sv: KXScrollView, *, horizontal, overscroll=False):
             _update_kinetic_scroll_state,
             horizontal,
             p["min_velocity"],
-            p["edge_damping"],
-            p["spring_constant"],
             p["min_overscroll"],
             p["friction"] / p["std_dt"],
+            p["spring_mass"],
+            p["spring_stiffness"],
             sv,
         ), 0, interval=True)
     else:
