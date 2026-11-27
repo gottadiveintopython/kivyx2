@@ -1,11 +1,7 @@
-from contextlib import ExitStack
-
-from kivy.properties import ObjectProperty
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.label import Label
 from kivy.uix.floatlayout import FloatLayout
-from kivy.graphics import Color, Rectangle, Line
 
 import asynckivy as ak
 
@@ -83,13 +79,12 @@ class Deck(Label):
     board = None
 
     def on_touch_down(self, touch):
-        ox, oy = touch.opos
-        if self.collide_point(ox, oy):
+        if self.collide_point(*touch.pos):
             if (text := next(self.text_iter, None)) is None:
                 self.disabled = True
             else:
                 card = Label(
-                    size=self._get_cell_size(), center=self.to_window(ox, oy), pos_hint={"x": 0, "y": 0},
+                    size=self._get_cell_size(), center=self.to_window(*touch.pos), pos_hint={"x": 0, "y": 0},
                     text=text, font_size=100,
                 )
                 ak.managed_start(dnd.perform_drag(card, touch))
