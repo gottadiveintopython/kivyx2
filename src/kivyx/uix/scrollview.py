@@ -27,6 +27,7 @@ class KineticParams(TypedDict):
     min_overscroll: float
     spring_mass: float
     spring_stiffness: float
+    overscroll_resistance: float
 
 Builder.load_string('''
 <KXScrollView>:
@@ -90,7 +91,18 @@ class KXScrollView(Widget):
         "min_overscroll": 0.5,
         "spring_mass": 1.0,
         "spring_stiffness": 100.0,
+        "overscroll_resistance": 1.0
     })
+    '''
+    * friction ... :attr:`kivy.effects.kinetic.KineticEffect.friction`
+    * std_dt ... :attr:`kivy.effects.kinetic.KineticEffect.std_dt`
+    * min_velocity ... :attr:`kivy.effects.kinetic.KineticEffect.min_velocity`
+    * min_overscroll ... :attr:`kivy.effects.dampedscroll.DampedScrollEffect.min_overscroll`
+    * spring_mass ... :attr:`kivy.effects.dampedscroll.DampedScrollEffect.spring_mass`
+    * spring_stiffness ... :attr:`kivy.effects.dampedscroll.DampedScrollEffect.spring_stiffness`
+    * overscroll_resistance ... A resistance coefficient applied during touch-driven overscrolling.
+      A larger value results in weaker resistance.
+    '''
 
     do_scroll_x = BooleanProperty(True)
     ''' :attr:`kivy.uix.scrollview.ScrollView.do_scroll_x` '''
@@ -130,7 +142,7 @@ class KXScrollView(Widget):
     content_max_y = NumericProperty()
     '''(read-only) The higher bound of the content's Y position relative to the KXScrollView.'''
 
-    # These can be unfinalized values that may exceed the bounds.
+    # These can be unfinalized values.
     _content_x = NumericProperty()
     _content_y = NumericProperty()
 
